@@ -1,0 +1,8 @@
+#ifndef CONSTANTS_HLSL
+#define CONSTANTS_HLSL
+
+#define RAD_2DEG 57.29578F
+#define DEG2_RAD 0.01745329F
+#define EPS 1e-10F
+
+#endif
