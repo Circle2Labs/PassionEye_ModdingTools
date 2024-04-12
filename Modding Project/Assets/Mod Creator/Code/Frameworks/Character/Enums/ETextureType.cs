@@ -4,6 +4,8 @@ namespace Code.Frameworks.Character.Enums
 	{
 		FaceSkin,
 		BodySkin,
-		Nipples
+		Nipples,
+		FaceOverlay,
+		BodyOverlay
 	}
 }
