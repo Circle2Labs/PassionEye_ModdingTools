@@ -79,6 +79,8 @@ namespace Code.Editor.ModEngine
 #else
 		public const string ModCreatorPath = "Assets/";
 #endif
+
+		public const string Version = "v0.1.0.0";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};
@@ -137,7 +139,7 @@ namespace Code.Editor.ModEngine
 		[MenuItem("Mod Engine/Mod Creator")]
 		public static void Initialize()
 		{
-			var window = GetWindow(typeof(ModCreator), true, "Mod Creator");
+			var window = GetWindow(typeof(ModCreator), true, $"Mod Creator {Version}");
 			window.minSize = new UnityEngine.Vector2(700, 500);
 			window.Show();
 
