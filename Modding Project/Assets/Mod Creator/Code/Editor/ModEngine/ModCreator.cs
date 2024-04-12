@@ -986,6 +986,7 @@ namespace Code.Editor.ModEngine
 							break;
 						case ITexture tex:
 							tex.TextureType = template.TextureType;
+							tex.ObjectType = ECharacterObjectType.Texture;
 							tex.Texture = template.Texture;
 							tex.IsOverlay = template.IsOverlay;
 							tex.OverlayTarget = template.OverlayTarget;
