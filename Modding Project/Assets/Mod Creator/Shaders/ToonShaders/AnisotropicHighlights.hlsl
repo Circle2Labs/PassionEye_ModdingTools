@@ -1,7 +1,7 @@
 #ifndef ANISOTROPIC_HIGHLIGHTS_HLSL
 #define ANISOTROPIC_HIGHLIGHTS_HLSL
 
-#include "Utils.hlsl"
+#include "../Utils.hlsl"
 
 /**
  * \brief Computes stylized Anisotropic highlights from a map.

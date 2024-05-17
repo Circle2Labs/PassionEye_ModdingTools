@@ -8,14 +8,17 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: BaseGlass
-  m_Shader: {fileID: -6465566751694194690, guid: 5ccf8865a71b37945aeb2675d203d939,
-    type: 3}
+  m_Shader: {fileID: 4800000, guid: 444c859f9b741184dbbab549a81eb802, type: 3}
   m_Parent: {fileID: 2100000, guid: 1474ac931c608196f96134ca351eb565, type: 2}
   m_ModifiedSerializedProperties: 16
   m_ValidKeywords:
-  - _ALPHASOURCE_VALUE
   - _SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _ALPHAPREMULTIPLY_ON
+  - _ALPHASOURCE_VALUE
+  - _AUTOSPECULARCOLOR_ON
+  - _SHADOW2COLORAUTO_ON
+  - _USE_ROUGHNESS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -33,6 +36,7 @@ Material:
     - _AutoSpecularColor: 0
     - _Blend: 1
     - _DstBlend: 10
+    - _DstBlendAlpha: 10
     - _Fresnel: 0.085
     - _HasAlpha: 1
     - _Roughness: 0

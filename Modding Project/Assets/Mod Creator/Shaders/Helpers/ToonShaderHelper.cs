@@ -28,14 +28,18 @@ public class ToonShaderHelper : MonoBehaviour
         set => faceMaterial = value;
     }
 
+    private static readonly int FaceCenter = Shader.PropertyToID("_FaceCenter");
+    private static readonly int FaceFwdVec = Shader.PropertyToID("_FaceFwdVec");
+    private static readonly int FaceRightVec = Shader.PropertyToID("_FaceRightVec");
+    
     [ExecuteAlways]
     public void Update()
     {
-        if (FaceMaterial == null || FaceTransform == null)
-            return;
-        
-        FaceMaterial.SetVector("_FaceCenter", FaceTransform.position);
-        FaceMaterial.SetVector("_FaceFwdVec", FaceTransform.forward);
-        FaceMaterial.SetVector("_FaceRightVec", FaceTransform.right);
+        var rotation = FaceTransform.rotation;
+        var material = FaceMaterial;
+
+        material.SetVector(FaceCenter, FaceTransform.position);
+        material.SetVector(FaceFwdVec, rotation * Vector3.forward);
+        material.SetVector(FaceRightVec, rotation * Vector3.right);
     }
 }

@@ -258,24 +258,24 @@ float3 HSVtoRGB(float3 hsv) {
     float s = hsv.y;
     float v = hsv.z;
     
-    float4 rgb;
+    float3 rgb;
     
     float c = v * s;
     float x = c * (1.0f - abs(fmod(h / 60.0f, 2.0f) - 1.0f));
     float m = v - c;
 
     if (h >= 0.0f && h < 60.0f) {
-        rgb = float4(c, x, 0.0f, 1.0f);
+        rgb = float3(c, x, 0.0f);
     } else if (h >= 60.0f && h < 120.0f) {
-        rgb = float4(x, c, 0.0f, 1.0f);
+        rgb = float3(x, c, 0.0f);
     } else if (h >= 120.0f && h < 180.0f) {
-        rgb = float4(0.0f, c, x, 1.0f);
+        rgb = float3(0.0f, c, x);
     } else if (h >= 180.0f && h < 240.0f) {
-        rgb = float4(0.0f, x, c, 1.0f);
+        rgb = float3(0.0f, x, c);
     } else if (h >= 240.0f && h < 300.0f) {
-        rgb = float4(x, 0.0f, c, 1.0f);
+        rgb = float3(x, 0.0f, c);
     } else {
-        rgb = float4(c, 0.0f, x, 1.0f);
+        rgb = float3(c, 0.0f, x);
     }
 
     rgb.xyz += m;
@@ -298,29 +298,18 @@ half3 HSVtoRGB(half3 hsv) {
     half x = c * (1.0f - abs(fmod(h / 60.0f, 2.0f) - 1.0f));
     half m = v - c;
     
-    if (h >= 0.0f && h < 60.0f)
-    {
-        rgb = half4(c, x, 0.0f, 1.0f);
-    }
-    else if (h >= 60.0f && h < 120.0f)
-    {
-        rgb = half4(x, c, 0.0f, 1.0f);
-    }
-    else if (h >= 120.0f && h < 180.0f)
-    {
-        rgb = half4(0.0f, c, x, 1.0f);
-    }
-    else if (h >= 180.0f && h < 240.0f)
-    {
-        rgb = half4(0.0f, x, c, 1.0f);
-    }
-    else if (h >= 240.0f && h < 300.0f)
-    {
-        rgb = half4(x, 0.0f, c, 1.0f);
-    }
-    else
-    {
-        rgb = half4(c, 0.0f, x, 1.0f);
+    if (h >= 0.0f && h < 60.0f) {
+        rgb = half3(c, x, 0.0f);
+    } else if (h >= 60.0f && h < 120.0f) {
+        rgb = half3(x, c, 0.0f);
+    } else if (h >= 120.0f && h < 180.0f) {
+        rgb = half3(0.0f, c, x);
+    } else if (h >= 180.0f && h < 240.0f) {
+        rgb = half3(0.0f, x, c);
+    } else if (h >= 240.0f && h < 300.0f) {
+        rgb = half3(x, 0.0f, c);
+    } else {
+        rgb = half3(c, 0.0f, x);
     }
 
     rgb.xyz += m;

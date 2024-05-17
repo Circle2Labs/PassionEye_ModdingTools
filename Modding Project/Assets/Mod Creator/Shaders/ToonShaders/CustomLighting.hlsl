@@ -9,9 +9,9 @@
 
 // Includes to make this a single file include, minus the ShaderGraphNodes, avoiding bloat
 #include "NdotL.hlsl"
-#include "Utils.hlsl"
+#include "../Utils.hlsl"
 #include "Structures.hlsl"
-#include "ColorSpaces.hlsl"
+#include "../ColorSpaces.hlsl"
 
 // Light struct definition for ShaderGraph preview to work.
 #ifdef SHADERGRAPH_PREVIEW
@@ -41,7 +41,7 @@ float3 TwoBandStylize(float smooth, float secondBandOffset, float NdotL, float3 
 }
 
 float3 TwoBandStylize(float smooth, float secondBandOffset, float3 value) {
-    float3 valueHSL = RGBAtoHSLA(float4(value, 0));
+    float3 valueHSL = RGBtoHSL(value);
     
     float main = smoothstep(0, smooth, value.z);
     float secondary = smoothstep(0, smooth + secondBandOffset, value.z);
@@ -49,7 +49,7 @@ float3 TwoBandStylize(float smooth, float secondBandOffset, float3 value) {
     //float3 mainCol = lerp(firstBandColor, value.gba, main);
     //float3 secondaryCol = lerp(secondBandColor, value.gba, secondary);
 
-    return HSLAtoRGBA(float4(valueHSL.xy, lerp(main, secondary, main), 0));
+    return HSLtoRGB(float3(valueHSL.xy, lerp(main, secondary, main)));
 } 
 
 float3 DirectDiffuse(DiffuseData diffData) {
@@ -79,7 +79,9 @@ float3 Specularity(SpecularData specData, GeometryData geomData) {
 
     float spec = pow(max(dot(geomData.nrmWs, halfVec), 0.0), specData.specPow);
 
-    return spec * specData.specAmt * specData.specCol * NdotL(geomData.nrmWs, geomData.lgtDir);
+    spec = spec * specData.specAmt * specData.specCol * NdotL(geomData.nrmWs, geomData.lgtDir);
+    //TODO: check why specularity skyrockets sometimes
+    return clamp(spec, 0, 2);
 }
 
 float3 Metalness(GeometryData geomData, MetallicData metalData) {
@@ -89,17 +91,15 @@ float3 Metalness(GeometryData geomData, MetallicData metalData) {
 
     gradientSample = LinearToSRGB(gradientSample);
     
-    float3 baseColorHSL = RGBAtoHSLA(float4(metalData.baseCol, 1));
-    if(baseColorHSL.y != 0)
-    {
+    float3 baseColorHSL = RGBtoHSL(metalData.baseCol);
+    if(baseColorHSL.y != 0) {
         baseColorHSL.z = 0.5;
         baseColorHSL.y = metalData.metalness;
-    } else
-    {
-        //should look like siler
+    } else {
+        //should look like silver
         baseColorHSL.z = 0.5;
     }
-    float4 baseColor = HSLAtoRGBA(float4(baseColorHSL, 1));
+    float3 baseColor = HSLtoRGB(baseColorHSL);
     
     return baseColor.rgb * gradientSample.rgb;
 }
@@ -136,8 +136,8 @@ void ShadeAdditionalLights(FaceData faceData, GeometryData geomData, DiffuseData
             diffData.firstBndCol = 0;
             diffData.secBndCol = 0;
             
-            [unroll]
             faceData.isSdf = false;
+            [unroll]
             for(uint i = 0; i < numLights; ++i) {
                 half4 shadowMask = SAMPLE_SHADOWMASK(geomData.lightmapUV);
                 Light light = GetAdditionalLight(i, geomData.posWs, shadowMask);
@@ -205,6 +205,7 @@ float3 PELighting(FaceData faceData, GeometryData geomData, DiffuseData diffData
     #endif
 
     diffData.NdotL = saturate(NdotL(faceData, geomData, diffData) * diffData.shadowAttn);
+    
 
     //main light
     float3 mainLightDiffuse;
@@ -240,13 +241,14 @@ float3 PELighting(FaceData faceData, GeometryData geomData, DiffuseData diffData
     
     //Indirect lighting
     float3 indirectColor;
+    /*
     UNITY_BRANCH if(!faceData.isFace) {
         indirectColor = TwoBandStylize(diffData.smooth, diffData.secBndOffset, IndirectLighting(geomData)) * metalData.baseCol;
     } else {
         indirectColor = TwoBandStylize(diffData.smooth, diffData.secBndOffset, IndirectLighting(geomData)) * metalData.baseCol;
-        
-    }
+    }*/
     
+    indirectColor = IndirectLighting(geomData) * metalData.baseCol;
     return (totalColor + indirectColor);
 }
 

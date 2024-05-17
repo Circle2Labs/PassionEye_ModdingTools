@@ -1,7 +1,7 @@
 #ifndef FACE_SDF_SHADOW_HLSL
 #define FACE_SDF_SHADOW_HLSL
 
-#include "Utils.hlsl"
+#include "../Utils.hlsl"
 
 /**
  * \brief Computes a shadow value for a given SDF shadow map and light direction.

@@ -80,8 +80,8 @@ half4 SampleShadowCoord(half3 PosWS) {
  * \param shadowAmount Amount of shadow to apply.
  * \return Shadowed color.
  */
-float4 AutoShadowColor(float3 baseColor, float shadowAmount) {
-    float3 shadowcolorHSV = RGBAtoHSVA(float4(baseColor,1));
+float3 AutoShadowColor(float3 baseColor, float shadowAmount) {
+    float3 shadowcolorHSV = RGBtoHSV(baseColor);
     if (shadowcolorHSV.x == 0) {
         shadowcolorHSV.z += shadowAmount;
     } else
@@ -90,7 +90,7 @@ float4 AutoShadowColor(float3 baseColor, float shadowAmount) {
         shadowcolorHSV.z += shadowAmount;
         shadowcolorHSV = saturate(shadowcolorHSV);
     }
-    return HSVAtoRGBA(float4(shadowcolorHSV,1));
+    return HSVtoRGB(shadowcolorHSV);
 }
 
 /**
@@ -98,11 +98,11 @@ float4 AutoShadowColor(float3 baseColor, float shadowAmount) {
  * \param baseColor Input color.
  * \return Specular color.
  */
-float4 AutoSpecularColor(float3 baseColor) {
-    float3 specularColorHSV = RGBAtoHSVA(float4(baseColor,1));
+float3 AutoSpecularColor(float3 baseColor) {
+    float3 specularColorHSV = RGBtoHSV(baseColor);
     specularColorHSV.z += 0.7;
     specularColorHSV = saturate(specularColorHSV);
-    return HSVAtoRGBA(float4(specularColorHSV,1));
+    return HSVtoRGB(specularColorHSV);
 }
 
 /**
@@ -126,7 +126,7 @@ float4 UnitySampleGradient(Gradient Gradient, float Time) {
     [unroll]
     for (int c = 1; c < 8; c++)
     {
-        float colorPos = saturate((Time - Gradient.colors[c-1].w) / (Gradient.colors[c].w - Gradient.colors[c-1].w)) * step(c, Gradient.colorsLength-1);
+        float colorPos = saturate((Time - Gradient.colors[c-1].w) / clamp(Gradient.colors[c].w - Gradient.colors[c-1].w, FLT_EPS, FLT_INF)) * step(c, Gradient.colorsLength-1);
         color = lerp(color, Gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), .5));
     }
     #ifndef UNITY_COLORSPACE_GAMMA
@@ -145,7 +145,7 @@ float4 UnitySampleGradient(Gradient Gradient, float Time) {
  */
 float Fresnel(float3 normalWS, float3 ViewDirWS, float power, float intensity) {
     float NdotV = dot(normalize(normalWS), normalize(ViewDirWS));
-    return saturate(pow(1.0 - NdotV, power*10) * intensity);
+    return saturate(pow(abs(1.0 - NdotV), power*10) * intensity);
 }
 
 /**
@@ -164,6 +164,20 @@ half Fresnel(half3 normalWS, half3 ViewDirWS, half power, half intensity) {
 float LinearToPerceivedLightness(float3 color)
 {
     return color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
+}
+
+/**
+* \brief Converts a normal vector from tangent space to world space.
+* \param normalTS Texture normal vector in tangent space.
+* \param normalWS Mesh normal vector in world space.
+* \param tangentWS Mesh tangent vector in world space.
+* \return Normal vector in world space.
+*/
+float3 NormalMapToWorld(float3 normalTS, float3 normalWS, float4 tangentWS) {
+    float sign = tangentWS.w;
+    float3 bitangentWS = cross(normalWS, tangentWS.xyz) * sign;
+                
+    return TransformTangentToWorld(normalTS, half3x3(tangentWS.xyz, bitangentWS.xyz, normalWS.xyz));
 }
 
 #endif

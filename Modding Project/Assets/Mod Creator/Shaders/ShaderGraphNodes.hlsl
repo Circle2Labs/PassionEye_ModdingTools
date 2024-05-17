@@ -7,13 +7,13 @@
     #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
 #endif
 
-#include "AnisotropicHighlights.hlsl"
-#include "NdotL.hlsl"
-#include "FaceSdfShadow.hlsl"
-#include "SphereNormals.hlsl"
+#include "ToonShaders/AnisotropicHighlights.hlsl"
+#include "ToonShaders/NdotL.hlsl"
+#include "ToonShaders/FaceSdfShadow.hlsl"
+#include "ToonShaders/SphereNormals.hlsl"
+#include "ToonShaders/Structures.hlsl"
+#include "ToonShaders/CustomLighting.hlsl"
 #include "Utils.hlsl"
-#include "Structures.hlsl"
-#include "CustomLighting.hlsl"
 #include "ColorSpaces.hlsl"
 
 //====================================================================

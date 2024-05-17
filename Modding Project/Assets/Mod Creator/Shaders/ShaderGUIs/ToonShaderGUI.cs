@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -6,12 +6,12 @@ namespace GameAssets.Shaders.ShaderGUIs
 {
     public class ToonShaderGUI : BaseShaderGUI
     {
-        // It's crucial to ensure these are correctly populated before use.
         MaterialProperty[] properties;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             Material mat = materialEditor.target as Material;
+            SetupMaterialBlendMode(mat);
             
             FindProperties(properties);
 
