@@ -16,7 +16,7 @@ break;
 //shadergraph includes
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
 
-#include "Assets/GameAssets/Shaders/ColorSpaces.hlsl"
+#include "../../ColorSpaces.hlsl"
 
 float4 pack(float depth)
 {

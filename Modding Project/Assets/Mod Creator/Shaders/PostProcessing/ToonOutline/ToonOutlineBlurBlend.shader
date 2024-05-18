@@ -13,7 +13,7 @@
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            #include "Assets/GameAssets/Shaders/PostProcessing/PostProcessingHelpers.hlsl"
+            #include "../PostProcessingHelpers.hlsl"
             
             #pragma vertex vert
             #pragma fragment frag

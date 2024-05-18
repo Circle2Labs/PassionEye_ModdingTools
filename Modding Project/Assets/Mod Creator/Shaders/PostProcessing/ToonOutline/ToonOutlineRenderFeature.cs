@@ -26,17 +26,17 @@ namespace Code.Frameworks.Outline
         
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            if(renderingData.cameraData.cameraType == CameraType.Game)
+            if(width != renderingData.cameraData.camera.pixelWidth || height != renderingData.cameraData.camera.pixelHeight)
             {
-                if(width != renderingData.cameraData.camera.pixelWidth || height != renderingData.cameraData.camera.pixelHeight)
-                {
-                    width = renderingData.cameraData.camera.pixelWidth;
-                    height = renderingData.cameraData.camera.pixelHeight;
-                    rtHandleSystem.ResetReferenceSize(width, height);
-                }
-
-                renderer.EnqueuePass(toonOutlinePass);
+                width = renderingData.cameraData.camera.pixelWidth;
+                height = renderingData.cameraData.camera.pixelHeight;
+                rtHandleSystem.ResetReferenceSize(width, height);
             }
+            
+            toonOutlinePass.ConfigureInput(ScriptableRenderPassInput.Color |
+                                           ScriptableRenderPassInput.Depth |
+                                           ScriptableRenderPassInput.Normal);
+            renderer.EnqueuePass(toonOutlinePass);
         }
 
         public override void Create()
