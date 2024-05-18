@@ -8,9 +8,8 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Cube
-  m_Shader: {fileID: -6465566751694194690, guid: 5ccf8865a71b37945aeb2675d203d939,
-    type: 3}
-  m_Parent: {fileID: 2100000, guid: 8d93e21ecff0b6ad4815706d93b8abce, type: 2}
+  m_Shader: {fileID: 4800000, guid: 444c859f9b741184dbbab549a81eb802, type: 3}
+  m_Parent: {fileID: 2100000, guid: 1474ac931c608196f96134ca351eb565, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ALPHASOURCE_VALUE
