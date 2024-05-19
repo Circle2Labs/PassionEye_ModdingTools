@@ -1,0 +1,4 @@
+[submodule "Modding Project/Assets/Mod Creator/data/languages"]
+	path = Modding Project/Assets/Mod Creator/data/languages
+	url = https://github.com/Circle2Labs/PassionEye_Translations
+	branch = develop
