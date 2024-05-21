@@ -80,7 +80,7 @@ namespace Code.Editor.ModEngine
 		public const string ModCreatorPath = "Assets/";
 #endif
 
-		public const string Version = "v0.1.0.0";
+		public const string Version = "v0.1.1.0";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};
@@ -184,6 +184,16 @@ namespace Code.Editor.ModEngine
 				{
 					GUILayout.Space(2);
 					
+					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_PRESETSLANGUAGE_LANGUAGES"), EditorStyles.boldLabel);
+
+					var prevLanguage = Language;
+					Language = EditorGUILayout.Popup($"{GetLocalizedString("MODCREATOR_PRESETSLANGUAGE_CURRENTLANG")}*", Language, AvailableLanguages);
+
+					if (prevLanguage != Language)
+						SetLanguage(AvailableLanguages[Language]);
+					
+					EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_PRESETSLANGUAGE_SAVE"), EditorStyles.boldLabel);
 					
 					GUILayout.BeginHorizontal();
@@ -202,7 +212,7 @@ namespace Code.Editor.ModEngine
 					
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_PRESETSLANGUAGE_LOAD"), EditorStyles.boldLabel);
 					
-					presetsScrollPosition = GUILayout.BeginScrollView(presetsScrollPosition, GUILayout.Height(150));
+					presetsScrollPosition = GUILayout.BeginScrollView(presetsScrollPosition);
 
 					if (Presets.Count > 0)
 					{
@@ -216,16 +226,6 @@ namespace Code.Editor.ModEngine
 					}
 
 					GUILayout.EndScrollView();
-					
-					EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-					
-					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_PRESETSLANGUAGE_LANGUAGES"), EditorStyles.boldLabel);
-
-					var prevLanguage = Language;
-					Language = EditorGUILayout.Popup($"{GetLocalizedString("MODCREATOR_PRESETSLANGUAGE_CURRENTLANG")}*", Language, AvailableLanguages);
-
-					if (prevLanguage != Language)
-						SetLanguage(AvailableLanguages[Language]);
 					
 					break;
 				}
