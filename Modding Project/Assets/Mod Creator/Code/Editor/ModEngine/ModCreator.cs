@@ -15,6 +15,7 @@ using Code.Frameworks.Character.CharacterObjects;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
+using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes;
 using Code.Frameworks.ModdedScenes.Flags;
 using Code.Frameworks.Studio.Enums;
@@ -120,6 +121,8 @@ namespace Code.Editor.ModEngine
 		private UnityEngine.Vector2 basicScrollPosition;
 		private UnityEngine.Vector2 advancedScrollPosition;
 
+		private bool clothingSimulationFold;
+		
 		private Template copyBuffer;
 		private Assembly tempAssembly;
 
@@ -406,7 +409,10 @@ namespace Code.Editor.ModEngine
 									
 									template.ClothingStates[i] = obj;
 								}
-
+								
+								GUILayout.Space(5);
+								
+								clothingSimulation(template);
 								break;
 							case ECharacterObjectType.Accessory:
 								template.AccessoryType = (EAccessoryType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_ACCSLOT")}*", template.AccessoryType, "MODCREATOR_BASIC_ACCSLOT_");
@@ -969,6 +975,7 @@ namespace Code.Editor.ModEngine
 					{
 						case IClothing cloth:
 							cloth.ClothingType = template.ClothingType;
+							cloth.ClothSimulations = template.ClothSimulations;
 							cloth.ObjectType = ECharacterObjectType.Clothing;
 							cloth.ClothingStates = new Transform[Enum.GetNames(typeof(EClothingState)).Length];
 
@@ -1260,6 +1267,109 @@ namespace {Manifest.Author}.{Manifest.Name}
 			return builder.ToString();
 		}
 
+		private void clothingSimulation(Template template)
+		{ // todo: localize this stuff
+			GUILayout.Space(5);
+
+			template.ClothSimulations ??= Array.Empty<ClothSimulation>();
+			var tempList = template.ClothSimulations.ToList();
+
+			// unity can you be more hacky than this?
+			var style = EditorStyles.foldout;
+			var previousStyle = style.fontStyle;
+			
+			style.fontStyle = FontStyle.Bold;
+			clothingSimulationFold = EditorGUILayout.Foldout(clothingSimulationFold, GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_TITLE"), true);
+			style.fontStyle = previousStyle;
+
+			if (clothingSimulationFold)
+			{
+				GUILayout.BeginHorizontal();
+				GUILayout.Label("List");
+				GUILayout.FlexibleSpace();
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+					tempList.Add(new ClothSimulation());
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+					tempList.Clear();
+				GUILayout.EndHorizontal();
+			}
+			
+			if (clothingSimulationFold)
+			{
+				GUILayout.Space(2);
+				
+				for (var i = 0; i < tempList.Count; i++)
+				{
+					var clothSim = tempList[i];
+
+					GUILayout.BeginHorizontal();
+					clothSim.Enabled = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ENABLED"), clothSim.Enabled);
+					if (GUILayout.Button("-", GUILayout.Width(25)))
+					{
+						tempList.RemoveAt(i);
+						break;
+					}
+					GUILayout.EndHorizontal();
+					
+					clothSim.CollisionMode = (ECollisionMode)LocalizedEnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_COLLISIONMODE"), clothSim.CollisionMode, "MODCREATOR_BASIC_CLOTHSIM_COLLISIONMODE_");
+					clothSim.Radius = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_RADIUS"), clothSim.Radius, 0f, 1f);
+					clothSim.Friction = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_FRICTION"), clothSim.Friction, 0f, 1f);
+					clothSim.UseBackstop = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_USEBACKSTOP"), clothSim.UseBackstop);
+
+					GUILayout.Space(5);
+					
+					clothSim.SimulationType = (ESimulationType)LocalizedEnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_SIMULATIONTYPE"), clothSim.SimulationType, "MODCREATOR_BASIC_CLOTHSIM_SIMULATIONTYPE_");
+
+					if (clothSim.SimulationType == ESimulationType.BoneCloth)
+					{
+						clothSim.UseCustomSkinning = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_CUSTOMSKINNING"), clothSim.UseCustomSkinning);
+
+						GUILayout.Space(5);
+					}
+
+					if (clothSim.SimulationType == ESimulationType.BoneCloth)
+						clothSim.ConnectionMode = (EConnectionMode)LocalizedEnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_CONNECTIONMODE"), clothSim.ConnectionMode, "MODCREATOR_BASIC_CLOTHSIM_CONNECTIONMODE_");
+
+					if (clothSim.SimulationType is ESimulationType.MeshCloth)
+						clothSim.Reduction = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_REDUCTION"), clothSim.Reduction, 0f, 0.2f);
+
+					if (clothSim.UseCustomSkinning)
+					{
+						GUILayout.Space(5);
+
+						clothSim.SkinningBones ??= Array.Empty<Transform>();
+
+						var skinningBonesList = clothSim.SkinningBones.ToList();
+						verticalList(skinningBonesList, GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_SKINNINGBONES"));
+
+						clothSim.SkinningBones = skinningBonesList.ToArray();
+					}
+
+					if (clothSim.SimulationType is ESimulationType.BoneCloth or ESimulationType.BoneSpring)
+					{
+						GUILayout.Space(5);
+
+						clothSim.RootBones ??= Array.Empty<Transform>();
+
+						var rootBonesList = clothSim.RootBones.ToList();
+						verticalList(rootBonesList, GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ROOTBONES"));
+
+						clothSim.RootBones = rootBonesList.ToArray();
+					}
+
+					if (clothSim.SimulationType == ESimulationType.MeshCloth)
+						clothSim.PaintMap = (Texture2D)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_PAINTMAP"), clothSim.PaintMap, typeof(Texture2D), false);
+
+					if (tempList.Count > 0)
+						EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+					
+					tempList[i] = clothSim;
+				}
+			}
+			
+			template.ClothSimulations = tempList.ToArray();
+		}
+		
 		#region presets
 
 		public void SavePreset(string presetName)
@@ -1872,6 +1982,32 @@ namespace {Manifest.Author}.{Manifest.Name}
 					CurrentTemplate = -1;
 					return;
 				}
+				GUILayout.EndHorizontal();
+			}
+		}
+		
+		private void verticalList(List<Transform> list, string labelTitle)
+		{
+			GUILayout.BeginHorizontal();
+			
+			GUILayout.Label(labelTitle);
+			
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+				list.Add(null);
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+				list.Clear();
+			
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < list.Count; i++)
+			{
+				GUILayout.BeginHorizontal();
+				
+				list[i] = (Transform)EditorGUILayout.ObjectField("", list[i], typeof(Transform), true);
+				
+				if (GUILayout.Button("-", GUILayout.Width(25)))
+					list.RemoveAt(i);
+				
 				GUILayout.EndHorizontal();
 			}
 		}

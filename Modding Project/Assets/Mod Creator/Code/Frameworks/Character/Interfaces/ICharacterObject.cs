@@ -26,7 +26,7 @@ namespace Code.Frameworks.Character.Interfaces
         public Sprite Icon { get; set; }
 
         /// <summary>
-        /// Mame assigned to the item.
+        /// Name assigned to the item.
         /// </summary>   
         public string Name { get; set; }
 
