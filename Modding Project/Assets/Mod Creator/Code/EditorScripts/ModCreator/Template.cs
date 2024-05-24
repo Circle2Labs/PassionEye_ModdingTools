@@ -1,17 +1,15 @@
 #if UNITY_EDITOR
 using System;
-using System.Collections.Generic;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
+using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes.Flags;
 using Code.Frameworks.Studio.Enums;
 using UnityEngine;
-using UnityEngine.Serialization;
-using Tuple = Code.Tools.Tuple;
 
 namespace Code.EditorScripts.ModCreator
 {
-	[Serializable]
+    [Serializable]
 	public class Template
 	{
 		public ETemplateType TemplateType;
@@ -121,7 +119,10 @@ public class {Type} : {GetTemplateClass(this)}
 
 		// Clothing states map
 		public Transform[] ClothingStates;
-		
+
+		// Clothing Physics
+		public ClothSimulation[] ClothSimulations;
+
 		// Advanced class source
 		public string Source = "";
 
@@ -147,6 +148,9 @@ public class {Type} : {GetTemplateClass(this)}
 			
 			var copiedStates = new Transform[ClothingStates.Length];
 			Array.Copy(ClothingStates, copiedStates, ClothingStates.Length);
+
+			var copiedClothSimulations = new ClothSimulation[ClothSimulations.Length];
+			Array.Copy(ClothSimulations, copiedClothSimulations, ClothSimulations.Length);
 			
 			var template = new Template
 			{
@@ -170,6 +174,7 @@ public class {Type} : {GetTemplateClass(this)}
 				Type = Type,
 				Advanced = Advanced,
 				Usings = copiedIncludes,
+				ClothSimulations = copiedClothSimulations,
 				TextureType = TextureType,
 				Texture = Texture,
 				OverlayTarget = OverlayTarget,

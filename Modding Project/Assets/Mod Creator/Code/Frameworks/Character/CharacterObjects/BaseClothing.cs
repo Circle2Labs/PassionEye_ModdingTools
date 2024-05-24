@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
+using Code.Frameworks.PhysicsSimulation;
 using Railgun.AssetPipeline.Attributes;
 using UnityEngine;
 
@@ -53,6 +54,9 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[APLIgnore]
 		public Character Character { get; private set; }
 
+		[field: SerializeField]
+		public ClothSimulation[] ClothSimulations { get; set; }
+		
         public virtual void Assign(Character chara)
 		{
 
