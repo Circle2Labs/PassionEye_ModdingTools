@@ -150,7 +150,7 @@ public class {Type} : {GetTemplateClass(this)}
 			Array.Copy(ClothingStates, copiedStates, ClothingStates.Length);
 
 			var copiedClothSimulations = new ClothSimulation[ClothSimulations.Length];
-			Array.Copy(ClothSimulations, copiedClothSimulations, ClothingStates.Length);
+			Array.Copy(ClothSimulations, copiedClothSimulations, ClothSimulations.Length);
 			
 			var template = new Template
 			{
