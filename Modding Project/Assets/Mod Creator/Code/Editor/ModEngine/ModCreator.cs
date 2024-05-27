@@ -81,7 +81,7 @@ namespace Code.Editor.ModEngine
 		public const string ModCreatorPath = "Assets/";
 #endif
 
-		public const string Version = "v0.1.1.0";
+		public const string Version = "v0.1.2.0";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};
@@ -151,6 +151,11 @@ namespace Code.Editor.ModEngine
 			var modCreator = (ModCreator)window;
 			modCreator.AvailableLanguages = LocalizationManager.Instance.GetAvailableLanguages().ToArray();
 			modCreator.SetLanguage("English");
+		}
+
+		public void OnDestroy()
+		{
+			SavePreset("_previous_state_", true);
 		}
 
 		public void OnGUI()
@@ -1285,7 +1290,7 @@ namespace {Manifest.Author}.{Manifest.Name}
 			if (clothingSimulationFold)
 			{
 				GUILayout.BeginHorizontal();
-				GUILayout.Label("List");
+				GUILayout.Label($"List{itemsCount(tempList.Count)}");
 				GUILayout.FlexibleSpace();
 				if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
 					tempList.Add(new ClothSimulation());
@@ -1372,7 +1377,7 @@ namespace {Manifest.Author}.{Manifest.Name}
 		
 		#region presets
 
-		public void SavePreset(string presetName)
+		public void SavePreset(string presetName, bool overwrite = false)
 		{
 			if (string.IsNullOrEmpty(presetName))
 			{
@@ -1393,8 +1398,15 @@ namespace {Manifest.Author}.{Manifest.Name}
 
 			foreach (var go in preset.Prefabs.Cast<GameObject>())
 				go.transform.SetParent(root.transform);
+
+			var targetPath = Path.Combine(ModCreatorPath, $"Code/Editor/ModEngine/Presets/{presetName}.prefab");
+			if (File.Exists(targetPath))
+			{
+				Debug.Log($"Removing preset {presetName}");
+				File.Delete(targetPath);
+			}
 			
-			var path = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(ModCreatorPath, $"Code/Editor/ModEngine/Presets/{presetName}.prefab"));
+			var path = AssetDatabase.GenerateUniqueAssetPath(targetPath);
 			
 			PrefabUtility.SaveAsPrefabAsset(root.gameObject, path);
 			
@@ -1842,7 +1854,7 @@ namespace {Manifest.Author}.{Manifest.Name}
 		private void verticalList(List<string> list, string labelTitle)
 		{
 			GUILayout.BeginHorizontal();
-			GUILayout.Label(labelTitle);
+			GUILayout.Label(labelTitle + itemsCount(list.Count));
 			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
 				list.Add("");
 			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
@@ -1896,7 +1908,7 @@ namespace {Manifest.Author}.{Manifest.Name}
 		private void verticalList(List<Object> list, ETemplateType type, string labelTitle)
 		{
 			GUILayout.BeginHorizontal();
-			GUILayout.Label(labelTitle);
+			GUILayout.Label(labelTitle + itemsCount(list.Count));
 			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
 			{
 				list.Add(new Object());
@@ -1990,7 +2002,7 @@ namespace {Manifest.Author}.{Manifest.Name}
 		{
 			GUILayout.BeginHorizontal();
 			
-			GUILayout.Label(labelTitle);
+			GUILayout.Label(labelTitle + itemsCount(list.Count));
 			
 			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
 				list.Add(null);
@@ -2015,7 +2027,7 @@ namespace {Manifest.Author}.{Manifest.Name}
 		private string[] verticalList(string[] array, string labelTitle)
 		{
 			GUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(labelTitle, EditorStyles.boldLabel);
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
 			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
 				array = array.Append("").ToArray();
 			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
@@ -2040,6 +2052,11 @@ namespace {Manifest.Author}.{Manifest.Name}
 			return array;
 		}
 
+		private string itemsCount(int count)
+		{
+			return $" ({count} item{(count == 1 ? "" : "s")})";
+		}
+		
 		#endregion
 
 		public void SetLanguage(string language)

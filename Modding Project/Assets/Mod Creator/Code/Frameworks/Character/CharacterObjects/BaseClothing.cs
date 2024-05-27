@@ -74,7 +74,14 @@ namespace Code.Frameworks.Character.CharacterObjects
 
 		public GameObject GetStateObject(EClothingState state)
 		{
-			return null;
+			if (ClothingStates == null)
+				return null;
+
+			var index = (int)state;
+			if (index >= ClothingStates.Length || ClothingStates[index] == null)
+				return null;
+            
+			return ClothingStates[index].gameObject;
 		}
 		
 		public GameObject GetGameObject()
