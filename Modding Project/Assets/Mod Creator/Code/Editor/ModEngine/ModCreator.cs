@@ -1400,7 +1400,7 @@ namespace {Manifest.Author}.{Manifest.Name}
 				go.transform.SetParent(root.transform);
 
 			var targetPath = Path.Combine(ModCreatorPath, $"Code/Editor/ModEngine/Presets/{presetName}.prefab");
-			if (File.Exists(targetPath))
+			if (overwrite && File.Exists(targetPath))
 			{
 				Debug.Log($"Removing preset {presetName}");
 				File.Delete(targetPath);
@@ -1590,16 +1590,28 @@ namespace {Manifest.Author}.{Manifest.Name}
 						var clothingObject = gameObject.GetComponent<IClothing>();
 						if (clothingObject != null)
 						{
-							if (clothingObject.GetStateObject(EClothingState.Full) == null)
+							var fullState = clothingObject.GetStateObject(EClothingState.Full);
+							if (fullState == null)
 							{
 								pass = false;
 								Debug.LogWarning($"Full state missing for {template.Name}");
 							}
-					
-							if (clothingObject.GetStateObject(EClothingState.Half) == null)
+							else if (fullState.GetComponentInChildren<SkinnedMeshRenderer>() == null)
+							{
+								pass = false;
+								Debug.LogWarning($"Skinned mesh renderer missing for full state of {template.Name}. Make sure your mesh has an Armature");
+							}
+
+							var halfState = clothingObject.GetStateObject(EClothingState.Half);
+							if (halfState == null)
 							{
 								Debug.LogWarning($"Optional half state missing for {template.Name}");
-							}	
+							}
+							else if (halfState.GetComponentInChildren<SkinnedMeshRenderer>() == null)
+							{
+								pass = false;
+								Debug.LogWarning($"Skinned mesh renderer missing for half state of {template.Name}. Make sure your mesh has an Armature");
+							}
 						}
 					}
 
