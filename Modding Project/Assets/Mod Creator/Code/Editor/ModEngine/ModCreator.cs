@@ -1396,8 +1396,13 @@ namespace {Manifest.Author}.{Manifest.Name}
 			var preset = root.AddComponent<ModCreatorPreset>();
 			ToPreset(preset);
 
-			foreach (var go in preset.Prefabs.Cast<GameObject>())
+			foreach (var obj in preset.Prefabs)
+			{
+				if (obj == null || obj is not GameObject go) 
+					continue;
+				
 				go.transform.SetParent(root.transform);
+			}
 
 			var targetPath = Path.Combine(ModCreatorPath, $"Code/Editor/ModEngine/Presets/{presetName}.prefab");
 			if (overwrite && File.Exists(targetPath))
@@ -1410,8 +1415,13 @@ namespace {Manifest.Author}.{Manifest.Name}
 			
 			PrefabUtility.SaveAsPrefabAsset(root.gameObject, path);
 			
-			foreach (var go in preset.Prefabs.Cast<GameObject>())
+			foreach (var obj in preset.Prefabs)
+			{
+				if (obj == null || obj is not GameObject go) 
+					continue;
+				
 				go.transform.SetParent(null);
+			}
 			 
 			DestroyImmediate(root.gameObject);
 			
@@ -1443,8 +1453,13 @@ namespace {Manifest.Author}.{Manifest.Name}
 			var preset = root.GetComponent<ModCreatorPreset>();
 			FromPreset(preset);
 
-			foreach (var go in preset.Prefabs.Cast<GameObject>())
+			foreach (var obj in preset.Prefabs)
+			{
+				if (obj == null || obj is not GameObject go) 
+					continue;
+				
 				go.transform.SetParent(null);
+			}
 
 			DestroyImmediate(root);
 
@@ -1920,13 +1935,20 @@ namespace {Manifest.Author}.{Manifest.Name}
 		private void verticalList(List<Object> list, ETemplateType type, string labelTitle)
 		{
 			GUILayout.BeginHorizontal();
-			GUILayout.Label(labelTitle + itemsCount(list.Count));
+			GUILayout.Label(labelTitle + itemsCount(Templates.Count(t => t.TemplateType == type)));
 			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
 			{
-				list.Add(new Object());
-				Templates.Add(new Template { TemplateType = type });
-				
-				CurrentTemplate = -1;
+				if (Templates.Count < 254)
+				{
+					list.Add(new Object());
+					Templates.Add(new Template { TemplateType = type });
+
+					CurrentTemplate = -1;
+				}
+				else
+				{
+					Debug.LogWarning("More than 254 modded objects in a single mod is not supported");
+				}
 			}
 			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
 			{
