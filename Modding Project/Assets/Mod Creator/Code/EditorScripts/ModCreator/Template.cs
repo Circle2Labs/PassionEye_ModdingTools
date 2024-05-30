@@ -98,6 +98,9 @@ public class {Type} : {GetTemplateClass(this)}
 		
 		// Texture Overlay Mode
 		public EOverlayMode OverlayMode;
+
+		// Texture Overlay Color
+		public Color OverlayColor = Color.white;
 		
 		// Texture is overlay
 		public bool IsOverlay;
@@ -179,7 +182,8 @@ public class {Type} : {GetTemplateClass(this)}
 				Texture = Texture,
 				OverlayTarget = OverlayTarget,
 				OverlayMode = OverlayMode,
-				IsOverlay = IsOverlay
+				IsOverlay = IsOverlay,
+				OverlayColor = OverlayColor
 			};
 
 			return template;

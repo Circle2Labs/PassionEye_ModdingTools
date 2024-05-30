@@ -433,7 +433,7 @@ namespace Code.Editor.ModEngine
 									template.OverlayMode = EOverlayMode.FullTexture;
 									template.IsOverlay = true;
 								}
-								else if (template.TextureType is ETextureType.FaceOverlay)
+								else if (template.TextureType is ETextureType.FaceOverlay or ETextureType.Lips)
 								{
 									template.OverlayTarget = EOverlayTarget.Face;
 									template.OverlayMode = EOverlayMode.FullTexture;
@@ -443,6 +443,9 @@ namespace Code.Editor.ModEngine
 								{
 									template.IsOverlay = false;
 								}
+
+								if (template.IsOverlay)
+									template.OverlayColor = EditorGUILayout.ColorField($"{GetLocalizedString("MODCREATOR_BASIC_OVERLAYCOLOR")}*", template.OverlayColor);
 								
 								GUILayout.BeginHorizontal();
 								template.Texture = (Texture2D)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_TEX")}*", template.Texture, typeof(Texture2D), false, GUILayout.Width(128 + 150), GUILayout.Height(128));
@@ -722,6 +725,7 @@ namespace Code.Editor.ModEngine
 									template.IsOverlay = tex.IsOverlay;
 									template.OverlayTarget = tex.OverlayTarget;
 									template.OverlayMode = tex.OverlayMode;
+									template.OverlayColor = tex.OverlayColor;
 									break;
 							}
 						}
@@ -1003,6 +1007,7 @@ namespace Code.Editor.ModEngine
 							tex.IsOverlay = template.IsOverlay;
 							tex.OverlayTarget = template.OverlayTarget;
 							tex.OverlayMode = template.OverlayMode;
+							tex.OverlayColor = template.OverlayColor;
 							break;
 					}
 				}
@@ -1626,6 +1631,12 @@ namespace {Manifest.Author}.{Manifest.Name}
 							{
 								pass = false;
 								Debug.LogWarning($"Skinned mesh renderer missing for half state of {template.Name}. Make sure your mesh has an Armature");
+							}
+
+							if (fullState == halfState && fullState != null)
+							{
+								pass = false;
+								Debug.LogWarning($"Full and half states of {template.Name} are the same object. Make sure they are separate objects or unassign the half state");
 							}
 						}
 					}
