@@ -1213,18 +1213,25 @@ namespace Code.Editor.ModEngine
 			for (var i = 0; i < Templates.Count; i++)
 			{
 				var template = Templates[i];
+				
+				var prefab = Prefabs[i];
+				if (prefab == null)
+				{
+					Debug.LogWarning($"Failed assigning renderers for {template.Name} because it has no object assigned");
+					continue;
+				}
 
 				switch (template.TemplateType)
 				{
 					case ETemplateType.CharacterObject:
 					{
-						var characterObject = ((GameObject)Prefabs[i]).GetComponent<ICharacterObject>();
+						var characterObject = ((GameObject)prefab).GetComponent<ICharacterObject>();
 						characterObject.Renderers = characterObject.GetGameObject().GetComponentsInChildren<Renderer>();
 						break;
 					}
 					case ETemplateType.StudioObject:
 					{
-						var studioObject = ((GameObject)Prefabs[i]).GetComponent<IStudioObject>();
+						var studioObject = ((GameObject)prefab).GetComponent<IStudioObject>();
 						studioObject.Renderers = studioObject.GetGameObject().GetComponentsInChildren<Renderer>();
 						break;
 					}
@@ -1649,10 +1656,40 @@ namespace {Manifest.Author}.{Manifest.Name}
 							pass = false;
 							Debug.LogWarning($"Texture missing for {template.Name}");
 						}
+
+						var components = gameObject.GetComponents<Component>().ToList();
+						components.Remove(gameObject.transform);
+						components.Remove((Component)texture);
+
+						if (gameObject.transform.childCount == 0 && components.Count == 0) 
+							continue;
+						
+						pass = false;
+						Debug.LogWarning($"Object for {template.Name} is not empty. Texture mods must have empty GameObjects assigned with no meshes");
 					}
+				}
+				else
+				{
+					pass = false;
+					Debug.LogWarning($"Object is not set for {template.Name}");
 				}
 			}
 
+			for (var i = 0; i < Prefabs.Count; i++)
+			{
+				for (var k = 0; k < Prefabs.Count; k++)
+				{
+					if (i == k || Prefabs[i] == null || Prefabs[k] == null)
+						continue;
+
+					if (Prefabs[i] != Prefabs[k]) 
+						continue;
+					
+					pass = false;
+					Debug.LogWarning($"Items {Templates[i].Name} and {Templates[k].Name} share the same object. This is not allowed");
+				}
+			}
+			
 			return pass;
 		}
 
@@ -1757,6 +1794,21 @@ namespace {Manifest.Author}.{Manifest.Name}
 						pass = false;
 						Debug.LogWarning($"Source Code is not set for for {template.Name}");
 					}
+				}
+			}
+
+			for (var i = 0; i < Prefabs.Count; i++)
+			{
+				for (var k = 0; k < Prefabs.Count; k++)
+				{
+					if (i == k || Prefabs[i] == null || Prefabs[k] == null)
+						continue;
+
+					if (Prefabs[i] != Prefabs[k]) 
+						continue;
+					
+					pass = false;
+					Debug.LogWarning($"Items {Templates[i].Name} and {Templates[k].Name} share the same object. This is not allowed");
 				}
 			}
 
