@@ -63,6 +63,9 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[field: SerializeField]
 		public bool IsOverlay { get; set; }
 		
+		[field: SerializeField]
+		public Color OverlayColor { get; set; }
+		
 		public virtual void Assign(Character chara)
 		{
 
@@ -79,6 +82,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 		}
 
 		public void ApplyTexture(Texture2D texture)
+		{
+			
+		}
+
+		public void UpdateColor(bool reset = false)
 		{
 			
 		}
