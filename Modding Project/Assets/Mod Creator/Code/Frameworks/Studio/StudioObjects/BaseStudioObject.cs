@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Code.Frameworks.Studio.Enums;
 using Code.Frameworks.Studio.Interfaces;
+using Code.Tools;
 using UnityEngine;
 
 namespace Code.Frameworks.Studio.StudioObjects
@@ -40,6 +41,11 @@ namespace Code.Frameworks.Studio.StudioObjects
 		public List<LODGroup> GetLODGroups()
 		{
 			return null;
+		}
+		
+		public int GetLOD(SkinnedMeshRenderer rend)
+		{
+			return 0;
 		}
 	}
 }

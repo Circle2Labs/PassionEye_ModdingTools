@@ -36,6 +36,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Color = UnityEngine.Color;
 using Object = UnityEngine.Object;
 using SceneManager = UnityEngine.SceneManagement.SceneManager;
 using Tuple = Code.Tools.Tuple;
@@ -116,12 +117,38 @@ namespace Code.Editor.ModEngine
 		[SerializeField]
 		public ECompression DebugCompressionType = ECompression.None;
 		
+		private static GUIStyle guiStyle;
+		public static GUIStyle GUIStyle
+		{
+			get
+			{
+				if (guiStyle != null)
+					return guiStyle;
+
+				guiStyle = new GUIStyle();
+				return guiStyle;
+			}
+		}
+		
+		private static Texture2D texture;
+		public static Texture2D Texture
+		{
+			get
+			{
+				if (texture != null)
+					return texture;
+
+				texture = new Texture2D(1, 1);
+				return texture;
+			}
+		}
+		
 		private UnityEngine.Vector2 presetsScrollPosition;
 		private UnityEngine.Vector2 builderScrollPosition;
 		private UnityEngine.Vector2 basicScrollPosition;
 		private UnityEngine.Vector2 advancedScrollPosition;
 
-		private bool clothingSimulationFold;
+		private bool physicsSimulationFold;
 		
 		private Template copyBuffer;
 		private Assembly tempAssembly;
@@ -395,6 +422,10 @@ namespace Code.Editor.ModEngine
 						{
 							case ECharacterObjectType.Hair:
 								template.HairType = (EHairType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_HAIRSLOT")}*", template.HairType, "MODCREATOR_BASIC_HAIRSLOT_");
+								
+								GUILayout.Space(5);
+								
+								physicsSimulation(template);
 								break;
 							case ECharacterObjectType.Clothing:
 								template.ClothingType = (EClothingType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_CLOTHSLOT")}*", template.ClothingType, "MODCREATOR_BASIC_CLOTHSLOT_");
@@ -417,12 +448,16 @@ namespace Code.Editor.ModEngine
 								
 								GUILayout.Space(5);
 								
-								clothingSimulation(template);
+								physicsSimulation(template);
 								break;
 							case ECharacterObjectType.Accessory:
 								template.AccessoryType = (EAccessoryType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_ACCSLOT")}*", template.AccessoryType, "MODCREATOR_BASIC_ACCSLOT_");
 								template.DefaultAccessoryParentIdx = EditorGUILayout.Popup($"{GetLocalizedString("MODCREATOR_BASIC_PARENT")}*", template.DefaultAccessoryParentIdx, defaultParents);
 								template.DefaultAccessoryParent = defaultParents[template.DefaultAccessoryParentIdx];
+								
+								GUILayout.Space(5);
+								
+								physicsSimulation(template);
 								break;
 							case ECharacterObjectType.Texture:
 								template.TextureType = (ETextureType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_TEXTYPE")}*", template.TextureType, "MODCREATOR_BASIC_TEXTYPE_");
@@ -978,13 +1013,13 @@ namespace Code.Editor.ModEngine
 						charaObject.SupportedGendersFlags = template.SupportedGendersFlags;
 						charaObject.Icon = template.Icon;
 						charaObject.Tags = template.Tags;
+						charaObject.Simulations = template.Simulations;
 					}
 					
 					switch (comp)
 					{
 						case IClothing cloth:
 							cloth.ClothingType = template.ClothingType;
-							cloth.ClothSimulations = template.ClothSimulations;
 							cloth.ObjectType = ECharacterObjectType.Clothing;
 							cloth.ClothingStates = new Transform[Enum.GetNames(typeof(EClothingState)).Length];
 
@@ -1284,47 +1319,49 @@ namespace {Manifest.Author}.{Manifest.Name}
 			return builder.ToString();
 		}
 
-		private void clothingSimulation(Template template)
+		private void physicsSimulation(Template template)
 		{ // todo: localize this stuff
 			GUILayout.Space(5);
 
-			template.ClothSimulations ??= Array.Empty<ClothSimulation>();
-			var tempList = template.ClothSimulations.ToList();
+			template.Simulations ??= Array.Empty<Simulation>();
+			var tempList = template.Simulations.ToList();
 
 			// unity can you be more hacky than this?
 			var style = EditorStyles.foldout;
 			var previousStyle = style.fontStyle;
 			
 			style.fontStyle = FontStyle.Bold;
-			clothingSimulationFold = EditorGUILayout.Foldout(clothingSimulationFold, GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_TITLE"), true);
+			physicsSimulationFold = EditorGUILayout.Foldout(physicsSimulationFold, GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_TITLE"), true);
 			style.fontStyle = previousStyle;
 
-			if (clothingSimulationFold)
+			if (physicsSimulationFold)
 			{
 				GUILayout.BeginHorizontal();
 				GUILayout.Label($"List{itemsCount(tempList.Count)}");
 				GUILayout.FlexibleSpace();
 				if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
-					tempList.Add(ClothSimulation.Default());
+					tempList.Add(Simulation.Default());
 				if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
 					tempList.Clear();
 				GUILayout.EndHorizontal();
 			}
 			
-			if (clothingSimulationFold)
+			if (physicsSimulationFold)
 			{
 				GUILayout.Space(2);
 				
 				for (var i = 0; i < tempList.Count; i++)
 				{
-					var clothSim = tempList[i];
+					GUILayout.BeginVertical(GetBackgroundStyle(new Color(0.3f, 0.3f, 0.3f)));
+					
+					var simulation = tempList[i];
 
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_GENERAL"), EditorStyles.boldLabel);
 					
-					clothSim.Name = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_NAME"), clothSim.Name);
+					simulation.Name = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_NAME"), simulation.Name);
 					
 					GUILayout.BeginHorizontal();
-					clothSim.Enabled = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ENABLED"), clothSim.Enabled);
+					simulation.Enabled = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ENABLED"), simulation.Enabled);
 					if (GUILayout.Button("-", GUILayout.Width(25)))
 					{
 						tempList.RemoveAt(i);
@@ -1332,92 +1369,100 @@ namespace {Manifest.Author}.{Manifest.Name}
 					}
 					GUILayout.EndHorizontal();
 					
-					clothSim.AnimationPoseRatio = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ANIMPOSERATIO"), clothSim.AnimationPoseRatio, 0f, 1f);
+					simulation.AnimationPoseRatio = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ANIMPOSERATIO"), simulation.AnimationPoseRatio, 0f, 1f);
 					
 					// todo: clothSim.Preset
 					
-					clothSim.SkinningBones ??= Array.Empty<Transform>();
+					simulation.SkinningBones ??= Array.Empty<Transform>();
 
 					GUILayout.Space(2);
-					var skinningBonesList = clothSim.SkinningBones.ToList();
+					var skinningBonesList = simulation.SkinningBones.ToList();
 					verticalList(skinningBonesList, GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_SKINNINGBONES"));
-					GUILayout.Space(2);
+					GUILayout.Space(8);
 
-					clothSim.SkinningBones = skinningBonesList.ToArray();
+					simulation.SkinningBones = skinningBonesList.ToArray();
 					
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_COLLISION"), EditorStyles.boldLabel);
 					
-					clothSim.CollisionMode = (ECollisionMode)LocalizedEnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_COLLISIONMODE"), clothSim.CollisionMode, "MODCREATOR_BASIC_CLOTHSIM_COLLISIONMODE_");
-					clothSim.Radius = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_RADIUS"), clothSim.Radius, 0f, 1f);
-					clothSim.Friction = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_FRICTION"), clothSim.Friction, 0f, 1f);
+					simulation.CollisionMode = (ECollisionMode)LocalizedEnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_COLLISIONMODE"), simulation.CollisionMode, "MODCREATOR_BASIC_CLOTHSIM_COLLISIONMODE_");
+					simulation.Radius = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_RADIUS"), simulation.Radius, 0f, 1f);
+					simulation.RadiusCurve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_RADIUSCURVE"), simulation.RadiusCurve, Color.green, new Rect(0, 0, 1, 1));
+					simulation.Friction = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_FRICTION"), simulation.Friction, 0f, 1f);
 
-					GUILayout.Space(5);
+					GUILayout.Space(10);
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ADVCOLLISION"), EditorStyles.boldLabel);
 
-					clothSim.MaxDistanceRadius = EditorGUILayout.FloatField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_MAXDISTRADIUS"), clothSim.MaxDistanceRadius);
-					clothSim.BackstopNormalAlignment = (Transform)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_BACKSTOPNORMALALIGN"), clothSim.BackstopNormalAlignment, typeof(Transform), true);
-					clothSim.BackstopDistance = EditorGUILayout.FloatField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_BACKSTOPDIST"), clothSim.BackstopDistance);
-					clothSim.BackstopRadius = EditorGUILayout.FloatField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_BACKSTOPRADIUS"), clothSim.BackstopRadius);
-					clothSim.BackstopStiffness = EditorGUILayout.FloatField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_BACKSTOPSTIFFNESS"), clothSim.BackstopStiffness);
+					simulation.MaxDistanceRadius = EditorGUILayout.FloatField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_MAXDISTRADIUS"), simulation.MaxDistanceRadius);
+					simulation.MaxDistanceRadiusCurve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_MAXDISTRADIUSCURVE"), simulation.MaxDistanceRadiusCurve, Color.green, new Rect(0, 0, 1, 1));
+					simulation.BackstopNormalAlignment = (Transform)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_BACKSTOPNORMALALIGN"), simulation.BackstopNormalAlignment, typeof(Transform), true);
+					simulation.BackstopDistance = EditorGUILayout.FloatField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_BACKSTOPDIST"), simulation.BackstopDistance);
+					simulation.BackstopDistanceCurve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_BACKSTOPDISTCURVE"), simulation.BackstopDistanceCurve, Color.green, new Rect(0, 0, 1, 1));
+					simulation.BackstopRadius = EditorGUILayout.FloatField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_BACKSTOPRADIUS"), simulation.BackstopRadius);
+					simulation.BackstopStiffness = EditorGUILayout.FloatField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_BACKSTOPSTIFFNESS"), simulation.BackstopStiffness);
 
-					GUILayout.Space(5);
+					GUILayout.Space(10);
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_FORCE"), EditorStyles.boldLabel);
 
-					clothSim.Gravity = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_GRAVITY"), clothSim.Gravity, 0f, 10f);
-					clothSim.Damping = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_DAMPING"), clothSim.Damping, 0f, 1f);
-					
-					GUILayout.Space(5);
+					simulation.Gravity = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_GRAVITY"), simulation.Gravity, 0f, 10f);
+					simulation.Damping = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_DAMPING"), simulation.Damping, 0f, 1f);
+					simulation.DampingCurve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_DAMPINGCURVE"), simulation.DampingCurve, Color.green, new Rect(0, 0, 1, 1));
+
+					GUILayout.Space(10);
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ANGLE"), EditorStyles.boldLabel);
 
-					clothSim.Stiffness = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_STIFFNESS"), clothSim.Stiffness, 0f, 1f);
-					clothSim.VelocityAttenuation = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_VELATTEN"), clothSim.VelocityAttenuation, 0f, 1f);
+					simulation.Stiffness = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_STIFFNESS"), simulation.Stiffness, 0f, 1f);
+					simulation.StiffnessCurve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_STIFFNESSCURVE"), simulation.StiffnessCurve, Color.green, new Rect(0, 0, 1, 1));
+					simulation.VelocityAttenuation = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_VELATTEN"), simulation.VelocityAttenuation, 0f, 1f);
 					
-					GUILayout.Space(5);
+					GUILayout.Space(10);
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_SHAPE"), EditorStyles.boldLabel);
 
-					clothSim.Rigidness = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_RIGIDNESS"), clothSim.Rigidness, 0f, 1f);
-					clothSim.Tether = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_TETHER"), clothSim.Tether, 0f, 1f);
+					simulation.Rigidness = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_RIGIDNESS"), simulation.Rigidness, 0f, 1f);
+					simulation.RigidnessCurve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_RIGIDCURVE"), simulation.RigidnessCurve, Color.green, new Rect(0, 0, 1, 1));
+					simulation.Tether = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_TETHER"), simulation.Tether, 0f, 1f);
 					
-					GUILayout.Space(5);
+					GUILayout.Space(10);
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_INERTIA"), EditorStyles.boldLabel);
 
-					clothSim.WorldInertia = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_WORLDINERT"), clothSim.WorldInertia, 0f, 1f);
-					clothSim.LocalInertia = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_LOCALINERT"), clothSim.LocalInertia, 0f, 1f);
+					simulation.WorldInertia = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_WORLDINERT"), simulation.WorldInertia, 0f, 1f);
+					simulation.LocalInertia = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_LOCALINERT"), simulation.LocalInertia, 0f, 1f);
 					
-					GUILayout.Space(5);
+					GUILayout.Space(10);
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_SIMULATION"), EditorStyles.boldLabel);
 
-					clothSim.SimulationType = (ESimulationType)LocalizedEnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_SIMULATIONTYPE"), clothSim.SimulationType, "MODCREATOR_BASIC_CLOTHSIM_SIMULATIONTYPE_");
+					simulation.SimulationType = (ESimulationType)LocalizedEnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_SIMULATIONTYPE"), simulation.SimulationType, "MODCREATOR_BASIC_CLOTHSIM_SIMULATIONTYPE_");
 					
-					if (clothSim.SimulationType is ESimulationType.BoneCloth or ESimulationType.BoneSpring)
+					if (simulation.SimulationType is ESimulationType.BoneCloth or ESimulationType.BoneSpring)
 					{
-						clothSim.RootBones ??= Array.Empty<Transform>();
+						simulation.RootBones ??= Array.Empty<Transform>();
 
 						GUILayout.Space(2);
-						var rootBonesList = clothSim.RootBones.ToList();
+						var rootBonesList = simulation.RootBones.ToList();
 						verticalList(rootBonesList, GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ROOTBONES"));
 						GUILayout.Space(2);
 
-						clothSim.RootBones = rootBonesList.ToArray();
+						simulation.RootBones = rootBonesList.ToArray();
 					}
 					
-					if (clothSim.SimulationType == ESimulationType.BoneCloth)
-						clothSim.ConnectionMode = (EConnectionMode)LocalizedEnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_CONNECTIONMODE"), clothSim.ConnectionMode, "MODCREATOR_BASIC_CLOTHSIM_CONNECTIONMODE_");
+					if (simulation.SimulationType == ESimulationType.BoneCloth)
+						simulation.ConnectionMode = (EConnectionMode)LocalizedEnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_CONNECTIONMODE"), simulation.ConnectionMode, "MODCREATOR_BASIC_CLOTHSIM_CONNECTIONMODE_");
 
-					if (clothSim.SimulationType is ESimulationType.MeshCloth)
-						clothSim.Reduction = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_REDUCTION"), clothSim.Reduction, 0f, 0.2f);
+					if (simulation.SimulationType is ESimulationType.MeshCloth)
+						simulation.Reduction = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_REDUCTION"), simulation.Reduction, 0f, 0.2f);
 
-					if (clothSim.SimulationType == ESimulationType.MeshCloth)
-						clothSim.PaintMap = (Texture2D)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_PAINTMAP"), clothSim.PaintMap, typeof(Texture2D), false);
+					if (simulation.SimulationType == ESimulationType.MeshCloth)
+						simulation.PaintMap = (Texture2D)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_PAINTMAP"), simulation.PaintMap, typeof(Texture2D), false);
 
-					if (tempList.Count > 0)
+					GUILayout.EndVertical();
+					
+					if (i != tempList.Count - 1)
 						EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 					
-					tempList[i] = clothSim;
+					tempList[i] = simulation;
 				}
 			}
 			
-			template.ClothSimulations = tempList.ToArray();
+			template.Simulations = tempList.ToArray();
 		}
 		
 		#region presets
@@ -2185,6 +2230,15 @@ namespace {Manifest.Author}.{Manifest.Name}
 		private string itemsCount(int count)
 		{
 			return $" ({count} item{(count == 1 ? "" : "s")})";
+		}
+
+		public GUIStyle GetBackgroundStyle(Color color)
+		{
+			Texture.SetPixel(0, 0, color);
+			Texture.Apply();
+			
+			GUIStyle.normal.background = Texture;
+			return GUIStyle;
 		}
 		
 		#endregion

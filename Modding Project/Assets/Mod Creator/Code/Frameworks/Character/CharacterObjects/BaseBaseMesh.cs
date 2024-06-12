@@ -4,6 +4,9 @@ using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
 using Code.Frameworks.Character.Structs;
+using Code.Frameworks.PhysicsSimulation;
+using Code.Managers;
+using Code.Tools;
 using Railgun.AssetPipeline.Attributes;
 using UnityEngine;
 
@@ -38,6 +41,9 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[field: SerializeField]
 		public bool IsNSFW { get; set; }
 
+		[field: SerializeField] 
+		public Simulation[] Simulations { get; set; }
+		
 		[field: SerializeField]
 		public ESupportedGendersFlags SupportedGendersFlags { get; set; }
 
@@ -66,6 +72,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public List<LODGroup> GetLODGroups()
 		{
 			return null;
+		}
+		
+		public int GetLOD(SkinnedMeshRenderer rend)
+		{
+			return 0;
 		}
 	}
 }

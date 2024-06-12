@@ -10,5 +10,7 @@ namespace Code.Interfaces
 		public GameObject GetGameObject();
 
 		public List<LODGroup> GetLODGroups();
+		
+		public int GetLOD(SkinnedMeshRenderer rend);
 	}
 }

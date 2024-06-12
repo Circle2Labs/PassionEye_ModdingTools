@@ -6,6 +6,7 @@ using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes.Flags;
 using Code.Frameworks.Studio.Enums;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Code.EditorScripts.ModCreator
 {
@@ -123,8 +124,8 @@ public class {Type} : {GetTemplateClass(this)}
 		// Clothing states map
 		public Transform[] ClothingStates;
 
-		// Clothing Physics
-		public ClothSimulation[] ClothSimulations;
+		// Physics
+		public Simulation[] Simulations;
 
 		// Advanced class source
 		public string Source = "";
@@ -152,8 +153,8 @@ public class {Type} : {GetTemplateClass(this)}
 			var copiedStates = new Transform[ClothingStates.Length];
 			Array.Copy(ClothingStates, copiedStates, ClothingStates.Length);
 
-			var copiedClothSimulations = new ClothSimulation[ClothSimulations.Length];
-			Array.Copy(ClothSimulations, copiedClothSimulations, ClothSimulations.Length);
+			var copiedSimulations = new Simulation[Simulations.Length];
+			Array.Copy(Simulations, copiedSimulations, Simulations.Length);
 			
 			var template = new Template
 			{
@@ -177,7 +178,7 @@ public class {Type} : {GetTemplateClass(this)}
 				Type = Type,
 				Advanced = Advanced,
 				Usings = copiedIncludes,
-				ClothSimulations = copiedClothSimulations,
+				Simulations = copiedSimulations,
 				TextureType = TextureType,
 				Texture = Texture,
 				OverlayTarget = OverlayTarget,
