@@ -724,6 +724,7 @@ namespace Code.Editor.ModEngine
 							template.Description = characterObject.Description;
 							template.IsNSFW = characterObject.IsNSFW;
 							template.SupportedGendersFlags = characterObject.SupportedGendersFlags;
+							template.Simulations = characterObject.Simulations;
 							
 							switch (comp)
 							{

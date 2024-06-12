@@ -39,7 +39,7 @@ namespace Code.Frameworks.PhysicsSimulation
         public float Radius;
 
         [SerializeField]
-        [BoundedCurve(0f,1f)]
+        [BoundedCurve(1f,1f)]
         [Tooltip("Apply 'Radius' using curve values.")]
         public AnimationCurve RadiusCurve;
 
@@ -54,7 +54,7 @@ namespace Code.Frameworks.PhysicsSimulation
         public float MaxDistanceRadius;
 
         [SerializeField]
-        [BoundedCurve(0f, 1f)]
+        [BoundedCurve(1f, 1f)]
         [Tooltip("Apply 'MaxDistanceRadius' using curve values.")]
         public AnimationCurve MaxDistanceRadiusCurve;
 
@@ -67,7 +67,7 @@ namespace Code.Frameworks.PhysicsSimulation
         public float BackstopDistance;
 
         [SerializeField]
-        [BoundedCurve(0f, 1f)]
+        [BoundedCurve(1f, 1f)]
         [Tooltip("Apply 'BackstopDistance' using curve values.")]
         public AnimationCurve BackstopDistanceCurve;
 
@@ -91,7 +91,7 @@ namespace Code.Frameworks.PhysicsSimulation
         public float Damping;
 
         [SerializeField]
-        [BoundedCurve(0f, 1f)]
+        [BoundedCurve(1f, 1f)]
         [Tooltip("Apply 'Damping' using curve values.")]
         public AnimationCurve DampingCurve;
 
@@ -118,7 +118,7 @@ namespace Code.Frameworks.PhysicsSimulation
         public float Rigidness;
 
         [SerializeField]
-        [BoundedCurve(0f, 1f)]
+        [BoundedCurve(1f, 1f)]
         [Tooltip("Apply 'Rigidness' using curve values.")]
         public AnimationCurve RigidnessCurve;
 
