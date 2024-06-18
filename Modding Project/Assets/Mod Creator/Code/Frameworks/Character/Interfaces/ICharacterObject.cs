@@ -1,5 +1,7 @@
-﻿using Code.Frameworks.Character.Enums;
+﻿using System.Collections.Generic;
+using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
+using Code.Frameworks.PhysicsSimulation;
 using Code.Interfaces;
 using UnityEngine;
 
@@ -45,6 +47,8 @@ namespace Code.Frameworks.Character.Interfaces
         /// </summary>   
         public bool IsNSFW { get; set; }
         
+        public Simulation[] Simulations { get; set; }
+        
         /// <summary>
         /// Supported character Genders for this Item
         /// </summary>
@@ -66,7 +70,5 @@ namespace Code.Frameworks.Character.Interfaces
         /// GameObject for this character object
         /// </summary>
         public GameObject GetGameObject();
-
-        //TODO: maybe add material and meshes related methods
     }
 }

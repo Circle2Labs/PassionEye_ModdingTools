@@ -22,10 +22,17 @@ namespace Code.Frameworks.Character.Interfaces
 		
 		public bool IsOverlay { get; set; }
 		
+		public Color OverlayColor { get; set; }
+		
 		/// <summary>
 		/// Texture might have changed, if it's an overlay ask the overlay controller to reapply them, if it's not an overlay - apply the Texture (optionally also update all overlays)
 		/// </summary>
 		public void UpdateTexture(bool updateOverlays = true);
+		
+		/// <summary>
+		/// Color might have changed, if it's an overlay ask the overlay controller to reapply them 
+		/// </summary>
+		public void UpdateColor(bool reset = false);
 		
 		/// <summary>
 		/// Apply given texture to the material

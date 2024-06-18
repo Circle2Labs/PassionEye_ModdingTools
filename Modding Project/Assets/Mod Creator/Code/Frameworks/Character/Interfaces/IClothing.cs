@@ -1,5 +1,4 @@
 ﻿using Code.Frameworks.Character.Enums;
-using Code.Frameworks.PhysicsSimulation;
 using UnityEngine;
 
 namespace Code.Frameworks.Character.Interfaces
@@ -24,8 +23,6 @@ namespace Code.Frameworks.Character.Interfaces
         /// </summary>
         public EClothingState ClothingState { get; }
 
-        public ClothSimulation[] ClothSimulations { get; set; }
-        
         /// <summary>
         /// Set the clothing wearing state.
         /// </summary>

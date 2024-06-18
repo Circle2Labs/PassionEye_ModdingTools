@@ -6,6 +6,7 @@ namespace Code.Frameworks.Character.Enums
 		BodySkin,
 		Nipples,
 		FaceOverlay,
-		BodyOverlay
+		BodyOverlay,
+		Lips
 	}
 }
