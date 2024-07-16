@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Code.Frameworks.ForwardKinematics;
+using Code.Frameworks.ForwardKinematics.Structs;
 using Code.Frameworks.Studio.Enums;
 using Code.Frameworks.Studio.Interfaces;
 using Code.Tools;
@@ -30,6 +32,9 @@ namespace Code.Frameworks.Studio.StudioObjects
 		[field: SerializeField]
 		public bool IsNSFW { get; set; }
 
+		[field: SerializeField]
+		public SFKData FKData { get; set; }
+		
 		[field: SerializeField]
 		public Renderer[] Renderers { get; set; }
 

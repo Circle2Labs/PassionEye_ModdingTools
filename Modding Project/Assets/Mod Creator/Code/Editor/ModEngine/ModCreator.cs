@@ -15,6 +15,8 @@ using Code.Frameworks.Character.CharacterObjects;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
+using Code.Frameworks.ForwardKinematics;
+using Code.Frameworks.ForwardKinematics.Structs;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes;
 using Code.Frameworks.ModdedScenes.Flags;
@@ -40,6 +42,8 @@ using Color = UnityEngine.Color;
 using Object = UnityEngine.Object;
 using SceneManager = UnityEngine.SceneManagement.SceneManager;
 using Tuple = Code.Tools.Tuple;
+using Vector3 = UnityEngine.Vector3;
+using Vector4 = UnityEngine.Vector4;
 
 namespace Code.Editor.ModEngine
 {
@@ -82,7 +86,7 @@ namespace Code.Editor.ModEngine
 		public const string ModCreatorPath = "Assets/";
 #endif
 
-		public const string Version = "v0.1.2.0";
+		public const string Version = "v0.1.3.0";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};
@@ -149,6 +153,7 @@ namespace Code.Editor.ModEngine
 		private UnityEngine.Vector2 advancedScrollPosition;
 
 		private bool physicsSimulationFold;
+		private bool forwardKinematicsFold;
 		
 		private Template copyBuffer;
 		private Assembly tempAssembly;
@@ -498,6 +503,10 @@ namespace Code.Editor.ModEngine
 						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_COMPCONF"), EditorStyles.boldLabel);
 						template.StudioObjectType = (EStudioObjectType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_STUDIOSLOT")}*", template.StudioObjectType, "MODCREATOR_BASIC_STUDIOSLOT_");
 						
+						GUILayout.Space(5);
+								
+						forwardKinematics(template);
+						
 						GUILayout.Space(10);
 					}
 					else if (template.TemplateType == ETemplateType.ModdedScene)
@@ -714,6 +723,7 @@ namespace Code.Editor.ModEngine
 							template.Icon = studioObject.Icon;
 							template.Description = studioObject.Description;
 							template.IsNSFW = studioObject.IsNSFW;
+							template.FKData = studioObject.FKData;
 						}
 						else if (comp is ICharacterObject characterObject)
 						{
@@ -1078,6 +1088,7 @@ namespace Code.Editor.ModEngine
 						studioObject.IsNSFW = template.IsNSFW;
 						studioObject.Icon = template.Icon;
 						studioObject.Tags = template.Tags;
+						studioObject.FKData = template.FKData;
 					}
 				}
 				else if (template.TemplateType == ETemplateType.ModdedScene)
@@ -1283,18 +1294,27 @@ namespace Code.Editor.ModEngine
 
 			var source = $@"using System;
 using Code.Frameworks.Character;
+using Code.Frameworks.Character.CharacterObjects;
 using Code.Frameworks.Character.Enums;
-using Code.Frameworks.Character.Events;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
 using Code.Frameworks.Character.Structs;
-using Code.Frameworks.Character.CharacterObjects;
+
+using Code.Frameworks.ModdedScenes;
+using Code.Frameworks.ModdedScenes.Flags;
+
+using Code.Frameworks.PhysicsSimulation;
+
+using Code.Frameworks.ForwardKinematics;
+using Code.Frameworks.ForwardKinematics.Interfaces;
+using Code.Frameworks.ForwardKinematics.Structs;
 
 using Code.Frameworks.Studio;
-using Code.Frameworks.Studio.Enums;
-using Code.Frameworks.Studio.Events;
-using Code.Frameworks.Studio.Interfaces;
 using Code.Frameworks.Studio.StudioObjects;
+using Code.Frameworks.Studio.Enums;
+using Code.Frameworks.Studio.Interfaces;
+
+using Code.Interfaces;
 
 {GetCompleteUsings()}
 namespace {Manifest.Author}.{Manifest.Name} 
@@ -1464,6 +1484,161 @@ namespace {Manifest.Author}.{Manifest.Name}
 			}
 			
 			template.Simulations = tempList.ToArray();
+		}
+		
+		private void forwardKinematics(Template template)
+		{ // todo: localize this stuff
+			GUILayout.Space(5);
+
+			var fkData = template.FKData;
+			fkData.Groups ??= Array.Empty<SFKGroup>();
+			
+			var tempList = fkData.Groups.ToList();
+
+			// unity can you be more hacky than this?
+			var style = EditorStyles.foldout;
+			var previousStyle = style.fontStyle;
+			
+			style.fontStyle = FontStyle.Bold;
+			forwardKinematicsFold = EditorGUILayout.Foldout(forwardKinematicsFold, GetLocalizedString("MODCREATOR_BASIC_FK_TITLE"), true);
+			style.fontStyle = previousStyle;
+
+			if (forwardKinematicsFold)
+			{
+				GUILayout.BeginHorizontal();
+				GUILayout.Label($"List{itemsCount(tempList.Count)}");
+				GUILayout.FlexibleSpace();
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+					tempList.Add(SFKGroup.Default());
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+					tempList.Clear();
+				GUILayout.EndHorizontal();
+			}
+			
+			if (forwardKinematicsFold)
+			{
+				GUILayout.Space(2);
+				
+				for (var i = 0; i < tempList.Count; i++)
+				{
+					GUILayout.BeginVertical(GetBackgroundStyle(new Color(0.3f, 0.3f, 0.3f)));
+					
+					var fkGroup = tempList[i];
+
+					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_FK_GENERAL"), EditorStyles.boldLabel);
+					
+					GUILayout.BeginHorizontal();
+					fkGroup.Name = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BASIC_FK_GROUPNAME"), fkGroup.Name);
+					if (GUILayout.Button("-", GUILayout.Width(25)))
+					{
+						tempList.RemoveAt(i);
+						break;
+					}
+					GUILayout.EndHorizontal();
+
+					if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.BaseMesh)
+					{
+						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_FK_CHARASETTINGS"), EditorStyles.boldLabel);
+						fkGroup.SupportedGenders = (ESupportedGendersFlags)EditorGUILayout.EnumFlagsField($"{GetLocalizedString("MODCREATOR_BASIC_GENDERS")}*", fkGroup.SupportedGenders);
+						fkGroup.FutaExclusive = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_FK_FUTAEXCLUSIVE"), fkGroup.FutaExclusive);
+					}
+
+					fkGroup.Transforms ??= Array.Empty<SFKTransform>();
+
+					GUILayout.Space(2);
+					var transformsList = fkGroup.Transforms.ToList();
+
+					GUILayout.BeginHorizontal();
+					GUILayout.Label($"List{itemsCount(transformsList.Count)}");
+					GUILayout.FlexibleSpace();
+					if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+						transformsList.Add(SFKTransform.Default());
+					if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+						transformsList.Clear();
+					GUILayout.EndHorizontal();
+
+					var previousIndent = EditorGUI.indentLevel;
+					EditorGUI.indentLevel = 1;
+					
+					for (var k = 0; k < transformsList.Count; k++)
+					{
+						GUILayout.BeginVertical(GetBackgroundStyle(new Color(0.35f, 0.35f, 0.35f)));
+						
+						var fkTransform = transformsList[k];
+						
+						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_FK_GENERAL"), EditorStyles.boldLabel);
+					
+						GUILayout.BeginHorizontal();
+						fkTransform.Name = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BASIC_FK_TRANSFORMNAME"), fkTransform.Name);
+						if (GUILayout.Button("-", GUILayout.Width(25)))
+						{
+							transformsList.RemoveAt(k);
+							break;
+						}
+						GUILayout.EndHorizontal();
+						
+						GUILayout.BeginHorizontal();
+						
+						fkTransform.Transform = (Transform)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_FK_TRANSFORM"), fkTransform.Transform, typeof(Transform), true);
+
+						GUI.enabled = fkTransform.Transform != null;
+						
+						if (GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_FK_READRESTINGANG"), GUILayout.Width(175)))
+							fkTransform.RestingAngle = fkTransform.Transform.localRotation;
+						
+						GUI.enabled = true;
+						
+						GUILayout.EndHorizontal();
+						
+						var angVec = new Vector4
+						{
+							x = fkTransform.RestingAngle.x,
+							y = fkTransform.RestingAngle.y,
+							z = fkTransform.RestingAngle.z,
+							w = fkTransform.RestingAngle.w
+						};
+						
+						angVec = EditorGUILayout.Vector4Field(GetLocalizedString("MODCREATOR_BASIC_FK_RESTINGANGLE"), angVec);
+						fkTransform.RestingAngle = new Quaternion(angVec.x, angVec.y, angVec.z, angVec.w);
+
+						fkTransform.MovableTargetScale = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_FK_MOVABLETARGSCA"), fkTransform.MovableTargetScale, 0.1f, 2f);
+						
+						GUILayout.Space(10);
+						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_FK_MIRRORING"), EditorStyles.boldLabel);
+
+						fkTransform.MirrorTransform = (Transform)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_FK_MIRRORTRANSFORM"), fkTransform.MirrorTransform, typeof(Transform), true);
+						
+						GUILayout.BeginHorizontal();
+						fkTransform.MirrorInvertAxis.Item1 = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_FK_MIRRORX"), fkTransform.MirrorInvertAxis.Item1);
+						fkTransform.MirrorInvertAxis.Item2 = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_FK_MIRRORY"), fkTransform.MirrorInvertAxis.Item2);
+						fkTransform.MirrorInvertAxis.Item3 = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_FK_MIRRORZ"), fkTransform.MirrorInvertAxis.Item3);
+						GUILayout.EndHorizontal();
+						
+						GUILayout.EndVertical();
+					
+						if (k != transformsList.Count - 1)
+							EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+						
+						transformsList[k] = fkTransform;
+					}
+					
+					EditorGUI.indentLevel = previousIndent;
+
+					GUILayout.Space(8);
+
+					fkGroup.Transforms = transformsList.ToArray();
+					
+					GUILayout.EndVertical();
+					
+					if (i != tempList.Count - 1)
+						EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+					
+					tempList[i] = fkGroup;
+				}
+			}
+
+			fkData.Groups = tempList.ToArray();
+			template.FKData = fkData;
 		}
 		
 		#region presets

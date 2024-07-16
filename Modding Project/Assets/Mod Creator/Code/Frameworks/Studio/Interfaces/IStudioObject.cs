@@ -1,10 +1,11 @@
+using Code.Frameworks.ForwardKinematics.Interfaces;
 using Code.Frameworks.Studio.Enums;
 using Code.Interfaces;
 using UnityEngine;
 
 namespace Code.Frameworks.Studio.Interfaces
 {
-	public interface IStudioObject : IMaterialCustomizable
+	public interface IStudioObject : IMaterialCustomizable, IFKCompatible
 	{
 		public EStudioObjectType StudioObjectType { get; set; }
 		
