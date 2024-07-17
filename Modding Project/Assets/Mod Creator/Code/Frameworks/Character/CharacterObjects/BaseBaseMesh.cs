@@ -4,6 +4,8 @@ using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
 using Code.Frameworks.Character.Structs;
+using Code.Frameworks.ForwardKinematics;
+using Code.Frameworks.ForwardKinematics.Structs;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Managers;
 using Code.Tools;
@@ -41,6 +43,9 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[field: SerializeField]
 		public bool IsNSFW { get; set; }
 
+		[field: SerializeField]
+		public SFKData FKData { get; set; }
+        
 		[field: SerializeField] 
 		public Simulation[] Simulations { get; set; }
 		

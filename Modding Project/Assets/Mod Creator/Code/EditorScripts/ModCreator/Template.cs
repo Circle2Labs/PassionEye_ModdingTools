@@ -2,6 +2,7 @@
 using System;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
+using Code.Frameworks.ForwardKinematics.Structs;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes.Flags;
 using Code.Frameworks.Studio.Enums;
@@ -126,6 +127,9 @@ public class {Type} : {GetTemplateClass(this)}
 
 		// Physics
 		public Simulation[] Simulations;
+		
+		// FK
+		public SFKData FKData;
 
 		// Advanced class source
 		public string Source = "";
@@ -184,7 +188,8 @@ public class {Type} : {GetTemplateClass(this)}
 				OverlayTarget = OverlayTarget,
 				OverlayMode = OverlayMode,
 				IsOverlay = IsOverlay,
-				OverlayColor = OverlayColor
+				OverlayColor = OverlayColor,
+				FKData = FKData
 			};
 
 			return template;
