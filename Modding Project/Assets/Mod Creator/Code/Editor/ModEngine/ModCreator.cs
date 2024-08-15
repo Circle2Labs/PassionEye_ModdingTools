@@ -1996,6 +1996,17 @@ namespace {Manifest.Author}.{Manifest.Name}
 						pass = false;
 						Debug.LogWarning($"Object for {template.Name} is not empty. Texture mods must have empty GameObjects assigned with no meshes");
 					}
+
+					var anySkinnedRenderers = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
+					if (anySkinnedRenderers != null && anySkinnedRenderers.Length != 0)
+					{
+						var armature = gameObject.transform.Find("Armature");
+						if (armature == null)
+						{
+							pass = false;
+							Debug.LogWarning($"Armature for {template.Name} was not found. Skinned meshes must have an armature at the root of the object, with the name of \"Armature\"");
+						}
+					}
 				}
 				else
 				{
