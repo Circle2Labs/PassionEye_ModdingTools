@@ -22,11 +22,6 @@ namespace Code.Frameworks.Character.Interfaces
 		/// Visibility rules for this accessory item.
 		/// </summary>
 		public EAccessoryVisibility AccessoryVisibility { get; }
-		
-		/// <summary>
-		/// Default parent assigned when the accessory is worn.
-		/// </summary>
-		public string DefaultParent { get; set; }
 
 		/// <summary>
 		/// Get if the accessory item is bound to an <see cref="IClothing"/> item.

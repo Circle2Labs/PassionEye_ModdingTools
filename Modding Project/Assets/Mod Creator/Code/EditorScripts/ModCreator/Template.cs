@@ -7,7 +7,6 @@ using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes.Flags;
 using Code.Frameworks.Studio.Enums;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Code.EditorScripts.ModCreator
 {
@@ -110,11 +109,14 @@ public class {Type} : {GetTemplateClass(this)}
 		// Texture
 		public Texture2D Texture;
 
-		// Accessory default parent
-		public string DefaultAccessoryParent;
+		// Default parent
+		public string DefaultParent;
 
-		// Accessory default parent index
-		public int DefaultAccessoryParentIdx;
+		// Should the object be reparentable
+		public bool Reparentable = true;
+		
+		// Default parent index
+		public int DefaultParentIdx;
 
 		// Character object allowed gender flags
 		public ESupportedGendersFlags SupportedGendersFlags;
@@ -126,7 +128,7 @@ public class {Type} : {GetTemplateClass(this)}
 		public Transform[] ClothingStates;
 
 		// Physics
-		public Simulation[] Simulations;
+		public Simulation Simulation;
 		
 		// FK
 		public SFKData FKData;
@@ -157,8 +159,7 @@ public class {Type} : {GetTemplateClass(this)}
 			var copiedStates = new Transform[ClothingStates.Length];
 			Array.Copy(ClothingStates, copiedStates, ClothingStates.Length);
 
-			var copiedSimulations = new Simulation[Simulations.Length];
-			Array.Copy(Simulations, copiedSimulations, Simulations.Length);
+			var copiedSimulation = Simulation.Copy();
 			
 			var template = new Template
 			{
@@ -174,15 +175,15 @@ public class {Type} : {GetTemplateClass(this)}
 				ClothingType = ClothingType,
 				StudioObjectType = StudioObjectType,
 				AccessoryType = AccessoryType,
-				DefaultAccessoryParent = DefaultAccessoryParent,
-				DefaultAccessoryParentIdx = DefaultAccessoryParentIdx,
+				DefaultParent = DefaultParent,
+				DefaultParentIdx = DefaultParentIdx,
 				ModdedSceneUsageFlags = ModdedSceneUsageFlags,
 				ClothingStates = copiedStates,
 				Source = Source,
 				Type = Type,
 				Advanced = Advanced,
 				Usings = copiedIncludes,
-				Simulations = copiedSimulations,
+				Simulation = copiedSimulation,
 				TextureType = TextureType,
 				Texture = Texture,
 				OverlayTarget = OverlayTarget,

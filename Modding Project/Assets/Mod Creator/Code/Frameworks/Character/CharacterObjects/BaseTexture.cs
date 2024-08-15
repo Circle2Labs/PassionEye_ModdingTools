@@ -48,6 +48,23 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[field: SerializeField]
 		public bool IsNSFW { get; set; }
 		
+		/// <summary>
+		/// Not supported for this type of object.
+		/// </summary>
+		public bool Reparentable { get; set; }
+
+		/// <summary>
+		/// Not supported for this type of object.
+		/// </summary>
+		[field: SerializeField]
+		public string DefaultParent { get; set; }
+
+		/// <summary>
+		/// Not supported for this type of object.
+		/// </summary>
+		[field: SerializeField]
+		public Simulation Simulation { get; set; }
+		
 		[field: SerializeField] 
 		public Simulation[] Simulations { get; set; }
 		
@@ -109,6 +126,16 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public int GetLOD(SkinnedMeshRenderer rend)
 		{
 			return 0;
+		}
+		
+		public void SetupBoneMap(BaseBaseMesh baseMesh)
+		{
+			
+		}
+
+		public void AddSimulationData()
+		{
+			
 		}
 	}
 }

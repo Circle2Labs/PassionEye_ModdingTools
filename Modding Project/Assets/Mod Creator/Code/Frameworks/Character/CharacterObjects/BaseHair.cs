@@ -39,8 +39,17 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[field: SerializeField]
 		public bool IsNSFW { get; set; }
 		
-		[field: SerializeField] 
-		public Simulation[] Simulations { get; set; }
+		[field: SerializeField]
+		public bool Reparentable { get; set; }
+
+		/// <summary>
+		/// Default parent assigned when the object is simulated using `AttachOnly` mode.
+		/// </summary>
+		[field: SerializeField]
+		public string DefaultParent { get; set; }
+
+		[field: SerializeField]
+		public Simulation Simulation { get; set; }
 		
 		[field: SerializeField]
 		public ESupportedGendersFlags SupportedGendersFlags { get; set; }
@@ -55,6 +64,16 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public virtual void Assign(Character chara)
 		{
 
+		}
+		
+		public void SetupBoneMap(BaseBaseMesh baseMesh)
+		{
+			
+		}
+
+		public void AddSimulationData()
+		{
+			
 		}
 
 		public virtual void Remove(Character chara)

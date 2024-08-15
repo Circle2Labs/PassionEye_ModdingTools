@@ -31,6 +31,12 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public EAccessoryVisibility AccessoryVisibility { get; private set; }
 
 		[field: SerializeField]
+		public bool Reparentable { get; set; }
+
+		/// <summary>
+		/// Default parent assigned when the accessory is worn or simulated using `AttachOnly` mode.
+		/// </summary>
+		[field: SerializeField]
 		public string DefaultParent { get; set; }
 		
 		[field: SerializeField]
@@ -47,10 +53,10 @@ namespace Code.Frameworks.Character.CharacterObjects
 
 		[field: SerializeField]
 		public bool IsNSFW { get; set; }
-		
-		[field: SerializeField] 
-		public Simulation[] Simulations { get; set; }
-		
+
+		[field: SerializeField]
+		public Simulation Simulation { get; set; }
+
 		[field: SerializeField]
 		public ESupportedGendersFlags SupportedGendersFlags { get; set; }
 
@@ -118,6 +124,16 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public int GetLOD(SkinnedMeshRenderer rend)
 		{
 			return 0;
+		}
+		
+		public void SetupBoneMap(BaseBaseMesh baseMesh)
+		{
+			
+		}
+
+		public void AddSimulationData()
+		{
+			
 		}
 	}
 }
