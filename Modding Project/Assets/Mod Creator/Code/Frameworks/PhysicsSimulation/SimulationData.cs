@@ -208,42 +208,55 @@ namespace Code.Frameworks.PhysicsSimulation
             simulation.AnimationPoseRatio = AnimationPoseRatio;
             simulation.Preset = Preset;
 
-            var skinningBonesCopy = new string[SkinningBones.Length];
-            Array.Copy(SkinningBones, skinningBonesCopy, SkinningBones.Length);
-            simulation.SkinningBones = skinningBonesCopy;
+            if (SkinningBones == null)
+            {
+                simulation.SkinningBones = Array.Empty<string>();
+            }
+            else
+            {
+                var skinningBonesCopy = new string[SkinningBones.Length];
+                Array.Copy(SkinningBones, skinningBonesCopy, SkinningBones.Length);
+                simulation.SkinningBones = skinningBonesCopy;
+            }
 
             simulation.CollisionMode = CollisionMode;
             simulation.Radius = Radius;
             simulation.RadiusCurve = new AnimationCurve();
-            simulation.RadiusCurve.CopyFrom(RadiusCurve);
+            if (RadiusCurve != null)
+                simulation.RadiusCurve.CopyFrom(RadiusCurve);
             simulation.Friction = Friction;
 
             simulation.MaxDistanceRadius = MaxDistanceRadius;
             simulation.BackstopNormalAlignment = BackstopNormalAlignment;
             simulation.BackstopDistance = BackstopDistance;
             simulation.BackstopDistanceCurve = new AnimationCurve();
-            simulation.BackstopDistanceCurve.CopyFrom(BackstopDistanceCurve);
+            if (BackstopDistanceCurve != null)
+                simulation.BackstopDistanceCurve.CopyFrom(BackstopDistanceCurve);
             simulation.BackstopRadius = BackstopRadius;
             simulation.BackstopStiffness = BackstopStiffness;
 
             simulation.Gravity = Gravity;
             simulation.Damping = Damping;
             simulation.DampingCurve = new AnimationCurve();
-            simulation.DampingCurve.CopyFrom(DampingCurve);
+            if (DampingCurve != null)
+                simulation.DampingCurve.CopyFrom(DampingCurve);
 
             simulation.Stiffness = Stiffness;
             simulation.StiffnessCurve = new AnimationCurve();
-            simulation.StiffnessCurve.CopyFrom(StiffnessCurve);
+            if (StiffnessCurve != null)
+                simulation.StiffnessCurve.CopyFrom(StiffnessCurve);
             simulation.VelocityAttenuation = VelocityAttenuation;
 
             simulation.AngleLimit = AngleLimit;
             simulation.AngleLimitCurve = new AnimationCurve();
-            simulation.AngleLimitCurve.CopyFrom(AngleLimitCurve);
+            if (AngleLimitCurve != null) 
+                simulation.AngleLimitCurve.CopyFrom(AngleLimitCurve);
             simulation.AngleLimitStiffness = AngleLimitStiffness;
 
             simulation.Rigidness = Rigidness;
             simulation.RigidnessCurve = new AnimationCurve();
-            simulation.RigidnessCurve.CopyFrom(RigidnessCurve);
+            if (RigidnessCurve != null)
+                simulation.RigidnessCurve.CopyFrom(RigidnessCurve);
             simulation.Tether = Tether;
 
 
@@ -252,9 +265,16 @@ namespace Code.Frameworks.PhysicsSimulation
 
             simulation.SimulationType = SimulationType;
 
-            var rootBonesCopy = new string[RootBones.Length];
-            Array.Copy(RootBones, rootBonesCopy, RootBones.Length);
-            simulation.RootBones = rootBonesCopy;
+            if (RootBones == null)
+            {
+                simulation.RootBones = Array.Empty<string>();
+            }
+            else
+            {
+                var rootBonesCopy = new string[RootBones.Length];
+                Array.Copy(RootBones, rootBonesCopy, RootBones.Length);
+                simulation.RootBones = rootBonesCopy;
+            }
 
             simulation.Reduction = Reduction;
             simulation.PaintMap = PaintMap;

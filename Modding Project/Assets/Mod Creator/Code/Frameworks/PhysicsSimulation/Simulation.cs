@@ -23,7 +23,7 @@ namespace Code.Frameworks.PhysicsSimulation
 				simulationData = new SimulationData[SimulationData.Length];
 				for (int i = 0; i < SimulationData.Length; i++)
 				{
-					SimulationData[i] = SimulationData[i].Copy();
+					simulationData[i] = SimulationData[i].Copy();
 				}
 			}
 
