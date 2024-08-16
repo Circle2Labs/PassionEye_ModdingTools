@@ -180,4 +180,15 @@ float3 NormalMapToWorld(float3 normalTS, float3 normalWS, float4 tangentWS) {
     return TransformTangentToWorld(normalTS, half3x3(tangentWS.xyz, bitangentWS.xyz, normalWS.xyz));
 }
 
+float nrand(float2 uv)
+{
+    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+float2 deformScaleUV(float2 uv, float2 deform)
+{
+    float2 deformFrac = 1.0 / deform;
+    return (uv * deformFrac) + ((1 - deformFrac) / 2.0);
+}
+
 #endif
