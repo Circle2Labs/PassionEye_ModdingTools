@@ -39,6 +39,9 @@ Shader "Toon/ToonShader" {
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         [Space]
         _CensorPartTex ("Censor Texture", 2D) = "black" {}
+        [Space]
+        [Toggle] _ExpandVertices ("Expand Vertices", float) = 0
+        _ExpandAmount ("Expand Amount", Range(0, 0.001)) = 0
         
         // Blending state
         [HideInInspector]_Surface("__surface", Float) = 0.0
@@ -122,7 +125,10 @@ Shader "Toon/ToonShader" {
             
             varyings vert(attributes IN) {
                 varyings OUT;
-                
+
+                if(_ExpandVertices)
+                    IN.vertex += IN.normal * _ExpandAmount;
+
                 OUT.position = TransformObjectToHClip(IN.vertex);
                 OUT.positionWS = TransformObjectToWorld(IN.vertex);
                 OUT.normal = TransformObjectToWorldNormal(IN.normal);
