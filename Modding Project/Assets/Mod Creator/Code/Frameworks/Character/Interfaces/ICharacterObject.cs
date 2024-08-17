@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using Code.Frameworks.Character.CharacterObjects;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.PhysicsSimulation;
@@ -47,10 +47,23 @@ namespace Code.Frameworks.Character.Interfaces
         /// </summary>   
         public bool IsNSFW { get; set; }
         
-        public Simulation[] Simulations { get; set; }
+        /// <summary>
+        /// Should the object be reparentable or stay inside the container object
+        /// </summary>
+        public bool Reparentable { get; set; }
+
+        /// <summary>
+        /// Default parent assigned when the object is worn.
+        /// </summary>
+        public string DefaultParent { get; set; }
+
+        /// <summary>
+        /// Physics Simulation related settings.
+        /// </summary>
+        public Simulation Simulation { get; set; }
         
         /// <summary>
-        /// Supported character Genders for this Item
+        /// Supported character Genders for this item.
         /// </summary>
         public ESupportedGendersFlags SupportedGendersFlags { get; set; }
 
@@ -70,5 +83,12 @@ namespace Code.Frameworks.Character.Interfaces
         /// GameObject for this character object
         /// </summary>
         public GameObject GetGameObject();
+        
+        /// <summary>
+        /// Reassign bones to given base mesh
+        /// </summary>
+        public void SetupBoneMap(BaseBaseMesh baseMesh);
+
+        public void AddSimulationData();
     }
 }

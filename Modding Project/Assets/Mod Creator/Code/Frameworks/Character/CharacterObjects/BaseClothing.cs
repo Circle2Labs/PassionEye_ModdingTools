@@ -30,6 +30,15 @@ namespace Code.Frameworks.Character.CharacterObjects
 
 		[field: SerializeField]
 		public EClothingState ClothingState { get; set; }
+
+		[field: SerializeField]
+		public bool Reparentable { get; set; }
+
+		/// <summary>
+		/// Default parent assigned when the object is simulated using `AttachOnly` mode.
+		/// </summary>
+		[field: SerializeField]
+		public string DefaultParent { get; set; }
 		
 		[field: SerializeField]
 		public Sprite Icon { get; set; }
@@ -47,7 +56,7 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public bool IsNSFW { get; set; }
 		
 		[field: SerializeField] 
-		public Simulation[] Simulations { get; set; }
+		public Simulation Simulation { get; set; }
 		
 		[field: SerializeField]
 		public ESupportedGendersFlags SupportedGendersFlags { get; set; }
@@ -64,6 +73,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 
 		}
 
+		public void SetupBoneMap(BaseBaseMesh baseMesh)
+		{
+			
+		}
+		
 		public virtual void Remove(Character chara)
 		{
 
@@ -99,6 +113,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public int GetLOD(SkinnedMeshRenderer rend)
 		{
 			return 0;
+		}
+
+		public void AddSimulationData()
+		{
+			
 		}
 	}
 }

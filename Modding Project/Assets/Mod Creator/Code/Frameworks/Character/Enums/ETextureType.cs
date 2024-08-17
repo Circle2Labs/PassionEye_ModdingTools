@@ -7,6 +7,9 @@ namespace Code.Frameworks.Character.Enums
 		Nipples,
 		FaceOverlay,
 		BodyOverlay,
-		Lips
+		Lips,
+		OuterIris,
+		InnerIris,
+		Pupil
 	}
 }
