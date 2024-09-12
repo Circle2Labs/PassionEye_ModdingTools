@@ -2,6 +2,7 @@
 using System;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
+using Code.Frameworks.Character.Structs;
 using Code.Frameworks.ForwardKinematics.Structs;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes.Flags;
@@ -133,6 +134,9 @@ public class {Type} : {GetTemplateClass(this)}
 		// FK
 		public SFKData FKData;
 
+		// Offsets used in blendshapes when making clothing
+		public SBlendshapeOffset[] BlendshapeOffsets;
+		
 		// Advanced class source
 		public string Source = "";
 
@@ -160,6 +164,9 @@ public class {Type} : {GetTemplateClass(this)}
 			Array.Copy(ClothingStates, copiedStates, ClothingStates.Length);
 
 			var copiedSimulation = Simulation.Copy();
+			
+			var copiedBlendshapeOffsets = new SBlendshapeOffset[BlendshapeOffsets.Length];
+			Array.Copy(BlendshapeOffsets, copiedBlendshapeOffsets, BlendshapeOffsets.Length);
 			
 			var template = new Template
 			{
@@ -190,6 +197,7 @@ public class {Type} : {GetTemplateClass(this)}
 				OverlayMode = OverlayMode,
 				IsOverlay = IsOverlay,
 				OverlayColor = OverlayColor,
+				BlendshapeOffsets = copiedBlendshapeOffsets,
 				FKData = FKData
 			};
 
@@ -246,6 +254,16 @@ public class {Type} : {GetTemplateClass(this)}
 	public override void Remove(Character character)
 	{{
 		base.Remove(character);
+	}}
+";
+			}
+			
+			if (template.TemplateType == ETemplateType.StudioObject)
+			{
+				return $@"
+	public override void Awake()
+	{{
+		base.Awake();
 	}}
 ";
 			}

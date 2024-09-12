@@ -189,7 +189,10 @@ namespace Code.Managers
 					}
 				}
 				
-				entries.Add(split[0], entry);
+				if (!entries.ContainsKey(split[0]))
+					entries.Add(split[0], entry);
+				else
+					entries[split[0]] = entry;
 			}
 
 			return entries;

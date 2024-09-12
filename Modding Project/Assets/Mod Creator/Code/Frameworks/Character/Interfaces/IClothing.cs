@@ -1,4 +1,5 @@
 ﻿using Code.Frameworks.Character.Enums;
+using Code.Frameworks.Character.Structs;
 using UnityEngine;
 
 namespace Code.Frameworks.Character.Interfaces
@@ -23,6 +24,15 @@ namespace Code.Frameworks.Character.Interfaces
         /// </summary>
         public EClothingState ClothingState { get; }
 
+        /// <summary>
+        /// Blendshape offsets from the default states used for modeling this item.
+        /// 
+        /// Can be either:
+        /// - null
+        /// - array of size of the number of blendshapes in the model
+        /// </summary>
+        public SBlendshapeOffset[] BlendshapeOffsets { get; set; }
+        
         /// <summary>
         /// Set the clothing wearing state.
         /// </summary>

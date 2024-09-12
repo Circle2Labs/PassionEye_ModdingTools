@@ -65,6 +65,9 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public ESupportedGendersFlags SupportedGendersFlags { get; set; }
 
 		[field: SerializeField]
+		public SBlendshapePreset[] BlendshapePresets { get; set; }
+		
+		[field: SerializeField]
 		public Renderer[] Renderers { get; set; }
 
 		[field: NonSerialized]

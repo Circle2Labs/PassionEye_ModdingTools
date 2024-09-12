@@ -10,6 +10,8 @@ namespace Code.Frameworks.Character.Enums
 		Lips,
 		OuterIris,
 		InnerIris,
-		Pupil
+		Pupil,
+		Highlight,
+		Blush
 	}
 }
