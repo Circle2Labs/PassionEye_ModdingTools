@@ -38,6 +38,11 @@ namespace Code.Frameworks.Studio.StudioObjects
 		[field: SerializeField]
 		public Renderer[] Renderers { get; set; }
 
+		public virtual void Awake()
+		{
+			
+		}
+		
 		public GameObject GetGameObject()
 		{
 			return gameObject;

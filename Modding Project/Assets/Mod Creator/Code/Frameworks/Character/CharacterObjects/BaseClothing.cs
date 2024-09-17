@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
+using Code.Frameworks.Character.Structs;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Managers;
 using Code.Tools;
@@ -57,6 +58,9 @@ namespace Code.Frameworks.Character.CharacterObjects
 		
 		[field: SerializeField] 
 		public Simulation Simulation { get; set; }
+		
+		[field: SerializeField]
+		public SBlendshapeOffset[] BlendshapeOffsets { get; set; }
 		
 		[field: SerializeField]
 		public ESupportedGendersFlags SupportedGendersFlags { get; set; }
