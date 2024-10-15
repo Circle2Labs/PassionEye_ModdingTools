@@ -15,6 +15,7 @@
         OnePiece,
         Skirt,
         Pants,
-        Shoes
+        Shoes,
+        Gloves
     }
 }
