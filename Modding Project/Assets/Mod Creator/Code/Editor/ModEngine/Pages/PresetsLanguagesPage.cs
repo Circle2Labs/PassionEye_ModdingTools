@@ -73,6 +73,22 @@ namespace Code.Editor.ModEngine
 			}
 
 			GUILayout.EndScrollView();
+			
+			GUILayout.FlexibleSpace();
+
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_PRESETSLANGUAGE_BUILDEVERYTHING")))
+			{
+				foreach (var preset in Presets)
+				{
+					if (preset == "_previous_state_")
+						continue;
+					
+					ResetState();
+					LoadPreset(preset);
+					AssignComponents();
+					Build();
+				}
+			}
 		}
 
 		public void SavePreset(string presetName, bool overwrite = false)

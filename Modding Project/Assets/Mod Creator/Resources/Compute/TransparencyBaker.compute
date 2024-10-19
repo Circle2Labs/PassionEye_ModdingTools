@@ -1,0 +1,113 @@
+﻿#pragma kernel CastRays
+
+#include "Assets/Mod Creator/Shaders/RayTracing/Raycast.hlsl"
+
+uniform RWTexture2D<float> Hitmap;
+uniform StructuredBuffer<Ray> Rays;
+uniform StructuredBuffer<BVHNode> BVHNodes;
+uniform StructuredBuffer<Triangle> Triangles;
+uniform Buffer<int> NodesOffsets;
+uniform Buffer<float> RaycastDistances;
+
+[numthreads(32, 32, 1)]
+void CastRays (
+    uint3 id : SV_DispatchThreadID,
+    uint3 groupID : SV_GroupID,
+    uint3 groupThreadID : SV_GroupThreadID,
+    uint groupIndex : SV_GroupIndex
+)
+{
+    bool hit = false;
+    
+    // Calculate the length of the side of the square
+    int raysSideLength = sqrt(Rays.Length);
+    
+    
+    int rayIndex = id.y * raysSideLength + id.x;
+
+    if (rayIndex >= Rays.Length) return;
+
+    Ray ray = Rays[rayIndex];
+    
+    if(length(ray.direction) == 0.0f)
+    {
+        Hitmap[id.xy] = 0.5f;
+        return; 
+    }
+    
+    for(int i = 0; i < Triangles.Length; i++)
+    {
+        float3 vertices[3] = {Triangles[i].a, Triangles[i].b, Triangles[i].c};
+
+        RayData value = RayCast(
+            ray,
+            RaycastDistances[0],
+            vertices
+        );
+     
+        if(value.hitDistance > 0.0f){
+            hit = true;
+            break;
+        }
+    }
+    
+    Hitmap[id.xy] = hit ? 0.0f : 1.0f;
+}
+
+#pragma kernel CastRaysBVH
+
+[numthreads(32, 32, 1)]
+void CastRaysBVH(
+    uint3 id : SV_DispatchThreadID,
+    uint3 groupID : SV_GroupID,
+    uint3 groupThreadID : SV_GroupThreadID,
+    uint groupIndex : SV_GroupIndex
+)
+{
+    bool hit = false;
+    
+    // Calculate the length of the side of the square
+    int raysSideLength = sqrt(Rays.Length);
+    
+    int rayIndex = id.y * raysSideLength + id.x;
+
+    if (rayIndex >= Rays.Length) return;
+
+    Ray ray = Rays[rayIndex];
+    
+    if(length(ray.direction) == 0.0f)
+    {
+        Hitmap[id.xy] = 0.5f;
+        return; 
+    }
+
+    /*
+    RayData hitdata = RayBVHIntersection(
+        ray,
+        RaycastDistance,
+        BVHNodes,
+        Triangles,
+        0
+    );*/
+
+    //update: we need to check multiple BVH nodes
+
+    for(int i=0; i<NodesOffsets.Length; i++)
+    {
+        RayData hitdata = RayBVHIntersection(
+            ray,
+            RaycastDistances[i],
+            BVHNodes,
+            Triangles,
+            NodesOffsets[i]
+        );
+        
+        if(hitdata.hitDistance > 0.0f){
+            hit = true;
+            break;
+        }
+    }
+
+    Hitmap[id.xy] = hit ? 0.0f : 1.0f;
+}
+

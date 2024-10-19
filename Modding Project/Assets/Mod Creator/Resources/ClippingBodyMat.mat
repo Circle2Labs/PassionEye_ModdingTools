@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ClippingBodyMat
+  m_Shader: {fileID: 4800000, guid: 444c859f9b741184dbbab549a81eb802, type: 3}
+  m_Parent: {fileID: 2100000, guid: fbc87c58ebcedd94f9f70ca848c12438, type: 2}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _ADDITIONAL_LIGHTS
+  - _ADDITIONAL_LIGHT_SHADOWS
+  - _ALPHATEST_ON
+  - _MAIN_LIGHT_SHADOWS
+  - _MAIN_LIGHT_SHADOWS_CASCADE
+  - _SHADOWS_SOFT
+  m_InvalidKeywords:
+  - _ALPHASOURCE_VALUE
+  - _GRADIENT_DIRECTION_X
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap:
+    RenderType: TransparentCutout
+  disabledShaderPasses: []
+  m_LockedProperties: _ReceiveShadows
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CensorPartTex:
+        m_Texture: {fileID: 2800000, guid: 9dcdbab9143d79c4996f9a3df300529f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: bb7aceb7e43b0aa4db667b855fc60515, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MultiTex:
+        m_Texture: {fileID: 2800000, guid: bb7aceb7e43b0aa4db667b855fc60515, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SkinColorRamp:
+        m_Texture: {fileID: 2800000, guid: 1cec28b4d5d8b59429724257b94f67f3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AdditionalLightsMidPoint: 0
+    - _AdditionalLightsSmothness: 1
+    - _AutoSpecularColor: 0
+    - _BakedShadowStrenght: 0.5
+    - _DynamicRemap: 0.5
+    - _GIRatio: 0.5
+    - _IsFace: 0
+    - _MainLightMidPoint: 0
+    - _MainLightSmoothness: 0.1
+    - _NormalStrength: 1
+    - _RimMidPoint: 0.6
+    - _RimSmoothness: 0.1
+    - _Rim_Enabled: 0
+    - _SecondBandOffset: 0.32
+    - _Shadow2ColorAuto: 0
+    - _ShadowSharpness: 0.21
+    - _Shrink_Size: -0.1
+    - _Smoothness: 0
+    - _SpecularAmount: 0.15
+    - _SpecularPower: 10
+    - _SpecularSmoothness: 0.1
+    - _Specularity: 0.501
+    - _Y_Modifier: 0
+    - _Y_Pos_Multiplier: 10
+    m_Colors:
+    - _Ambient: {r: 0.25471696, g: 0.25471696, b: 0.25471696, a: 0}
+    - _RimColor: {r: 1, g: 0, b: 0, a: 1}
+    - _RimLightColor: {r: 0, g: 0, b: 0, a: 0}
+    - _SkinShadowColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecularColor: {r: 0.9450981, g: 0.7686275, b: 0.6627451, a: 0}
+  m_BuildTextureStacks: []
+--- !u!114 &7422875032606468876
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 7

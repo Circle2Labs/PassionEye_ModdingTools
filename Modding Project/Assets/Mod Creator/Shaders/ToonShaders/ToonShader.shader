@@ -15,7 +15,7 @@ Shader "Toon/ToonShader" {
         [Normal] _NormalMap ("Normal Map", 2D) = "bump" {}
         _NormalStrength("Normal Strength", Range(0, 1)) = 0.5
         [Space]
-        _MRFATex ("Metalness, Roughness, Fresnel, Alpha", 2D) = "white" {}
+        _MRFATex ("Metalness, Roughness, Fresnel", 2D) = "white" {}
         [Toggle] _Use_Metalness ("Use Metalness", float) = 0
         _Metalness ("Metalness", Range(0, 1)) = 0 //texture
         [Space]
@@ -35,13 +35,17 @@ Shader "Toon/ToonShader" {
         _FaceFwdVec ("Face Forward Vector", Vector) = (0, 0, 0, 0)
         _FaceRightVec ("Face Right Vector", Vector) = (0, 0, 0, 0)
         [Space]
-        _Transparency ("Alpha Intensity", Range(0, 1)) = 1
+        _AlphaMap ("Alpha Map", 2D) = "white" {}
+        [Toggle] _UseAlphaForTransparency ("Use Alpha Channel for Transparency", float) = 0
+        _Transparency ("Alpha Intensity", Range(0, 1)) = 0
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         [Space]
         _CensorPartTex ("Censor Texture", 2D) = "black" {}
         [Space]
         [Toggle] _ExpandVertices ("Expand Vertices", float) = 0
         _ExpandAmount ("Expand Amount", Range(0, 0.001)) = 0
+        _ClothingLayersSeparation ("Clothing Layers Separation", Range(0, 0.01)) = 0.003
+        _ClothingLayer ("Clothing Layer", float) = 0
         
         // Blending state
         [HideInInspector]_Surface("__surface", Float) = 0.0
@@ -73,7 +77,7 @@ Shader "Toon/ToonShader" {
             Cull [_Cull]
                         
             HLSLPROGRAM
-  #pragma target 5.0 //we might want to use 5.0 for better optimized output from compiler.
+            #pragma target 5.0 //we might want to use 5.0 for better optimized output from compiler.
             //#pragma dynamic_branch _ALPHATEST_ON //we might rather want to just do it anyways.
             #pragma multi_compile _ALPHATEST_ON
             #pragma multi_compile _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
@@ -122,13 +126,13 @@ Shader "Toon/ToonShader" {
             };
 
             #include "ToonShaderCBuffer.hlsl"
-            
+  
             varyings vert(attributes IN) {
                 varyings OUT;
 
                 if(_ExpandVertices)
                     IN.vertex += IN.normal * _ExpandAmount;
-
+                
                 OUT.position = TransformObjectToHClip(IN.vertex);
                 OUT.positionWS = TransformObjectToWorld(IN.vertex);
                 OUT.normal = TransformObjectToWorldNormal(IN.normal);
@@ -136,7 +140,14 @@ Shader "Toon/ToonShader" {
                 OUT.uv = IN.uv;
                 OUT.lmuv = IN.lmuv;
                 OUT.rtuv = IN.rtuv;
+
+                //push position of vertex towards camera normal plane based on clothing layer
+                float linearZ  = Linear01Depth(OUT.position.z, _ZBufferParams);
+                OUT.position.z += _ClothingLayersSeparation * _ClothingLayer * linearZ;
                 
+                float3 viewDir = GetWorldSpaceViewDir(OUT.positionWS);
+                OUT.positionWS += normalize(viewDir) * _ClothingLayer * _ClothingLayersSeparation;
+                    
                 return OUT;
             }
 
@@ -146,9 +157,22 @@ Shader "Toon/ToonShader" {
                 float3 baseCol = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseColUV).rgb * _BaseColor.rgb;
 
                 float2 MRFAUV = TRANSFORM_TEX(IN.uv, _MRFATex);
-                float alpha = SAMPLE_TEXTURE2D(_MRFATex, sampler_MRFATex, MRFAUV).a * _Transparency;
+
+                float4 alphaTexSample = SAMPLE_TEXTURE2D(_AlphaMap, sampler_LinearRepeat, IN.uv);
+                float alpha;
                 
-                AlphaDiscard(alpha, _Cutoff);
+                if(_UseAlphaForTransparency)
+                    alpha = alphaTexSample.a * _Transparency;
+                else
+                    alpha = alphaTexSample.r * _Transparency;
+
+                // TODO: separate to function in library
+
+                if(_AlphaClip)
+                {
+                    clip(alpha - 0.0001);
+                    alpha = SharpenAlpha(alpha, _Cutoff);
+                }
                 
                 alpha = OutputAlpha(alpha, _Surface);
                 baseCol = AlphaModulate(baseCol, alpha);
@@ -333,11 +357,27 @@ Shader "Toon/ToonShader" {
             // Fragment shader
             float4 fragShadow(VertexOutput input) : SV_TARGET {
                 // Sample the alpha mask texture
-                float2 MRFAUV = TRANSFORM_TEX(input.uv, _MRFATex);
-                float alpha = SAMPLE_TEXTURE2D(_MRFATex, sampler_MRFATex, MRFAUV).a * _Transparency;
+                float4 alphaMapSample = SAMPLE_TEXTURE2D(_AlphaMap, sampler_LinearClamp, input.uv);
+
+                float alpha;
+                
+                if(_UseAlphaForTransparency)
+                    alpha = alphaMapSample.a * _Transparency;
+                else
+                    alpha = alphaMapSample.r * _Transparency;
+
+                if(_AlphaClip)
+                {
+                    clip(alpha - _Cutoff);
+                    alpha = SharpenAlpha(alpha, _Cutoff);
+                }
                 
                 #if defined(_ALPHATEST_ON) || defined(_SURFACE_TYPE_TRANSPARENT)
-                    clip(alpha - _Cutoff);
+                    //if we didn't already clip previously, we do the same checks
+                    if(_AlphaClip == 0){
+                        clip(alpha - _Cutoff);
+                        alpha = SharpenAlpha(alpha, _Cutoff);
+                    }
                 #endif
 
                 #ifdef LOD_FADE_CROSSFADE
@@ -471,10 +511,15 @@ Shader "Toon/ToonShader" {
             VertexOutput vert(VertexInput input) {
                 VertexOutput output;
                 output.pos = TransformObjectToHClip(input.positionOS);
+                
+                //push position of vertex towards camera normal plane based on clothing layer
+                float linearZ  = Linear01Depth(output.pos.z, _ZBufferParams);
+                output.pos.z += _ClothingLayersSeparation * _ClothingLayer * linearZ;
+                
                 output.normal = input.normalOS;
                 output.uv = input.uv;
                 output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w * GetOddNegativeScale());
-                output.viewDirWS = GetWorldSpaceViewDir(input.positionOS.xyz);
+                output.viewDirWS = GetWorldSpaceViewDir(TransformObjectToWorld(input.positionOS.xyz));
                 return output;
             }
 

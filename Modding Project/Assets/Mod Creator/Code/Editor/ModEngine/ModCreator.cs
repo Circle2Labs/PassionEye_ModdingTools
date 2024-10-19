@@ -29,9 +29,9 @@ namespace Code.Editor.ModEngine
 					EditorGUI.FocusTextInControl(null);
 
 					if (currentTab == 0)
-					{
 						SetupPresets();
-					}
+					
+					stopPreview();
 				}
 			}
 		}
@@ -60,7 +60,7 @@ namespace Code.Editor.ModEngine
 		public const bool IsVerbose = false;
 #endif
 
-		public const string Version = "v0.1.5.0";
+		public const string Version = "v0.1.6.0";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};
@@ -137,6 +137,7 @@ namespace Code.Editor.ModEngine
 		
 		public void OnDestroy()
 		{
+			stopPreview();
 			SavePreset("_previous_state_", true);
 		}
 		

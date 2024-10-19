@@ -1,0 +1,38 @@
+﻿#pragma kernel DilateTexture
+
+// Texture that will be dilated
+uniform Texture2D<float> original;
+uniform RWTexture2D<float> result;
+
+// dilate kernel
+uniform int kernelSize = 3;
+
+[numthreads(32, 32, 1)]
+void DilateTexture (uint3 id : SV_DispatchThreadID)
+{
+    int width, height;
+    result.GetDimensions(width, height);
+
+    result[id.xy] = 1.0f;
+
+    if (id.x < (uint)width && id.y < (uint)height)
+    {
+        for (int i = -kernelSize; i <= kernelSize; i++)
+        {
+            for (int j = -kernelSize; j <= kernelSize; j++)
+            {
+                int2 samplePos = int2(id.x + i, id.y + j);
+                if (samplePos.x >= 0 && samplePos.x < width && samplePos.y >= 0 && samplePos.y < height)
+                {
+                    float value = original[samplePos];
+                    if (value > 0.99f)
+                    {
+                        result[id.xy] = 1.0f;
+                        return;
+                    }
+                }
+            }
+        }
+        result[id.xy] = original[id.xy];
+    }
+}

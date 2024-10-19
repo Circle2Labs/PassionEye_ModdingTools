@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
@@ -12,6 +15,11 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using Code.Frameworks.Character.Structs;
+using Code.Frameworks.ClippingFix.Enums;
+using Code.Frameworks.RayTracing;
+using UnityEngine.Rendering;
+using Ray = Code.Frameworks.RayTracing.Ray;
+using Timer = System.Timers.Timer;
 
 namespace Code.Editor.ModEngine
 {
@@ -70,6 +78,165 @@ namespace Code.Editor.ModEngine
 		
 		private Template copyBuffer;
 
+		private Tuple<Transform, SkinnedMeshRenderer[]> previewingClothingClone;
+		private Template previewingTemplate;
+		private EClothingState previewingState;
+		private Dictionary<string, Transform> previewingBodyBones;
+		private Timer previewTimer;
+
+		private readonly SynchronizationContext context = SynchronizationContext.Current;
+
+		private GameObject previewingBody;
+		public GameObject PreviewingBody
+		{
+			get
+			{
+				if (previewingBody != null)
+					return previewingBody;
+
+				previewingBodyMaterial = null;
+				
+				previewingBody = Instantiate(Resources.Load<GameObject>("ClippingFixPreviewBody"));
+				previewingBodyBones = new Dictionary<string,Transform>();
+				
+				var renderer = PreviewingBody.transform.Find("LOD0").GetComponent<SkinnedMeshRenderer>();
+				var bones = renderer.bones;
+
+				foreach (var bone in bones)
+					previewingBodyBones.Add(bone.name, bone);
+				
+				return previewingBody;
+			}
+		}
+
+		private Material previewingBodyMaterial;
+		public Material PreviewingBodyMaterial
+		{
+			get
+			{
+				if (previewingBodyMaterial != null)
+					return previewingBodyMaterial;
+				
+				// This is not using sharedMaterial because it would modify the material of the file that modders use for reference
+				previewingBodyMaterial = PreviewingBody.transform.Find("LOD0").GetComponent<Renderer>().material;
+				return PreviewingBodyMaterial;
+			}
+		}
+		
+		private CustomRenderTexture previewingClippingFixTexture;
+		public CustomRenderTexture PreviewingClippingFixTexture
+		{
+			get
+			{
+				if (previewingClippingFixTexture != null)
+					return previewingClippingFixTexture;
+				
+				var resolution = BodyRaysResolution;
+
+				previewingClippingFixTexture =
+					new CustomRenderTexture((int)resolution, (int)resolution, RenderTextureFormat.R8);
+				previewingClippingFixTexture.enableRandomWrite = true;
+				previewingClippingFixTexture.doubleBuffered = true;
+				previewingClippingFixTexture.material = CoreUtils.CreateEngineMaterial(Shader.Find("White"));
+				previewingClippingFixTexture.Create();
+				previewingClippingFixTexture.Initialize();
+				previewingClippingFixTexture.Update();
+				
+				// set the texture to the material
+				PreviewingBodyMaterial.SetTexture("_AlphaMap", previewingClippingFixTexture);
+				
+				return previewingClippingFixTexture;
+			}
+		}
+
+		private bool hidePreviewRenderers;
+		public bool HidePreviewRenderers
+		{
+			get => hidePreviewRenderers;
+			set
+			{
+				var previousValue = hidePreviewRenderers;
+				hidePreviewRenderers = value;
+				
+				if (previewingTemplate == null || previousValue == hidePreviewRenderers)
+					return;
+				
+				previewingClothingClone.Item1.gameObject.SetActive(!value);
+			}
+		}
+
+		private ERaysResolution bodyRaysResolution;
+
+		public ERaysResolution BodyRaysResolution
+		{
+			get
+			{
+				switch ((int)bodyRaysResolution)
+				{
+					case 0:
+						return ERaysResolution.Low;
+					case 1:
+						return ERaysResolution.Medium;
+					case 2:
+						return ERaysResolution.High;
+					case 3:
+						return ERaysResolution.VeryHigh;
+				}
+
+				return ERaysResolution.Low;
+			}
+		}
+
+		// todo: handle multiple base meshes
+		private Dictionary<ERaysResolution, Ray[]> bodyRays;
+		public Dictionary<ERaysResolution, Ray[]> BodyRays
+		{
+			get
+			{
+				if (bodyRays != null)
+					return bodyRays;
+
+				string raysPath;
+				
+				if (IsStandalone)
+					raysPath = "Assets/Mod Creator/ClippingFixRays/pr.PR-builtin.BaseMeshFemale-";
+				else
+					raysPath = "Assets/GameAssets/Addressables/ClippingFixRays/pr.PR-builtin.BaseMeshFemale-";
+				
+				var dict = new Dictionary<ERaysResolution, Ray[]>();
+				
+				var resolutions = Enum.GetValues(typeof(ERaysResolution));
+				for (var i = 0; i < resolutions.Length; i++)
+				{
+					var resolution = (ERaysResolution)resolutions.GetValue(i);
+					
+					var bytes = File.ReadAllBytes($"{raysPath}{resolution.ToString()}.bytes");
+					var rays = bytes.ToRaysPtr();
+
+					dict[resolution] = rays;
+				}
+
+				bodyRays = dict;
+				return bodyRays;
+			}
+		}
+		
+		// actual properties for baking
+		
+		private BVHNodeGPU[] bvhNodes;
+		private Triangle[] triangles;
+		
+		// compute shaders
+		private ComputeShader clippingFixShader;
+		private int clippingFixKernel;
+
+		private ComputeShader dilaterShader;
+		private int dilaterKernel;
+		
+		private ComputeBuffer raysBuffer;
+
+		private CustomRenderTexture bakerTempRT;
+		
 		public void DrawBasic()
 		{
 			if (Templates == null || Templates.Count == 0)
@@ -127,6 +294,10 @@ namespace Code.Editor.ModEngine
 							template.ClothingStates[i] = obj;
 						}
 
+						GUILayout.Space(10);
+
+						clippingFix(template);
+						
 						if (!IsStandalone)
 						{
 							GUILayout.Space(5);
@@ -694,6 +865,61 @@ namespace Code.Editor.ModEngine
 			fkData.Groups = tempList.ToArray();
 			template.FKData = fkData;
 		}
+
+		private void clippingFix(Template template)
+		{
+			EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLIPPINGFIX"), EditorStyles.boldLabel);
+
+			var previousClippingFix = template.UseClippingFix;
+			var previousClippingDistance = template.ClippingDistance;
+			var previousBodyRaysResolution = BodyRaysResolution;
+			
+			template.UseClippingFix = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_USECLIPPINGFIX"), template.UseClippingFix);
+			EditorGUIUtility.fieldWidth = 60;
+			template.ClippingDistance = EditorGUILayout.Slider(GetLocalizedString("MODCREATOR_BASIC_CLIPPINGDISTANCE"), template.ClippingDistance, 0.00001f, 0.01f);
+			EditorGUIUtility.fieldWidth = 0;
+			
+			GUILayout.BeginHorizontal();
+			HidePreviewRenderers = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_HIDEPREVIEWRENDERERS"), HidePreviewRenderers);
+			bodyRaysResolution = (ERaysResolution)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_RAYSRESOLUTION")}*", bodyRaysResolution, "MODCREATOR_BASIC_RAYSRESOLUTION_");
+			GUILayout.EndHorizontal();
+			
+			GUILayout.Space(2);
+			
+			GUILayout.BeginHorizontal();
+			for (var i = 0; i < template.ClothingStates.Length; i++)
+			{
+				var stateEnum = (EClothingState)i;
+				if (stateEnum == EClothingState.Off)
+					continue;
+
+				var previewingThis = template == previewingTemplate && stateEnum == previewingState;
+
+				GUI.enabled = template.ClothingStates[i] != null;
+				var startPreviewState = GUILayout.Button(GetLocalizedString($"MODCREATOR_BASIC_PREVIEW_STATE_{stateEnum.ToString().ToUpper()}") + (previewingThis ? "*" : ""));
+				GUI.enabled = true;
+
+				if (!startPreviewState)
+					continue;
+
+				var clothingTransform = ((GameObject)Prefabs[Templates.IndexOf(template)]).transform;
+				startPreview(template, stateEnum, clothingTransform);
+			}
+
+			GUILayout.Space(5);
+
+			GUI.enabled = previewingTemplate != null;
+			var stopPreviewState = GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_PREVIEW_STOP"), GUILayout.Width(125));
+			GUI.enabled = true;
+
+			if (stopPreviewState)
+				stopPreview();
+			
+			GUILayout.EndHorizontal();
+
+			if (template.UseClippingFix != previousClippingFix || template.ClippingDistance != previousClippingDistance || BodyRaysResolution != previousBodyRaysResolution)
+				refreshPreview(previousClippingDistance, previousBodyRaysResolution);
+		}
 		
 		private string dragTransformNameSingle(string label, string transformName, Object parentObject)
 		{
@@ -757,6 +983,279 @@ namespace Code.Editor.ModEngine
 				
 				GUILayout.EndHorizontal();
 			}
+		}
+
+		private void focusSelectedObject()
+		{
+			var sceneView = SceneView.lastActiveSceneView;
+				
+			var focusedField = sceneView.GetType().GetField("m_WasFocused", BindingFlags.NonPublic | BindingFlags.Instance);
+			focusedField.SetValue(sceneView, false);
+			
+			sceneView.FrameSelected(false, true);
+		}
+
+		private void startPreview(Template template, EClothingState state, Transform clothingTransform)
+		{
+			Debug.Log("Entering clothing preview mode");
+
+			// hide all states except the one we need so we can grab the appropriate renderers when cloning
+			for (var i = 0; i < template.ClothingStates.Length; i++)
+				if (template.ClothingStates[i] != null)
+					template.ClothingStates[i].gameObject.SetActive(state == (EClothingState)i);
+			
+			// get a copy of the clothing so it can be used as a preview
+			var clone = Instantiate(clothingTransform);
+			
+			// get only renderers on active objects (the correct state)
+			var renderers = clone.GetComponentsInChildren<SkinnedMeshRenderer>(false);
+
+			// re-enable all states again
+			foreach (var stateObject in template.ClothingStates)
+				if (stateObject != null)
+					stateObject.gameObject.SetActive(true);
+			
+			previewingClothingClone = new Tuple<Transform, SkinnedMeshRenderer[]>(clone, renderers);
+			previewingTemplate = template;
+			previewingState = state;
+			
+			// hide all original objects
+			foreach (var prefab in Prefabs)
+			{
+				if (prefab == null || prefab is not GameObject gameObject)
+					continue;
+				
+				gameObject.SetActive(false);
+			}
+			
+			PreviewingBodyMaterial.SetTexture("_AlphaMap", null);
+			PreviewingBody.SetActive(true);
+
+			/*// remap preview clothing bones to body bones (todo: handle lods)
+			foreach (var skinnedMeshRenderer in previewingClothingClone.Item2)
+			{
+				var currentBones = skinnedMeshRenderer.bones;
+				var newBones = new Transform[currentBones.Length];
+				for (var i = 0; i < currentBones.Length; i++)
+				{
+					var bone = currentBones[i].gameObject;
+					previewingBodyBones.TryGetValue(bone.name, out newBones[i]);
+
+					if (newBones[i] == null)
+						newBones[i] = bone.transform;
+				}
+				skinnedMeshRenderer.bones = newBones;
+			}
+			
+			// bake preview clothing meshes to adjust to new bones
+			foreach (var skinnedMeshRenderer in previewingClothingClone.Item2)
+			{
+				var transform = skinnedMeshRenderer.transform;
+				
+				var previousPosition = transform.localPosition;
+				var previousAngles = transform.localEulerAngles;
+				
+				transform.localPosition = Vector3.zero;
+				transform.localEulerAngles = Vector3.zero;
+
+				var newMesh = new Mesh();
+				skinnedMeshRenderer.BakeMesh(newMesh, true);
+				skinnedMeshRenderer.sharedMesh = newMesh;
+
+				transform.localPosition = previousPosition;
+				transform.localEulerAngles = previousAngles;
+			}*/
+			
+			Selection.activeGameObject = clone.gameObject;
+			focusSelectedObject();
+			
+			HidePreviewRenderers = !HidePreviewRenderers;
+			HidePreviewRenderers = !HidePreviewRenderers;
+			
+			clippingFixShader = Resources.Load<ComputeShader>("Compute/TransparencyBaker");
+			clippingFixKernel = clippingFixShader.FindKernel("CastRaysBVH");
+
+			dilaterShader = Resources.Load<ComputeShader>("Compute/DilateTexture");
+			dilaterKernel = dilaterShader.FindKernel("DilateTexture");
+			
+			bvhNodes = null;
+			triangles = null;
+			
+			// reset textures
+			PreviewingClippingFixTexture?.Release();
+			previewingClippingFixTexture = null;
+			
+			bakerTempRT?.Release();
+			bakerTempRT = null;
+			
+			refreshPreview(-1, BodyRaysResolution);
+		}
+
+		// PreviewingBodyMaterial - material of the test body
+		// PreviewingBody - gameobject of the test body
+		// previewingState - clothing state being previewed
+		// previewingClothingRenderers - all renderers that belong to the clothing state being previewed
+		// BodyRaysResolution - selected resolution of body rays (make sure to use the property, not the field)
+		// BodyRays - dictionary of resolution->ray[] (make sure to use the property, not the field)
+
+		private void refreshPreview(float previousClippingDistance, ERaysResolution previousBodyRaysResolution)
+		{
+			if (previewingTemplate == null)
+				return;
+
+			if (!HidePreviewRenderers)
+			{
+				previewingClothingClone.Item1.gameObject.SetActive(false);
+
+				if (previewTimer == null)
+				{
+					previewTimer = new Timer();
+					previewTimer.Interval = 500;
+					previewTimer.AutoReset = false;
+					previewTimer.Enabled = true;
+					previewTimer.Elapsed += delegate { context.Send(delegate { timerElapsed(); }, null); };
+				}
+
+				previewTimer.Stop();
+				previewTimer.Start();
+			}
+			
+			// PreviewingBodyMaterial - material of the test body
+			// PreviewingBody - gameobject of the test body
+			// previewingState - clothing state being previewed
+			// previewingClothingRenderers - all renderers that belong to the clothing state being previewed
+			
+			// if it's the first time we're baking, we need to build the BVH
+			if (bvhNodes == null || triangles == null)
+			{
+				Raycaster raycaster = new();
+
+				foreach (var renderer in previewingClothingClone.Item2)
+					raycaster.AddMesh(renderer.sharedMesh, renderer.transform);
+
+				raycaster.BuildBVH();
+
+				(bvhNodes, triangles) = raycaster.BvhRoot.ToGPU();
+			}
+			
+			// if resolution is changed, we need to update the rays buffer and the textures
+			if(BodyRaysResolution != previousBodyRaysResolution || raysBuffer == null)
+			{
+				// the getter will automatically create the texture when needed if it doesn't exist
+
+				PreviewingClippingFixTexture?.Release();
+				previewingClippingFixTexture = null;
+				
+				bakerTempRT?.Release();
+				bakerTempRT = null;
+				
+				var rays = BodyRays[BodyRaysResolution];
+				
+				raysBuffer = new ComputeBuffer(rays.Length, Ray.Size);
+				raysBuffer.SetData(rays);
+				
+				clippingFixShader.SetBuffer(clippingFixKernel, "Rays", raysBuffer);
+			}
+			
+			var bvhNodesBuffer = new ComputeBuffer(bvhNodes.Length, BVHNodeGPU.Size);
+			bvhNodesBuffer.SetData(bvhNodes);
+			
+			var trianglesBuffer = new ComputeBuffer(triangles.Length, Triangle.Size);
+			trianglesBuffer.SetData(triangles);
+			
+			// we only have one bvh root, so the only offset is 0
+			var bvhNodesOffsets = new ComputeBuffer(1, sizeof(int));
+			bvhNodesOffsets.SetData(new[] { 0 });
+			
+			// same as above, we only have one clothing piece so one distance
+			var raycastDistancesBuffer = new ComputeBuffer(1, sizeof(float));
+			raycastDistancesBuffer.SetData(new[] { previewingTemplate.ClippingDistance });
+
+			if (bakerTempRT == null)
+			{
+				bakerTempRT = new CustomRenderTexture((int)BodyRaysResolution, (int)BodyRaysResolution, RenderTextureFormat.R8);
+				bakerTempRT.doubleBuffered = true;
+				bakerTempRT.enableRandomWrite = true;
+				bakerTempRT.material = new Material(Shader.Find("White"));
+				bakerTempRT.Create();
+				bakerTempRT.Initialize();
+				bakerTempRT.Update();
+			}
+
+			clippingFixShader.SetTexture(clippingFixKernel, "Hitmap", bakerTempRT);
+			clippingFixShader.SetBuffer(clippingFixKernel, "Rays", raysBuffer);
+			clippingFixShader.SetBuffer(clippingFixKernel, "BVHNodes", bvhNodesBuffer);
+			clippingFixShader.SetBuffer(clippingFixKernel, "Triangles", trianglesBuffer);
+			clippingFixShader.SetBuffer(clippingFixKernel, "NodesOffsets", bvhNodesOffsets);
+			clippingFixShader.SetBuffer(clippingFixKernel, "RaycastDistances", raycastDistancesBuffer);
+            
+			var fence = Graphics.CreateAsyncGraphicsFence();
+			clippingFixShader.Dispatch(clippingFixKernel, bakerTempRT.width / 32, bakerTempRT.height / 32, 1);
+			Graphics.WaitOnAsyncGraphicsFence(fence);
+
+			// then dilate the texture
+			// TODO: set the dilation radius as a parameter
+			dilaterShader.SetInt("kernelSize", 6);
+			dilaterShader.SetTexture(dilaterKernel, "original", bakerTempRT);
+			dilaterShader.SetTexture(dilaterKernel, "result", PreviewingClippingFixTexture);
+            
+			fence = Graphics.CreateAsyncGraphicsFence();
+			dilaterShader.Dispatch(dilaterKernel, PreviewingClippingFixTexture.width / 32, PreviewingClippingFixTexture.height / 32, 1);
+			Graphics.WaitOnAsyncGraphicsFence(fence);
+			
+			// cleanup
+			bvhNodesBuffer.Release();
+			trianglesBuffer.Release();
+			bvhNodesOffsets.Release();
+			raycastDistancesBuffer.Release();
+			
+			SceneView.RepaintAll();
+		}
+		
+		private void stopPreview()
+		{
+			if (previewingTemplate == null)
+				return;
+
+			Debug.Log("Exiting clothing preview mode");
+
+			foreach (var prefab in Prefabs)
+			{
+				if (prefab == null || prefab is not GameObject gameObject)
+					continue;
+				
+				gameObject.SetActive(true);
+			}
+
+			previewTimer?.Stop();
+			
+			bvhNodes = null;
+			triangles = null;
+			
+			raysBuffer?.Release();
+			raysBuffer = null;
+			
+			bakerTempRT?.Release();
+			bakerTempRT = null;
+
+			previewingClippingFixTexture?.Release();
+			previewingClippingFixTexture = null;
+
+			DestroyImmediate(previewingClothingClone.Item1.gameObject);
+			PreviewingBody.SetActive(false);
+
+			Selection.activeGameObject = null;
+			focusSelectedObject();
+
+			previewingTemplate = null;
+		}
+
+		private void timerElapsed()
+		{
+			if (HidePreviewRenderers)
+				return;
+
+			previewingClothingClone.Item1.gameObject.SetActive(true);
 		}
 	}
 }

@@ -63,6 +63,12 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public SBlendshapeOffset[] BlendshapeOffsets { get; set; }
 		
 		[field: SerializeField]
+		public float ClippingDistance { get; set; }
+
+		[field: SerializeField]
+		public byte[] BVHData { get; set; }
+		
+		[field: SerializeField]
 		public ESupportedGendersFlags SupportedGendersFlags { get; set; }
 
 		[field: SerializeField]

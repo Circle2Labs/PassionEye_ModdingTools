@@ -30,6 +30,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _AlphaMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _AlphaTexture:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -43,6 +47,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CensorPartTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -194,6 +202,8 @@ Material:
     - _CastShadows: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
+    - _ClothingLayer: 0
+    - _ClothingLayersSeparation: 0.003
     - _ColoredRimLight: 0
     - _Cull: 2
     - _Cutoff: 0.5
@@ -206,6 +216,8 @@ Material:
     - _DynamicRemap: 1
     - _Emission: 0
     - _EnvironmentReflections: 1
+    - _ExpandAmount: 0
+    - _ExpandVertices: 0
     - _Face_Rendering: 0
     - _FixAmount: 0
     - _Fresnel: 0
@@ -276,8 +288,9 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
-    - _Transparency: 0
+    - _Transparency: 1
     - _UVSec: 0
+    - _UseAlphaForTransparency: 0
     - _UseRimLight: 0
     - _UseSDF: 0
     - _UseSpecularity: 0
