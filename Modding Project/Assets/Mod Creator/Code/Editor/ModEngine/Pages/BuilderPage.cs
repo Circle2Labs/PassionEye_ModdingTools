@@ -11,6 +11,7 @@ using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
 using Code.Frameworks.ModdedScenes;
+using Code.Frameworks.RayTracing;
 using Code.Frameworks.Studio.Interfaces;
 using Code.Frameworks.Studio.StudioObjects;
 using Code.Tools;
@@ -169,19 +170,24 @@ namespace Code.Editor.ModEngine
 
 				if (GUILayout.Button(GetLocalizedString("MODCREATOR_BUILDER_RESET"), GUILayout.Width(75)))
 				{
-					Manifest = new Manifest { Name = "", Author = "", Version = "1.0.0" };
-
-					Prefabs.Clear();
-					Templates.Clear();
-
-					Assembly = new Tuple.SerializableTuple<string, byte[]>(null, null);
-
-					copyBuffer = null;
-					tempAssembly = null;
+					ResetState();
 				}
 
 				GUILayout.EndHorizontal();
 			}
+		}
+
+		public void ResetState()
+		{
+			Manifest = new Manifest { Name = "", Author = "", Version = "1.0.0" };
+
+			Prefabs.Clear();
+			Templates.Clear();
+
+			Assembly = new Tuple.SerializableTuple<string, byte[]>(null, null);
+
+			copyBuffer = null;
+			tempAssembly = null;
 		}
 		
 		public void Load()
@@ -255,6 +261,8 @@ namespace Code.Editor.ModEngine
 					
 									for (var k = 0; k < cloth.ClothingStates.Length; k++)
 										template.ClothingStates[k] = cloth.ClothingStates[k];
+									
+									template.ClippingDistance = cloth.ClippingDistance;
 									break;
 								case IHair hair:
 									template.HairType = hair.HairType;
@@ -363,6 +371,56 @@ namespace Code.Editor.ModEngine
 			catch (Exception e)
 			{
 				Debug.LogError($"Failed assigning renderers {e}");
+			}
+			
+			Thread.Sleep(100);
+			EditorUtility.DisplayProgressBar("Building Mod..", "Creating BVHs", 0.4f);
+
+			for (var i = 0; i < Templates.Count; i++)
+			{
+				var template = Templates[i];
+				if (template.TemplateType != ETemplateType.CharacterObject || template.CharacterObjectType != ECharacterObjectType.Clothing || !template.UseClippingFix)
+					continue;
+
+				try
+				{
+					var gameObject = (GameObject)Prefabs[i];
+					var clothing = gameObject.GetComponent<IClothing>();
+
+					var bvhDatas = new BVHDataGPU[template.ClothingStates.Length];
+					for (var k = 0; k < bvhDatas.Length; k++)
+					{
+						var clothingState = template.ClothingStates[k];
+						if (clothingState == null)
+							continue;
+					
+						var renderers = clothingState.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+						if (renderers.Length == 0)
+							continue;
+					
+						var raycaster = new Raycaster();
+
+						foreach (var renderer in renderers)
+							raycaster.AddMesh(renderer.sharedMesh, renderer.transform);
+
+						raycaster.BuildBVH();
+
+						var tuple = raycaster.BvhRoot.ToGPU();
+						var bvhData = new BVHDataGPU
+						{
+							Nodes = tuple.Item1,
+							Triangles = tuple.Item2
+						};
+					
+						bvhDatas[k] = bvhData;
+					}
+
+					clothing.BVHData = bvhDatas.ToBytes();
+				}
+				catch (Exception e)
+				{
+					Debug.LogError($"Failed creating bvhs for {template.Name} {e}");
+				}
 			}
 			
 			var buildList = new List<Object>();
@@ -612,6 +670,8 @@ namespace Code.Editor.ModEngine
 
 							for (var k = 0; k < template.ClothingStates.Length; k++)
 								cloth.ClothingStates[k] = template.ClothingStates[k];
+
+							cloth.ClippingDistance = template.ClippingDistance;
 							break;
 						case IHair hair:
 							hair.HairType = template.HairType;
@@ -966,11 +1026,25 @@ namespace Code.Editor.ModEngine
 					var anySkinnedRenderers = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
 					if (anySkinnedRenderers != null && anySkinnedRenderers.Length != 0)
 					{
-						var armature = gameObject.transform.Find("Armature");
-						if (armature == null)
+						var anyBones = false;
+						
+						foreach (var anySkinnedRenderer in anySkinnedRenderers)
 						{
-							pass = false;
-							Debug.LogWarning($"Armature for {template.Name} was not found. Skinned meshes must have an armature at the root of the object, with the name of \"Armature\"");
+							if (anySkinnedRenderer.bones != null && anySkinnedRenderer.bones.Length > 0)
+							{
+								anyBones = true;
+								break;
+							}
+						}
+
+						if (anyBones)
+						{
+							var armature = gameObject.transform.Find("Armature");
+							if (armature == null)
+							{
+								pass = false;
+								Debug.LogWarning($"Armature for {template.Name} was not found. Skinned meshes must have an armature at the root of the object, with the name of \"Armature\"");
+							}
 						}
 					}
 				}

@@ -120,7 +120,7 @@ public class {Type} : {GetTemplateClass(this)}
 		public int DefaultParentIdx;
 
 		// Character object allowed gender flags
-		public ESupportedGendersFlags SupportedGendersFlags;
+		public ESupportedGendersFlags SupportedGendersFlags = ESupportedGendersFlags.Female;
 		
 		// Modded scene usage flags
 		public EModdedSceneUsageFlags ModdedSceneUsageFlags;
@@ -146,6 +146,10 @@ public class {Type} : {GetTemplateClass(this)}
 		// Advanced class usings
 		public string[] Usings = Array.Empty<string>();
 
+		// Clipping fix
+		public bool UseClippingFix = true;
+		public float ClippingDistance = 0.001f;
+		
 		public Template()
 		{
 			Type = GetTemplateClass(this);
@@ -198,7 +202,9 @@ public class {Type} : {GetTemplateClass(this)}
 				IsOverlay = IsOverlay,
 				OverlayColor = OverlayColor,
 				BlendshapeOffsets = copiedBlendshapeOffsets,
-				FKData = FKData
+				FKData = FKData,
+				ClippingDistance = ClippingDistance,
+				UseClippingFix = UseClippingFix
 			};
 
 			return template;

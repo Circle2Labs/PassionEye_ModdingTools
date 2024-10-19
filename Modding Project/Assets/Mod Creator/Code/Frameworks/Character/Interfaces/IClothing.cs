@@ -34,6 +34,16 @@ namespace Code.Frameworks.Character.Interfaces
         public SBlendshapeOffset[] BlendshapeOffsets { get; set; }
         
         /// <summary>
+        /// The distance at which the clothing item should be culling the body mesh. (In meters)
+        /// </summary>
+        public float ClippingDistance { get; set; }
+
+        /// <summary>
+        /// The BVH structure per-state for the clothing item.
+        /// </summary>
+        public byte[] BVHData { get; set; }
+        
+        /// <summary>
         /// Set the clothing wearing state.
         /// </summary>
         public void SetState(EClothingState state);
