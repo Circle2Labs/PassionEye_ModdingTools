@@ -86,7 +86,17 @@ namespace Code.Editor.ModEngine
 					ResetState();
 					LoadPreset(preset);
 					AssignComponents();
-					Build();
+
+					try
+					{
+						Build();
+					}
+					catch(Exception e)
+					{
+						Debug.LogError($"Error when building mod {e}");
+					}
+					
+					EditorUtility.ClearProgressBar();
 				}
 			}
 		}

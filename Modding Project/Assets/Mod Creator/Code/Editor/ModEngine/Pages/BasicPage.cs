@@ -77,6 +77,7 @@ namespace Code.Editor.ModEngine
 		private bool forwardKinematicsFold;
 		
 		private Template copyBuffer;
+		private SimulationData? copySimulationData;
 
 		private Tuple<Transform, SkinnedMeshRenderer[]> previewingClothingClone;
 		private Template previewingTemplate;
@@ -165,7 +166,7 @@ namespace Code.Editor.ModEngine
 			}
 		}
 
-		private ERaysResolution bodyRaysResolution;
+		private ERaysResolution bodyRaysResolution = (ERaysResolution)3;
 
 		public ERaysResolution BodyRaysResolution
 		{
@@ -572,6 +573,13 @@ namespace Code.Editor.ModEngine
 					sData.Preset = selectedPhysicsPreset;
 					simulationDataTempList.Add(sData);
                 }
+				
+				GUI.enabled = copySimulationData != null;
+
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_PASTE"), GUILayout.Width(50)) && copySimulationData != null)
+					simulationDataTempList.Add(copySimulationData.Value.Copy());
+
+				GUI.enabled = true;
                     
                 if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
                     simulationDataTempList.Clear();
@@ -589,9 +597,18 @@ namespace Code.Editor.ModEngine
 					
 					var simulationData = simulationDataTempList[i];
 
+					GUILayout.BeginHorizontal();
+					
 					EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_GENERAL"), EditorStyles.boldLabel);
-
-                    simulationData.Name = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_NAME"), simulationData.Name);
+					
+					GUILayout.FlexibleSpace();
+					
+					if (GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_COPY")))
+						copySimulationData = simulationData.Copy();
+					
+					GUILayout.EndHorizontal();
+                    
+					simulationData.Name = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_NAME"), simulationData.Name);
 					
 					GUILayout.BeginHorizontal();
                     simulationData.Enabled = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_CLOTHSIM_ENABLED"), simulationData.Enabled);
@@ -902,6 +919,7 @@ namespace Code.Editor.ModEngine
 				if (!startPreviewState)
 					continue;
 
+				stopPreview();
 				var clothingTransform = ((GameObject)Prefabs[Templates.IndexOf(template)]).transform;
 				startPreview(template, stateEnum, clothingTransform);
 			}

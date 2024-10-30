@@ -170,7 +170,7 @@ Shader "Toon/ToonShader" {
 
                 if(_AlphaClip)
                 {
-                    clip(alpha - 0.0001);
+                    clip(alpha - _Cutoff);
                     alpha = SharpenAlpha(alpha, _Cutoff);
                 }
                 

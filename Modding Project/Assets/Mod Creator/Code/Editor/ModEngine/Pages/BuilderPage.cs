@@ -164,7 +164,18 @@ namespace Code.Editor.ModEngine
 					AssignComponents();
 
 				if (GUILayout.Button(GetLocalizedString("MODCREATOR_BUILDER_BUILD"), GUILayout.Width(125)))
-					Build();
+				{
+					try
+					{
+						Build();
+					}
+					catch(Exception e)
+					{
+						Debug.LogError($"Error when building mod {e}");
+					}
+					
+					EditorUtility.ClearProgressBar();
+				}
                 
 				GUILayout.FlexibleSpace();
 
@@ -374,17 +385,28 @@ namespace Code.Editor.ModEngine
 			}
 			
 			Thread.Sleep(100);
-			EditorUtility.DisplayProgressBar("Building Mod..", "Creating BVHs", 0.4f);
-
+			EditorUtility.DisplayProgressBar("Building Mod..", "Setting up BVHlist", 0.4f);
+			
+			var bvhList = new List<int>();
 			for (var i = 0; i < Templates.Count; i++)
 			{
 				var template = Templates[i];
 				if (template.TemplateType != ETemplateType.CharacterObject || template.CharacterObjectType != ECharacterObjectType.Clothing || !template.UseClippingFix)
 					continue;
+				
+				bvhList.Add(i);
+			}
+
+			for (var i = 0; i < bvhList.Count; i++)
+			{
+				var template = Templates[bvhList[i]];
+				
+				Thread.Sleep(100);
+				EditorUtility.DisplayProgressBar("Building Mod..", $"Creating BVHs for {template.Name}", (float)((i + 1) / (float)bvhList.Count));
 
 				try
 				{
-					var gameObject = (GameObject)Prefabs[i];
+					var gameObject = (GameObject)Prefabs[bvhList[i]];
 					var clothing = gameObject.GetComponent<IClothing>();
 
 					var bvhDatas = new BVHDataGPU[template.ClothingStates.Length];
