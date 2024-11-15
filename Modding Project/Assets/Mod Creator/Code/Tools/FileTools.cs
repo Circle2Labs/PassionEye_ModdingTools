@@ -87,6 +87,23 @@ namespace Code.Tools
 			return false;
 		}
 
+		public static bool WriteAllBytesSafe(string path, byte[] bytes)
+		{
+			try
+			{
+				File.WriteAllBytes(path, bytes);
+				
+				if (File.Exists(path))
+					return true;
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e);
+			}
+
+			return false;
+		}
+		
 		public static bool AppendAllTextSafe(string path, string text)
 		{
 			try

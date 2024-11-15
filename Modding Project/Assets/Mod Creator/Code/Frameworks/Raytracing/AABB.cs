@@ -62,7 +62,13 @@ namespace Code.Frameworks.RayTracing
         
         public static float3 Center(this AABB aabb)
         {
-            return (aabb.Min + aabb.Max) / 2;
+            float3 result;
+
+            result.x = (aabb.Min.x + aabb.Max.x) / 2f;
+            result.y = (aabb.Min.y + aabb.Max.y) / 2f;
+            result.z = (aabb.Min.z + aabb.Max.z) / 2f;
+
+            return result;
         }
         
         public static bool IsLeftOfPlane(this AABB aabb, Axis axis, float3 point)

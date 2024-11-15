@@ -199,7 +199,7 @@ void MainLightDir_half(out half3 result) {
 //--------------------------------------------------------------------
 //                  Custom Lighting
 //--------------------------------------------------------------------
-void PELighting_float(float lightSmooth, bool isFace, bool isSdf, float2 sdfSample, float3 faceCenter, float3 faceFwdVec, float3 faceRightVec, float secondBandOffset, float NdotLBias, float3 positionWS, float3 NormVecWS, float3 viewDir, float4 lightTint, float4 shadowColor,
+void PELighting_float(float lightSmooth, bool isFace, bool isSdf, float2 sdfSample, float3 faceCenter, float3 faceFwdVec, float3 faceRightVec, float secondBandOffset, float NdotLBias, float4 SSSOffset, float4 SSSPower, float3 positionWS, float3 NormVecWS, float3 viewDir, float4 lightTint, float4 shadowColor,
     float4 shadow2Color, bool shadow2ColorAuto, float4 baseTex, bool useMetalness, float metalness, Gradient metallicGradient, bool useRoughness, float roughness, float fresnelAmount,
     float specularAmount, float specularPow, float3 specularColor, bool autoSpecularColor, half4 lightmapUv, out float3 color)
 {
@@ -237,6 +237,8 @@ void PELighting_float(float lightSmooth, bool isFace, bool isSdf, float2 sdfSamp
     diffData.secBndOffset = secondBandOffset;
     diffData.NdotL = 0;
     diffData.NdotLBias = NdotLBias;
+    diffData.SSSPower = SSSOffset.rgb; //TODO: should we allow doing this to transparency too?
+    diffData.SSSPower = SSSPower.rgb;
     diffData.lightTint = lightTint.rgb;
     diffData.auto2ndBndCol = shadow2ColorAuto;
     diffData.firstBndCol = shadowColor.rgb;

@@ -19,6 +19,7 @@ namespace Code.Frameworks.RayTracing
         public Raycaster AddMesh(Mesh mesh, Transform transform)
         {
             int[]          indices    = mesh.triangles;
+            Vector3[]      vertices   = mesh.vertices;
             int            trisCount  = indices.Length / 3;
             var            meshTri    = new Triangle[trisCount];
             RigidTransform rTransform = new RigidTransform(transform.rotation, transform.position);
@@ -28,9 +29,9 @@ namespace Code.Frameworks.RayTracing
             for (int i = 0; i < indices.Length; i += 3)
             {
                 meshTri[i / 3] = new Triangle(
-                    math.transform(rTransform, scale * mesh.vertices[indices[i]]),
-                    math.transform(rTransform, scale * mesh.vertices[indices[i + 1]]),
-                    math.transform(rTransform, scale * mesh.vertices[indices[i + 2]])
+                    math.transform(rTransform, scale * vertices[indices[i]]),
+                    math.transform(rTransform, scale * vertices[indices[i + 1]]),
+                    math.transform(rTransform, scale * vertices[indices[i + 2]])
                 );
             }
 
@@ -229,13 +230,24 @@ namespace Code.Frameworks.RayTracing
             BVHNode left      = new BVHNode();
             BVHNode right     = new BVHNode();
             
+            var newTrianglesLeft = new Triangle[parent.Triangles.Length];
+            var newTrianglesLeftIndex = 0;
+            var newTrianglesRight = new Triangle[parent.Triangles.Length];
+            var newTrianglesRightIndex = 0;
+            
             foreach (var triangle in parent.Triangles)
                 if (parent.AABB.IsLeftOfPlane(splitAxis, triangle.A) || 
                     parent.AABB.IsLeftOfPlane(splitAxis, triangle.B) ||
                     parent.AABB.IsLeftOfPlane(splitAxis, triangle.C))
-                    left.Triangles = left.Triangles.Concat(new[] {triangle}).ToArray();
+                    newTrianglesLeft[newTrianglesLeftIndex++] = triangle;
                 else
-                    right.Triangles = right.Triangles.Concat(new[] {triangle}).ToArray();
+                    newTrianglesRight[newTrianglesRightIndex++] = triangle;
+
+            Array.Resize(ref newTrianglesLeft, newTrianglesLeftIndex);
+            Array.Resize(ref newTrianglesRight, newTrianglesRightIndex);
+            
+            left.Triangles = left.Triangles.Concat(newTrianglesLeft).ToArray();
+            right.Triangles = right.Triangles.Concat(newTrianglesRight).ToArray();
             
             left.AABB   = ComputeBounds(left.Triangles);
             parent.Left = left;

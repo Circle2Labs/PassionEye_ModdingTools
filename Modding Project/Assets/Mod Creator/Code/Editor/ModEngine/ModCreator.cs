@@ -60,7 +60,7 @@ namespace Code.Editor.ModEngine
 		public const bool IsVerbose = false;
 #endif
 
-		public const string Version = "v0.1.6.1";
+		public const string Version = "v0.1.7.0";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};

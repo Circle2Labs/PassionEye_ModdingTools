@@ -4,6 +4,8 @@ Shader "Toon/ToonShader" {
         _ShadowSharpness ("Light Smooth", Range(0, 1)) = 0.1
         _SecondBandOffset ("Second Band Offset", Range(0, 1)) = 0.1
         _NdotLBias ("NdotL Bias", Range(-1, 1)) = 0
+        _SSSPower ("SubSurface Scattering Power", Vector) = (1,1,1)
+        _SSSOffset ("SubSurface Scattering Offset", Vector) = (0,0,0)
         [Space]
         _LightTint ("Light Tint", Color) = (1, 1, 1, 1)
         _ShadowColor ("Shadow Color", Color) = (0, 0, 0, 1)
@@ -217,6 +219,8 @@ Shader "Toon/ToonShader" {
                 ddata.smooth = _ShadowSharpness;
                 ddata.secBndOffset = _SecondBandOffset;
                 ddata.NdotL = 0;
+                ddata.SSSPower = _SSSPower;
+                ddata.SSSOffset = _SSSOffset;
                 ddata.NdotLBias = _NdotLBias;
                 ddata.lightTint = _LightTint.rgb;
                 ddata.auto2ndBndCol = _Shadow2ColorAuto != 0;

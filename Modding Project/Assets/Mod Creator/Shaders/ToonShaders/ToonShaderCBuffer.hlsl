@@ -7,6 +7,8 @@ CBUFFER_START(UnityPerMaterial)
 float _SecondBandOffset;
 float _NdotLBias;
 float4 _LightTint;
+float3 _SSSPower;
+float3 _SSSOffset;
 float4 _ShadowColor;
 float _AutoSpecularColor;
 float4 _Shadow2Color;
