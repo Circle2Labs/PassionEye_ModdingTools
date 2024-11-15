@@ -40,6 +40,8 @@ struct GeometryData {
 struct DiffuseData {
     float   smooth;
     float   secBndOffset;
+    float3  SSSPower;
+    float3  SSSOffset;
     float   NdotL;
     float   NdotLBias;
     float3  lightTint;

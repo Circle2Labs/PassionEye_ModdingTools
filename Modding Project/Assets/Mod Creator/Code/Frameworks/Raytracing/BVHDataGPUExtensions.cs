@@ -82,7 +82,7 @@ namespace Code.Frameworks.RayTracing
             for (int i=0; i<data.Length; i++)
             {
                 data[i].ToBytes().CopyTo(bytes, offset);
-                offset += sizes[i];
+                offset += sizes[i] + sizeof(int) * 2;
             }
             
             return bytes;

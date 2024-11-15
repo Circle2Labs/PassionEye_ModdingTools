@@ -24,19 +24,23 @@ struct Light {
 #endif
 
 
-float3 TwoBandStylize(float smooth, float secondBandOffset, float NdotL, float3 lightColor, float3 firstBandColor, float3 secondBandColor) {
-    float main = smoothstep(0, smooth, NdotL);
-    float secondary = smoothstep(0, smooth + secondBandOffset, NdotL);
+float3 TwoBandStylize(float smooth, float secondBandOffset, float NdotL, float3 lightColor, float3 firstBandColor,
+                      float3 secondBandColor, float3 SSSPower, float3 SSSOffset) {
+
+    float3 NdotLVec = clamp(pow(NdotL, SSSPower) - SSSOffset, 0.0f, 1.0f);
+    
+    float3 main = smoothstep(0, smooth, NdotLVec);
+    float3 secondary = smoothstep(0, smooth + secondBandOffset, NdotLVec);
 
     //limit bands to light color
     float mainLightPercLightness = LinearToPerceivedLightness(lightColor);
 
     firstBandColor = min(firstBandColor*mainLightPercLightness, firstBandColor);
     secondBandColor = min(secondBandColor*mainLightPercLightness, secondBandColor);
-    
+
     float3 mainCol = lerp(firstBandColor, lightColor, main);
     float3 secondaryCol = lerp(secondBandColor, lightColor, secondary);
-
+    
     return lerp(mainCol, secondaryCol, main);
 }
 
@@ -59,7 +63,9 @@ float3 DirectDiffuse(DiffuseData diffData) {
         diffData.NdotL,
         diffData.lightTint,
         diffData.firstBndCol,
-        diffData.secBndCol
+        diffData.secBndCol,
+        diffData.SSSPower,
+        diffData.SSSOffset
     );
 }
 
@@ -70,7 +76,9 @@ float3 DirectDiffuse(DiffuseData diffData, float3 mainLightColor) {
         diffData.NdotL,
         diffData.lightTint,
         diffData.firstBndCol,
-        diffData.secBndCol
+        diffData.secBndCol,
+        diffData.SSSPower,
+        diffData.SSSOffset
     ) * mainLightColor;
 }
 
