@@ -26,5 +26,8 @@ namespace Code.Frameworks.ModdedScenes
 
 		[field: SerializeField]
 		public EModdedSceneUsageFlags UsageFlags { get; set; }
+		
+		[field: SerializeField]
+		public Sprite LargeBackground { get; set; }
 	}
 }  

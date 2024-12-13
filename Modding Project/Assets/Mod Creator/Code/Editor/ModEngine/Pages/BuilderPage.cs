@@ -314,6 +314,7 @@ namespace Code.Editor.ModEngine
 							template.Description = moddedScene.Description;
 							template.IsNSFW = moddedScene.IsNSFW;
 							template.ModdedSceneUsageFlags = moddedScene.UsageFlags;
+							template.LargeBackground = moddedScene.LargeBackground;
 
 							var parentObject = new GameObject(template.Name);
 							go.transform.SetParent(parentObject.transform);
@@ -769,6 +770,7 @@ namespace Code.Editor.ModEngine
 					moddedSceneComp.Icon = template.Icon;
 					moddedSceneComp.Tags = template.Tags;
 					moddedSceneComp.UsageFlags = template.ModdedSceneUsageFlags;
+					moddedSceneComp.LargeBackground = template.LargeBackground;
 
 					EditorSceneManager.SaveScene(moddedScene);
 					
@@ -1133,6 +1135,12 @@ namespace Code.Editor.ModEngine
 					Debug.LogWarning($"Icon is not set for {template.Name}");
 				}
 				
+				if (template.TemplateType == ETemplateType.ModdedScene && template.LargeBackground == null)
+				{
+					pass = false;
+					Debug.LogWarning($"Large Background is not set for {template.Name}");
+				}
+				
 				if (template.TemplateType == ETemplateType.ModdedScene && Prefabs[i] != null)
 				{
 					if (template.ModdedSceneUsageFlags == 0)
@@ -1258,6 +1266,7 @@ namespace Code.Editor.ModEngine
 					case ModdedScene moddedScene:
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("moddedscene", moddedScene.UsageFlags)).ToArray();
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("nsfw", moddedScene.IsNSFW)).ToArray();
+						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("largebackground", moddedScene.LargeBackground)).ToArray();
 						break;
 				}
 			}
