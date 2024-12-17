@@ -54,6 +54,8 @@ namespace Code.Editor.ModEngine
 			}
 		}
 
+		// todo: figure out how to localize enum flags field
+
 		// todo: figure out a better solution. Maybe allow the user to pick for which base mesh they are making the item and then populate this list accordingly.
 		private readonly string[] defaultParents =
 		{
@@ -392,7 +394,10 @@ namespace Code.Editor.ModEngine
 			{
 				EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_COMPCONF"), EditorStyles.boldLabel);
 				template.ModdedSceneUsageFlags = (EModdedSceneUsageFlags)EditorGUILayout.EnumFlagsField($"{GetLocalizedString("MODCREATOR_BASIC_USAGE")}*", template.ModdedSceneUsageFlags);
-				// todo: figure out how to localize this
+				
+				EditorGUILayout.LabelField($"{GetLocalizedString("MODCREATOR_BASIC_LARGEBACKGROUND")}*");
+				template.LargeBackground = (UnityEngine.Sprite)EditorGUILayout.ObjectField(template.LargeBackground, typeof(UnityEngine.Sprite), true, GUILayout.Height(240), GUILayout.Width(426.6f));
+				
 				GUILayout.Space(10);
 			}
 
@@ -534,7 +539,6 @@ namespace Code.Editor.ModEngine
 		
 		private void physicsSimulation(Template template)
 		{
-			// todo: localize this stuff
 			GUILayout.Space(5);
 
 			var simulation = template.Simulation;

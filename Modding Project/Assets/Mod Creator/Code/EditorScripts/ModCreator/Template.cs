@@ -125,6 +125,9 @@ public class {Type} : {GetTemplateClass(this)}
 		// Modded scene usage flags
 		public EModdedSceneUsageFlags ModdedSceneUsageFlags;
 
+		// Used in modded scenes 16:9 bg for the map
+		public Sprite LargeBackground;
+
 		// Clothing states map
 		public Transform[] ClothingStates;
 
@@ -189,6 +192,7 @@ public class {Type} : {GetTemplateClass(this)}
 				DefaultParent = DefaultParent,
 				DefaultParentIdx = DefaultParentIdx,
 				ModdedSceneUsageFlags = ModdedSceneUsageFlags,
+				LargeBackground = LargeBackground,
 				ClothingStates = copiedStates,
 				Source = Source,
 				Type = Type,

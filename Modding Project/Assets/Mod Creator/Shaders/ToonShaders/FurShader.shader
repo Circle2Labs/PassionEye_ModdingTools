@@ -1,4 +1,4 @@
-Shader "Toon/ToonShader" {
+Shader "Toon/FurShader" {
     Properties {
         [Space]
         _ShadowSharpness ("Light Smooth", Range(0, 1)) = 0.1
@@ -48,7 +48,7 @@ Shader "Toon/ToonShader" {
         _ExpandAmount ("Expand Amount", Range(0, 0.001)) = 0
         _ClothingLayersSeparation ("Clothing Layers Separation", Range(0, 0.01)) = 0.003
         _ClothingLayer ("Clothing Layer", float) = 0
-        
+
         // Blending state
         [HideInInspector]_Surface("__surface", Float) = 0.0
         [HideInInspector]_Blend("__blend", Float) = 0.0
@@ -67,8 +67,9 @@ Shader "Toon/ToonShader" {
     SubShader {
         Pass {
             Name "ToonForward"
-            
-            Tags { 
+            Tags
+            {
+                "RenderType"="Opaque"
                 "RenderPipeline"="UniversalPipeline"
             }
             
@@ -76,9 +77,9 @@ Shader "Toon/ToonShader" {
             ZWrite [_ZWrite]
             Blend [_SrcBlend] [_DstBlend], [_SrcBlendAlpha] [_DstBlendAlpha]
             Cull [_Cull]
-                        
+            
             HLSLPROGRAM
-            #include "ToonForward.hlsl"
+            #include "FurForward.hlsl"
             ENDHLSL
         }
         
@@ -114,7 +115,7 @@ Shader "Toon/ToonShader" {
             #include "ToonDepthOnly.hlsl"
             ENDHLSL
         }
-        
+
         Pass
         {
             Name "DepthNormals"
@@ -127,13 +128,13 @@ Shader "Toon/ToonShader" {
             Cull[_Cull]
             
             HLSLPROGRAM
-            
+            #pragma dynamic_branch _ _ALPHATEST_ON
+            #pragma dynamic_branch _ LOD_FADE_CROSSFADE
+
             #include "ToonDepthNormals.hlsl"
             
             ENDHLSL
         }
-        //UsePass "Universal Render Pipeline/Lit/META"
     }
-    //FallBack "Hidden/Core/FallbackError"
     CustomEditor "GameAssets.Shaders.ShaderGUIs.ToonShaderGUI"
 }

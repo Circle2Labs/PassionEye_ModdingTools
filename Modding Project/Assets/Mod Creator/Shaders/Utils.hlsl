@@ -9,6 +9,8 @@
     #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
 #endif
 
+#define INFLATE(x, vert, norm) vert += norm * x
+
 /**
  * \brief Inverses a linear interpolation
  * \param from lower bounds of the lerp
@@ -40,17 +42,17 @@ float remap(float fromMin, float fromMax, float toMin, float toMax, float value)
  * \return ShadowCoords at PosWS.
  */
 float4 SampleShadowCoord(float3 PosWS) {
-    #ifndef SHADERGRAPH_PREVIEW
-        #if _MAIN_LIGHT_SHADOWS_SCREEN
-            //if we are using screen space shadows, we need to compute the screen position
-            return ComputeScreenPos(TransformWorldToHClip(PosWS));
-        #else
-            //otherwise we can just use the world position and classic lightmaps.
-            return  TransformWorldToShadowCoord(PosWS);
-        #endif
-    #else
+    #ifdef SHADERGRAPH_PREVIEW
         //preview doesn't have shadows or GI
         return 0;
+    #endif
+    
+    #if _MAIN_LIGHT_SHADOWS_SCREEN
+        //if we are using screen space shadows, we need to compute the screen position
+        return ComputeScreenPos(TransformWorldToHClip(PosWS));
+    #else
+        //otherwise we can just use the world position and classic lightmaps.
+        return  TransformWorldToShadowCoord(PosWS);
     #endif
 }
 
@@ -161,6 +163,11 @@ half Fresnel(half3 normalWS, half3 ViewDirWS, half power, half intensity) {
     return saturate(pow(1.0 - NdotV, power*10) * intensity);
 }
 
+/**
+ * \brief Converts a linear RGB color to perceived lightness.
+ * \param color Input color in linear RGB space.
+ * \return Perceived lightness of the color.
+ */
 float LinearToPerceivedLightness(float3 color)
 {
     return color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
@@ -180,11 +187,22 @@ float3 NormalMapToWorld(float3 normalTS, float3 normalWS, float4 tangentWS) {
     return TransformTangentToWorld(normalTS, half3x3(tangentWS.xyz, bitangentWS.xyz, normalWS.xyz));
 }
 
+/**
+ * \brief Generates a pseudo-random number based on the input coordinates.
+ * \param uv Input coordinates.
+ * \return Pseudo-random number.
+ */
 float nrand(float2 uv)
 {
     return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
 }
 
+/**
+ * \brief Deforms the UV coordinates based on the given deformation scale.
+ * \param uv Input UV coordinates.
+ * \param deform Deformation scale.
+ * \return Deformed UV coordinates.
+ */
 float2 deformScaleUV(float2 uv, float2 deform)
 {
     float2 deformFrac = 1.0 / deform;

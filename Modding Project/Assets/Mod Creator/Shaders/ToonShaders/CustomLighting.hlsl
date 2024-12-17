@@ -23,6 +23,83 @@ struct Light {
 };
 #endif
 
+//Standard Vertex Input params macro
+#define RG_VertIn          \
+float3 vertex : POSITION;   \
+float3 normal : NORMAL;     \
+float4 tangent : TANGENT;   \
+float2 uv : TEXCOORD0;      \
+float4 lmuv : TEXCOORD1;    \
+float4 rtuv : TEXCOORD2
+
+//Standard Fragment Input params macro
+#define RG_FragIn               \
+float4 position : SV_POSITION;  \
+float3 positionWS : TEXCOORD3;  \
+float3 normal : NORMAL;         \
+float4 tangent : TANGENT;       \
+float2 uv : TEXCOORD0;          \
+float4 lmuv : TEXCOORD1;        \
+float4 rtuv : TEXCOORD2
+
+//Setup all the data and return calculated lighting
+#define PE_LIGHTING(uv, posWS, nrm, tng, lmuv) \
+    PELighting(\
+        SetupFaceData(uv),\
+        SetupGeometryData(uv, posWS, nrm, tng, lmuv),\
+        SetupDiffuseData(),\
+        SetupSpecularData(),\
+        SetupMetallicData(uv),\
+        SetupRoughnessData(uv))
+
+Gradient GetMetallicGradient() {
+    Gradient o;
+
+    o.type = 1;
+                
+    o.colorsLength = 6;
+    o.colors[0] = float4(0.2075472, 0.2075472, 0.2075472, 0.156);
+    o.colors[1] = float4(0.25, 0.25, 0.25, 0.194);
+    o.colors[2] = float4(0.7, 0.7, 0.7, 0.506);
+    o.colors[3] = float4(1, 1, 1, 0.535);
+    o.colors[4] = float4(2.125, 2.125, 2.125, 0.924);
+    o.colors[5] = float4(6.0, 6.0, 6.0, 0.941);
+    o.colors[6] = float4(6.0, 6.0, 6.0, 0.941);
+    o.colors[7] = float4(6.0, 6.0, 6.0, 0.941);
+                
+    o.alphasLength = 0;
+    o.alphas[0] = 0;
+    o.alphas[1] = 0;
+    o.alphas[2] = 0;
+    o.alphas[3] = 0;
+    o.alphas[4] = 0;
+    o.alphas[5] = 0;
+    o.alphas[6] = 0;
+    o.alphas[7] = 0;
+
+    return o;
+}
+
+float4 GetShadowPositionHClip(float3 positionOS, float3 normalOS, float3 LightDirWS, float3 LightPosWS) {
+    float3 positionWS = TransformObjectToWorld(positionOS.xyz);
+    float3 normalWS = TransformObjectToWorldNormal(normalOS);
+                
+    #if _CASTING_PUNCTUAL_LIGHT_SHADOW
+    float3 lightDirectionWS = normalize(LightDirWS);
+    #else
+    float3 lightDirectionWS = LightDirWS;
+    #endif
+
+    float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
+
+    #if UNITY_REVERSED_Z
+    positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+    #else
+    positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+    #endif
+
+    return positionCS;
+}
 
 float3 TwoBandStylize(float smooth, float secondBandOffset, float NdotL, float3 lightColor, float3 firstBandColor,
                       float3 secondBandColor, float3 SSSPower, float3 SSSOffset) {
@@ -180,6 +257,7 @@ half3 IndirectLighting(GeometryData geomData) {
 
 half3 ProbeReflection(GeometryData geomData, RoughnessData roughData){
     #ifndef SHADERGRAPH_PREVIEW
+        UNITY_BRANCH if(roughData.fresnelAmt == 0) return 0;
         float3 reflectVector = reflect(-geomData.viewDir, geomData.nrmWs);
         //TODO: add fresnel proper.
         float fresnel = Fresnel(geomData.nrmWs, geomData.viewDir, roughData.fresnelAmt, 1);
@@ -213,7 +291,6 @@ float3 PELighting(FaceData faceData, GeometryData geomData, DiffuseData diffData
     #endif
 
     diffData.NdotL = saturate(NdotL(faceData, geomData, diffData) * diffData.shadowAttn);
-    
 
     //main light
     float3 mainLightDiffuse;
@@ -248,7 +325,7 @@ float3 PELighting(FaceData faceData, GeometryData geomData, DiffuseData diffData
     }
     
     //Indirect lighting
-    float3 indirectColor;
+    float3 indirectColor = IndirectLighting(geomData) * metalData.baseCol;
     /*
     UNITY_BRANCH if(!faceData.isFace) {
         indirectColor = TwoBandStylize(diffData.smooth, diffData.secBndOffset, IndirectLighting(geomData)) * metalData.baseCol;
@@ -256,7 +333,6 @@ float3 PELighting(FaceData faceData, GeometryData geomData, DiffuseData diffData
         indirectColor = TwoBandStylize(diffData.smooth, diffData.secBndOffset, IndirectLighting(geomData)) * metalData.baseCol;
     }*/
     
-    indirectColor = IndirectLighting(geomData) * metalData.baseCol;
     return (totalColor + indirectColor);
 }
 
