@@ -60,8 +60,8 @@ namespace Code.Editor.ModEngine
 		public const bool IsVerbose = false;
 #endif
 
-		public const string Version = "v0.1.7.1";
-
+		public const string Version = "v0.1.8.0";
+		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};
 		
@@ -188,6 +188,31 @@ namespace Code.Editor.ModEngine
 					array[i] = null;
 					array = array.Where(s => s != null).ToArray();
 				}
+				GUILayout.EndHorizontal();
+			}
+
+			return array;
+		}
+
+		private AnimationClip[] verticalList(AnimationClip[] array, string labelTitle)
+		{
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+				array = array.Append(null).ToArray();
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+				array = Array.Empty<AnimationClip>();
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < array.Length; i++)
+			{
+				GUILayout.BeginHorizontal();
+				array[i] = (AnimationClip)EditorGUILayout.ObjectField("", array[i], typeof(AnimationClip), false);
+				
+				if (GUILayout.Button("-", GUILayout.Width(25)))
+					array = array.Where((_, k) => i != k).ToArray();
+				
 				GUILayout.EndHorizontal();
 			}
 

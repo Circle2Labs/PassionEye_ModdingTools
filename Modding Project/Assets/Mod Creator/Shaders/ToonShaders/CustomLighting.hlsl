@@ -12,6 +12,7 @@
 #include "../Utils.hlsl"
 #include "Structures.hlsl"
 #include "../ColorSpaces.hlsl"
+#include "Hair.hlsl"
 
 // Light struct definition for ShaderGraph preview to work.
 #ifdef SHADERGRAPH_PREVIEW
@@ -50,7 +51,8 @@ float4 rtuv : TEXCOORD2
         SetupDiffuseData(),\
         SetupSpecularData(),\
         SetupMetallicData(uv),\
-        SetupRoughnessData(uv))
+        SetupRoughnessData(uv),\
+        SetupHairData())
 
 Gradient GetMetallicGradient() {
     Gradient o;
@@ -267,7 +269,7 @@ half3 ProbeReflection(GeometryData geomData, RoughnessData roughData){
     #endif
 }
 
-float3 PELighting(FaceData faceData, GeometryData geomData, DiffuseData diffData, SpecularData specData, MetallicData metalData, RoughnessData roughData) {
+float3 PELighting(FaceData faceData, GeometryData geomData, DiffuseData diffData, SpecularData specData, MetallicData metalData, RoughnessData roughData, HairData hairData) {
     UNITY_BRANCH if(diffData.auto2ndBndCol) {
         diffData.secBndCol = AutoShadowColor(diffData.firstBndCol, 0.8);
     }
@@ -332,8 +334,17 @@ float3 PELighting(FaceData faceData, GeometryData geomData, DiffuseData diffData
     } else {
         indirectColor = TwoBandStylize(diffData.smooth, diffData.secBndOffset, IndirectLighting(geomData)) * metalData.baseCol;
     }*/
-    
-    return (totalColor + indirectColor);
+
+    if (hairData.enableHighlight)
+    {
+        float4 hairHighlight = HairHighlight(geomData.posWs, geomData.nrmWs, geomData.uv, hairData);
+
+        //apply ndotl to hair highlight
+        hairHighlight.a *= diffData.NdotL * diffData.shadowAttn;
+        return lerp(totalColor + indirectColor, hairHighlight.rgb, hairHighlight.a);
+    } else {
+        return totalColor + indirectColor;
+    }
 }
 
 #endif

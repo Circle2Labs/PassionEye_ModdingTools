@@ -48,6 +48,21 @@ Shader "Toon/ToonShader" {
         _ExpandAmount ("Expand Amount", Range(0, 0.001)) = 0
         _ClothingLayersSeparation ("Clothing Layers Separation", Range(0, 0.01)) = 0.003
         _ClothingLayer ("Clothing Layer", float) = 0
+        [Space]
+        [Toggle] _HairHighlightToggle ("Enable Hair Highlight", float) = 0
+        _HairHighlightColor ("Hair Highlight Color", Color) = (1, 1, 1, 1)
+        _HairHighlightStrength ("Hair Highlight Strength", Range(0, 1)) = 1.0
+        _HairHighlightExponent ("Hair Highlight Exponent", Range(0, 20)) = 5.0
+        _HairHighlightLength ("Hair Highlight Length", Range(0, 1.5)) = 1.0
+        [Space]
+        _HairHighlightNoiseStrength ("Hair Highlight Noise Strength", Range(0.001, 3)) = 0.15
+        _HairHighlightNoiseStretch ("Hair Highlight Noise Stretch", Range(0.001, 50)) = 3.0
+        _HairHighlightNoiseSeed ("Hair Highlight Noise Seed", Range(0, 9999999)) = 1234
+        [Space]
+        _HairHighlightFresnelPower ("Hair Highlight Fresnel Power", Range(0.001, 100)) = 1.0
+        _HairHighlightFresnelBias ("Hair Highlight Fresnel Bias", Range(0.7, 1.0)) = 0.9
+        [Space]
+        _PerlinNoiseTex ("Perlin Noise Texture", 2D) = "black" {}
         
         // Blending state
         [HideInInspector]_Surface("__surface", Float) = 0.0
@@ -95,7 +110,7 @@ Shader "Toon/ToonShader" {
             Cull[_Cull]
 
             HLSLPROGRAM
-            #include "ToonShadowCaster.hlsl"
+            #include_with_pragmas "ToonShadowCaster.hlsl"
             ENDHLSL
         }
         

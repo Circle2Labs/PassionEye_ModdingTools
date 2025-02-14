@@ -4,8 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Assets.Code.Frameworks.Animation.Enums;
 using Code.Components;
 using Code.EditorScripts.ModCreator;
+using Code.Frameworks.Animation;
+using Code.Frameworks.Animation.Enums;
+using Code.Frameworks.Animation.Interfaces;
 using Code.Frameworks.Character.CharacterObjects;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
@@ -108,6 +112,16 @@ namespace Code.Editor.ModEngine
 			{
 				GUILayout.BeginVertical();
 				verticalList(Prefabs, ETemplateType.ModdedScene, GetLocalizedString("MODCREATOR_BUILDER_LIST"));
+				GUILayout.EndVertical();
+			}
+			
+			EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+			
+			BasicFolds[3] = EditorGUILayout.Foldout(BasicFolds[3], GetLocalizedString("MODCREATOR_BUILDER_ANIM"), true);
+			if (BasicFolds[3])
+			{
+				GUILayout.BeginVertical();
+				verticalList(Prefabs, ETemplateType.Animation, GetLocalizedString("MODCREATOR_BUILDER_LIST"));
 				GUILayout.EndVertical();
 			}
 			
@@ -231,7 +245,10 @@ namespace Code.Editor.ModEngine
 					foreach (var component in tuple.Item2.Components)
 					{
 						var type = Type.GetType($"{component.Type.Item1}, {component.Type.Item2}");
-						if (type == null || (!type.GetInterfaces().Contains(typeof(IStudioObject)) && !type.GetInterfaces().Contains(typeof(ICharacterObject)) && type != typeof(ModdedScene)))
+						if (type == null || (!type.GetInterfaces().Contains(typeof(IStudioObject)) && 
+						                     !type.GetInterfaces().Contains(typeof(ICharacterObject)) && 
+						                     type != typeof(ModdedScene) && 
+						                     !type.GetInterfaces().Contains(typeof(IAnimation))))
 							continue;
 
 						if (type.Assembly != typeof(BaseClothing).Assembly)
@@ -320,6 +337,18 @@ namespace Code.Editor.ModEngine
 							go.transform.SetParent(parentObject.transform);
 							
 							removeUniqueID(go);
+						}
+						else if (comp is IAnimation animation)
+						{
+							template.TemplateType = ETemplateType.Animation;
+							template.Name = animation.Name;
+							template.Tags = animation.Tags;
+							template.Icon = animation.Icon;
+							template.Description = animation.Description;
+							template.IsNSFW = animation.IsNSFW;
+							template.AnimationUsageFlags = animation.UsageFlags;
+							template.AnimationFadeDuration = animation.FadeDuration;
+							template.AnimationClipContainers = animation.ClipContainers;
 						}
 
 						template.Tags ??= Array.Empty<string>();
@@ -780,6 +809,22 @@ namespace Code.Editor.ModEngine
 						SceneManager.SetActiveScene(currentScene);
 					}
 				}
+				else if (template.TemplateType == ETemplateType.Animation)
+				{
+					var existing = gameObject.GetComponents<IAnimation>();
+					for (var k = existing.Length - 1; k >= 0; k--)
+						DestroyImmediate((Component)existing[k]);
+
+					var animation = gameObject.AddComponent<BaseAnimation>();
+					animation.Name = template.Name;
+					animation.Description = template.Description;
+					animation.IsNSFW = template.IsNSFW;
+					animation.Icon = template.Icon;
+					animation.Tags = template.Tags;
+					animation.UsageFlags = template.AnimationUsageFlags;
+					animation.FadeDuration = template.AnimationFadeDuration;
+					animation.ClipContainers = template.AnimationClipContainers;
+				}
 
 				if (template.TemplateType == ETemplateType.StudioObject)
 				{
@@ -967,11 +1012,43 @@ namespace Code.Editor.ModEngine
 					
 						var loaded = currentScene.path == path;
 						var moddedScene = loaded ? currentScene : EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
-                        
-						if (template.TemplateType == ETemplateType.ModdedScene && moddedScene.GetRootGameObjects()[0].GetComponent<ModdedScene>() == null)
+
+						var sceneComp = moddedScene.GetRootGameObjects()[0].GetComponent<ModdedScene>();
+						if (sceneComp == null)
 						{
 							pass = false;
 							Debug.LogWarning($"Component is not added for {template.Name}");
+						}
+						else
+						{
+							var anims = sceneComp.GetComponentsInChildren<BaseAnimation>(true);
+							foreach (var anim in anims)
+							{
+								if (anim.ClipContainers.Length == 0)
+								{
+									pass = false;
+									Debug.LogWarning($"Containers not assigned for {anim.name} in scene {template.Name}");
+								}
+
+								for (var k = 0; k < anim.ClipContainers.Length; k++)
+								{
+									var container = anim.ClipContainers[k];
+									if (container.Clips.Length == 0)
+									{
+										pass = false;
+										Debug.LogWarning($"No clips specified for {anim.name} container {k} in scene {template.Name}");
+									}
+
+									for (var l = 0; l < container.Clips.Length; l++)
+									{
+										if (container.Clips[l] == null)
+										{
+											pass = false;
+											Debug.LogWarning($"Invalid clips found in {anim.name} container {k} in scene {template.Name}");
+										}
+									}
+								}
+							}
 						}
 					
 						if (!loaded)
@@ -1045,6 +1122,35 @@ namespace Code.Editor.ModEngine
 						
 						pass = false;
 						Debug.LogWarning($"Object for {template.Name} is not empty. Texture mods must have empty GameObjects assigned with no meshes");
+					}
+
+					if (template.TemplateType == ETemplateType.Animation)
+					{
+						var animation = gameObject.GetComponent<IAnimation>();
+						if (animation.ClipContainers.Length == 0)
+						{
+							pass = false;
+							Debug.LogWarning($"Containers not assigned for {template.Name}");
+						}
+
+						for (var k = 0; k < animation.ClipContainers.Length; k++)
+						{
+							var container = animation.ClipContainers[k];
+							if (container.Clips.Length == 0)
+							{
+								pass = false;
+								Debug.LogWarning($"No clips specified for container {k} in {template.Name}");
+							}
+
+							for (var l = 0; l < container.Clips.Length; l++)
+							{
+								if (container.Clips[l] == null)
+								{
+									pass = false;
+									Debug.LogWarning($"Invalid clips found in container {k} in {template.Name}");
+								}
+							}
+						}
 					}
 
 					var anySkinnedRenderers = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
@@ -1188,6 +1294,9 @@ namespace Code.Editor.ModEngine
 				if (template.TemplateType == ETemplateType.CharacterObject && template.SupportedGendersFlags == ESupportedGendersFlags.None)
 					Debug.LogWarning($"Supported genders is None for {template.Name}. This might cause the item to not show up");
 
+				if (template.TemplateType == ETemplateType.Animation && template.AnimationUsageFlags == EAnimationUsageFlags.None)
+					Debug.LogWarning($"Usage flags is None for {template.Name}. This might cause the animation to not show up");
+
 				if (template.FKData.Groups != null)
 				{
 					foreach (var group in template.FKData.Groups)
@@ -1267,6 +1376,17 @@ namespace Code.Editor.ModEngine
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("moddedscene", moddedScene.UsageFlags)).ToArray();
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("nsfw", moddedScene.IsNSFW)).ToArray();
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("largebackground", moddedScene.LargeBackground)).ToArray();
+						break;
+					case IAnimation animation:
+						
+						var clips = new EClipUsageFlags[animation.ClipContainers.Length];
+					
+						for (var i = 0; i < clips.Length; i++)
+							clips[i] = animation.ClipContainers[i].ClipUsageFlags;
+
+						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("animation", animation.UsageFlags)).ToArray();
+						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("nsfw", animation.IsNSFW)).ToArray();
+						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("clips", clips)).ToArray();
 						break;
 				}
 			}
