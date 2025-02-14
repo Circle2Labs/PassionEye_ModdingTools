@@ -111,7 +111,7 @@ namespace Code.Editor.ModEngine
 
 		public void DrawAdvancedToggle(Template template)
 		{
-			if (template.TemplateType == ETemplateType.ModdedScene)
+			if (template.TemplateType is ETemplateType.ModdedScene or ETemplateType.Animation)
 				return;
 			
 			template.Advanced = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_ADVEDIT"), template.Advanced);
@@ -257,6 +257,11 @@ using Code.Frameworks.Character.Structs;
 
 using Code.Frameworks.ModdedScenes;
 using Code.Frameworks.ModdedScenes.Flags;
+
+using Code.Frameworks.Animation;
+using Code.Frameworks.Animation.Enums;
+using Code.Frameworks.Animation.Interfaces;
+using Code.Frameworks.Animation.Structs;
 
 using Code.Frameworks.PhysicsSimulation;
 

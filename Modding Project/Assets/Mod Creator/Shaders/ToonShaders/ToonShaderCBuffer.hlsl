@@ -50,6 +50,28 @@ CBUFFER_START(UnityPerMaterial)
     float _Transparency;
     Texture2D _AlphaMap;
     SamplerState sampler_AlphaMap;
+
+    float _HairHighlightToggle;
+    float4 _HairHighlightColor;
+    float _HairHighlightStrength;
+    float _HairHighlightExponent;
+    float _HairHighlightLength;
+
+    float _HairHighlightNoiseStrength;
+    float _HairHighlightCutoff;
+    float _HairHighlightNoiseStretch;
+    float _HairHighlightNoiseInvert;
+    int _HairHighlightNoiseSeed;
+
+    float _HairHighlightFresnelPower;
+    float _HairHighlightFresnelBias;
+
+    float _HairSpecularStrength;
+    float _HairSpecularPower;
+
+    Texture2D _PerlinNoiseTex;
+    SamplerState sampler_PerlinNoiseTex;
+
     float _UseAlphaForTransparency;
     float _AlphaClip;
     float _Cutoff;
@@ -106,13 +128,14 @@ DiffuseData SetupDiffuseData() {
     return ddata;
 }
 
-GeometryData SetupGeometryData(float2 nrmUV, float3 posWS, float3 nrm, float4 tng, float4 lmuv) {
-    float2 normalMapUV = TRANSFORM_TEX(nrmUV, _NormalMap);
+GeometryData SetupGeometryData(float2 uv, float3 posWS, float3 nrm, float4 tng, float4 lmuv) {
+    float2 normalMapUV = TRANSFORM_TEX(uv, _NormalMap);
     float4 normalSample = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, normalMapUV);
     float3 unpackedNormal = normalize(lerp(float3(0,0,1), UnpackNormal(normalSample), _NormalStrength));
     GeometryData gdata;
     gdata.lgtDir = 0;
     gdata.posWs = posWS;
+    gdata.uv = uv;
     gdata.nrmWs = NormalMapToWorld(unpackedNormal, nrm, tng);
     gdata.viewDir = GetWorldSpaceViewDir(posWS);
     gdata.mainLgtDir = 0;
@@ -157,6 +180,32 @@ RoughnessData SetupRoughnessData(float2 uv) {
     rdata.roughness = SAMPLE_TEXTURE2D(_MRFATex, sampler_MRFATex, MRFAUV).g * _Roughness;
     rdata.fresnelAmt = SAMPLE_TEXTURE2D(_MRFATex, sampler_MRFATex, MRFAUV).b * _Fresnel;
     return rdata;
+}
+
+HairData SetupHairData()
+{
+    HairData hdata;
+
+    hdata.enableHighlight = _HairHighlightToggle > 0;
+    hdata.highlightColor = _HairHighlightColor;
+    hdata.centerWS = _FaceCenter;
+    hdata.forwardWS = _FaceFwdVec;
+    hdata.rightWS = _FaceRightVec;
+    hdata.perlinNoiseTex = _PerlinNoiseTex;
+    hdata.highlightStrength = _HairHighlightStrength;
+    hdata.highlightExponent = _HairHighlightExponent;
+    hdata.highlightLength = _HairHighlightLength;
+    hdata.highlightCutoff = _HairHighlightCutoff;
+    hdata.noiseStrength = _HairHighlightNoiseStrength;
+    hdata.noiseStretch = _HairHighlightNoiseStretch;
+    hdata.noiseInvert = _HairHighlightNoiseInvert;
+    hdata.fresnelPower = _HairHighlightFresnelPower;
+    hdata.fresnelBias = _HairHighlightFresnelBias;
+    hdata.specularStrength = _HairSpecularStrength;
+    hdata.specularPower = _HairSpecularPower;
+    hdata.noiseSeed = _HairHighlightNoiseSeed;
+    
+    return hdata;
 }
 
 #endif

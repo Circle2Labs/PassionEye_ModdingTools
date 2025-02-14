@@ -26,6 +26,7 @@ struct GeometryData {
     float3  lgtDir;
     float3  posWs;
     float3  nrmWs;
+    float2  uv;
     float3  viewDir;
     float3  mainLgtDir;
     float4  shadowCoord;
@@ -81,6 +82,27 @@ struct RoughnessData {
     bool    useRoughness;
     float   roughness;
     float   fresnelAmt;
+};
+
+struct HairData {
+    bool enableHighlight;
+    float4      highlightColor;
+    Texture2D   perlinNoiseTex;
+    float3      centerWS;
+    float3      forwardWS;
+    float3      rightWS;
+    float       highlightStrength;
+    float       highlightCutoff;
+    float       highlightExponent;
+    float       highlightLength;
+    float       noiseStrength;
+    float       noiseStretch;
+    bool        noiseInvert;
+    float       specularStrength;
+    float       specularPower;
+    float       fresnelPower;
+    float       fresnelBias;
+    int         noiseSeed;
 };
 
 #endif

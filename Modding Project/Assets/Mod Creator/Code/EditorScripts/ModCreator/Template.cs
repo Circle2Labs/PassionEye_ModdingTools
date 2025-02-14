@@ -1,5 +1,7 @@
 #if UNITY_EDITOR
 using System;
+using Code.Frameworks.Animation.Enums;
+using Code.Frameworks.Animation.Structs;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Structs;
@@ -16,29 +18,6 @@ namespace Code.EditorScripts.ModCreator
 	{
 		public ETemplateType TemplateType;
 		
-		[SerializeField]
-		private ECharacterObjectType characterObjectType;
-		public ECharacterObjectType CharacterObjectType
-		{
-			get => characterObjectType;
-			set
-			{
-				var last = characterObjectType;
-				
-				// todo: remove once basemesh stuff is set up
-				if (value is ECharacterObjectType.BaseMesh)
-					characterObjectType = ECharacterObjectType.Clothing;
-				else
-					characterObjectType = value;
-
-				if (last == characterObjectType)
-					return;
-				
-				if (!advanced)
-					Type = GetTemplateClass(this);
-			}
-		}
-
 		[SerializeField]
 		private bool advanced;
 		public bool Advanced
@@ -79,15 +58,46 @@ public class {Type} : {GetTemplateClass(this)}
 		public string[] Tags = Array.Empty<string>();
 
 		public bool IsNSFW = true;
+
+		// Advanced class source
+		public string Source = "";
+
+		// Advanced class type
+		public string Type;
+
+		// Advanced class usings
+		public string[] Usings = Array.Empty<string>();
+		
+		#region Character Object
+
+		[SerializeField]
+		private ECharacterObjectType characterObjectType;
+		public ECharacterObjectType CharacterObjectType
+		{
+			get => characterObjectType;
+			set
+			{
+				var last = characterObjectType;
+				
+				// todo: remove once basemesh stuff is set up
+				if (value is ECharacterObjectType.BaseMesh)
+					characterObjectType = ECharacterObjectType.Clothing;
+				else
+					characterObjectType = value;
+
+				if (last == characterObjectType)
+					return;
+				
+				if (!advanced)
+					Type = GetTemplateClass(this);
+			}
+		}
 		
 		// Hair
 		public EHairType HairType;
 		
 		// Clothing
 		public EClothingType ClothingType;
-		
-		// Studio Object
-		public EStudioObjectType StudioObjectType;
 		
 		// Accessory
 		public EAccessoryType AccessoryType;
@@ -122,36 +132,53 @@ public class {Type} : {GetTemplateClass(this)}
 		// Character object allowed gender flags
 		public ESupportedGendersFlags SupportedGendersFlags = ESupportedGendersFlags.Female;
 		
+		// Clothing states map
+		public Transform[] ClothingStates;
+
+		// Offsets used in blendshapes when making clothing
+		public SBlendshapeOffset[] BlendshapeOffsets;
+
+		// Clipping fix
+		public bool UseClippingFix = true;
+		public float ClippingDistance = 0.001f;
+		
+		// Physics
+		public Simulation Simulation;
+		
+		#endregion
+
+		#region Studio Object
+
+		// Studio Object
+		public EStudioObjectType StudioObjectType;
+
+		// FK
+		public SFKData FKData;
+
+		#endregion
+
+		#region Modded Scene
+
 		// Modded scene usage flags
 		public EModdedSceneUsageFlags ModdedSceneUsageFlags;
 
 		// Used in modded scenes 16:9 bg for the map
 		public Sprite LargeBackground;
 
-		// Clothing states map
-		public Transform[] ClothingStates;
+		#endregion
 
-		// Physics
-		public Simulation Simulation;
+		#region Animation
+
+		// Animation usage flags
+		public EAnimationUsageFlags AnimationUsageFlags;
+
+		// Animation clips
+		public SClipContainer[] AnimationClipContainers = Array.Empty<SClipContainer>();
+
+		// Animation crossfade duration
+		public float AnimationFadeDuration = 0.25f;
 		
-		// FK
-		public SFKData FKData;
-
-		// Offsets used in blendshapes when making clothing
-		public SBlendshapeOffset[] BlendshapeOffsets;
-		
-		// Advanced class source
-		public string Source = "";
-
-		// Advanced class type
-		public string Type;
-
-		// Advanced class usings
-		public string[] Usings = Array.Empty<string>();
-
-		// Clipping fix
-		public bool UseClippingFix = true;
-		public float ClippingDistance = 0.001f;
+		#endregion
 		
 		public Template()
 		{
@@ -174,6 +201,11 @@ public class {Type} : {GetTemplateClass(this)}
 			
 			var copiedBlendshapeOffsets = new SBlendshapeOffset[BlendshapeOffsets.Length];
 			Array.Copy(BlendshapeOffsets, copiedBlendshapeOffsets, BlendshapeOffsets.Length);
+			
+			var copiedClipContainers = new SClipContainer[AnimationClipContainers.Length];
+			
+			for (var i = 0; i < AnimationClipContainers.Length; i++)
+				copiedClipContainers[i] = AnimationClipContainers[i].Copy();
 			
 			var template = new Template
 			{
@@ -208,7 +240,10 @@ public class {Type} : {GetTemplateClass(this)}
 				BlendshapeOffsets = copiedBlendshapeOffsets,
 				FKData = FKData,
 				ClippingDistance = ClippingDistance,
-				UseClippingFix = UseClippingFix
+				UseClippingFix = UseClippingFix,
+				AnimationUsageFlags = AnimationUsageFlags,
+				AnimationClipContainers = copiedClipContainers,
+				AnimationFadeDuration = AnimationFadeDuration,
 			};
 
 			return template;
@@ -286,7 +321,8 @@ public class {Type} : {GetTemplateClass(this)}
 	{
 		CharacterObject,
 		StudioObject,
-		ModdedScene
+		ModdedScene,
+		Animation
 	}
 }
 #endif
