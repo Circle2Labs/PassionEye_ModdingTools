@@ -199,13 +199,20 @@ public class {Type} : {GetTemplateClass(this)}
 
 			var copiedSimulation = Simulation.Copy();
 			
-			var copiedBlendshapeOffsets = new SBlendshapeOffset[BlendshapeOffsets.Length];
-			Array.Copy(BlendshapeOffsets, copiedBlendshapeOffsets, BlendshapeOffsets.Length);
-			
-			var copiedClipContainers = new SClipContainer[AnimationClipContainers.Length];
-			
-			for (var i = 0; i < AnimationClipContainers.Length; i++)
-				copiedClipContainers[i] = AnimationClipContainers[i].Copy();
+			SBlendshapeOffset[] copiedBlendshapeOffsets = null;
+			if (BlendshapeOffsets != null)
+			{
+				copiedBlendshapeOffsets = new SBlendshapeOffset[BlendshapeOffsets.Length];
+				Array.Copy(BlendshapeOffsets, copiedBlendshapeOffsets, BlendshapeOffsets.Length);
+			}
+
+			SClipContainer[] copiedClipContainers = null;
+			if (AnimationClipContainers != null)
+			{
+				copiedClipContainers = new SClipContainer[AnimationClipContainers.Length];
+				for (var i = 0; i < AnimationClipContainers.Length; i++)
+					copiedClipContainers[i] = AnimationClipContainers[i].Copy();
+			}
 			
 			var template = new Template
 			{
