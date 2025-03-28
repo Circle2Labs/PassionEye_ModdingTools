@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Character.CharacterObjects;
+using Code.Frameworks.Character.Enums;
 using Code.Tools;
 using Microsoft.CSharp;
 using Packages.SFB;
@@ -111,7 +112,7 @@ namespace Code.Editor.ModEngine
 
 		public void DrawAdvancedToggle(Template template)
 		{
-			if (template.TemplateType is ETemplateType.ModdedScene or ETemplateType.Animation)
+			if (template.TemplateType is ETemplateType.ModdedScene or ETemplateType.Animation || template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.BaseMesh)
 				return;
 			
 			template.Advanced = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_ADVEDIT"), template.Advanced);

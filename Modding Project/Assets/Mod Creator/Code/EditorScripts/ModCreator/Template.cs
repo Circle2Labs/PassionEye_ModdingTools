@@ -2,6 +2,7 @@
 using System;
 using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation.Structs;
+using System.Collections.Generic;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Structs;
@@ -9,7 +10,9 @@ using Code.Frameworks.ForwardKinematics.Structs;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes.Flags;
 using Code.Frameworks.Studio.Enums;
+using Code.Tools;
 using UnityEngine;
+using Tuple = Code.Tools.Tuple;
 
 namespace Code.EditorScripts.ModCreator
 {
@@ -17,7 +20,7 @@ namespace Code.EditorScripts.ModCreator
 	public class Template
 	{
 		public ETemplateType TemplateType;
-		
+
 		[SerializeField]
 		private bool advanced;
 		public bool Advanced
@@ -59,9 +62,6 @@ public class {Type} : {GetTemplateClass(this)}
 
 		public bool IsNSFW = true;
 
-		// Advanced class source
-		public string Source = "";
-
 		// Advanced class type
 		public string Type;
 
@@ -79,11 +79,7 @@ public class {Type} : {GetTemplateClass(this)}
 			{
 				var last = characterObjectType;
 				
-				// todo: remove once basemesh stuff is set up
-				if (value is ECharacterObjectType.BaseMesh)
-					characterObjectType = ECharacterObjectType.Clothing;
-				else
-					characterObjectType = value;
+				characterObjectType = value;
 
 				if (last == characterObjectType)
 					return;
@@ -128,15 +124,46 @@ public class {Type} : {GetTemplateClass(this)}
 		
 		// Default parent index
 		public int DefaultParentIdx;
-
-		// Character object allowed gender flags
-		public ESupportedGendersFlags SupportedGendersFlags = ESupportedGendersFlags.Female;
 		
 		// Clothing states map
 		public Transform[] ClothingStates;
 
 		// Offsets used in blendshapes when making clothing
 		public SBlendshapeOffset[] BlendshapeOffsets;
+		
+		// Compatible base meshes for character objects
+		public SCompatibleBaseMesh[] CompatibleBaseMeshes;
+
+		#region Base Mesh
+
+		public Avatar Avatar;
+		public ESupportedGendersFlags SupportedGendersFlags;
+		public List<SBlendshapePreset> BlendshapePresets;
+		public Transform POV;
+		public Transform FaceTransform;
+		public List<SBlendShape> Blendshapes;
+		public List<Tools.Tuple.SerializableTuple<Transform, string>> AccessoryParents;
+		public List<Tools.Tuple.SerializableTuple<ETextureType, Renderer, int>> TextureMaterialMap;
+		public List<SBodyPart> BodyParts;
+		public List<SkinnedMeshRenderer> BlendshapeRenderers;
+		public List<Collider> SFWColliders;
+		public SEyeData EyeData;
+		public SMouthData MouthData;
+		public Transform Cock;
+		public Transform BodyRootBone;
+		public Transform HeadRootBone;
+		public Transform PrivatesRootBone;
+		public List<Transform> Eyes;
+		public List<Transform> Breasts;
+		public List<Transform> Buttocks;
+		public bool EyeControl = true;
+		public bool ExpressionControl = true;
+		public bool PoseControl = true;
+
+		#endregion
+		
+		// Advanced class source
+		public string Source = "";
 
 		// Clipping fix
 		public bool UseClippingFix = true;
@@ -188,24 +215,36 @@ public class {Type} : {GetTemplateClass(this)}
 		
 		public Template Copy()
 		{
-			var copiedTags = new string[Tags.Length];
-			Array.Copy(Tags, copiedTags, Tags.Length);
-			
-			var copiedIncludes = new string[Usings.Length];
-			Array.Copy(Usings, copiedIncludes, Usings.Length);
-			
-			var copiedStates = new Transform[ClothingStates.Length];
-			Array.Copy(ClothingStates, copiedStates, ClothingStates.Length);
-
 			var copiedSimulation = Simulation.Copy();
 			
-			SBlendshapeOffset[] copiedBlendshapeOffsets = null;
-			if (BlendshapeOffsets != null)
+			string[] copiedTags = null;
+			if (Tags != null)
 			{
-				copiedBlendshapeOffsets = new SBlendshapeOffset[BlendshapeOffsets.Length];
-				Array.Copy(BlendshapeOffsets, copiedBlendshapeOffsets, BlendshapeOffsets.Length);
+				copiedTags = new string[Tags.Length];
+				Array.Copy(Tags, copiedTags, Tags.Length);
 			}
 
+			string[] copiedIncludes = null;
+			if (Usings != null)
+			{
+				copiedIncludes = new string[Usings.Length];
+				Array.Copy(Usings, copiedIncludes, Usings.Length);
+			}
+			
+			Transform[] copiedStates = null;
+			if (ClothingStates != null)
+			{
+				copiedStates = new Transform[ClothingStates.Length];
+				Array.Copy(ClothingStates, copiedStates, ClothingStates.Length);
+			}
+
+			SCompatibleBaseMesh[] copiedCompatibleBaseMeshes = null;
+			if (CompatibleBaseMeshes != null)
+			{
+				copiedCompatibleBaseMeshes = new SCompatibleBaseMesh[CompatibleBaseMeshes.Length];
+				Array.Copy(CompatibleBaseMeshes, copiedCompatibleBaseMeshes, CompatibleBaseMeshes.Length);
+			}
+			
 			SClipContainer[] copiedClipContainers = null;
 			if (AnimationClipContainers != null)
 			{
@@ -214,8 +253,96 @@ public class {Type} : {GetTemplateClass(this)}
 					copiedClipContainers[i] = AnimationClipContainers[i].Copy();
 			}
 			
+			SBlendshapeOffset[] copiedBlendshapeOffsets = null;
+			if (BlendshapeOffsets != null)
+			{
+				copiedBlendshapeOffsets = new SBlendshapeOffset[BlendshapeOffsets.Length];
+				Array.Copy(BlendshapeOffsets, copiedBlendshapeOffsets, BlendshapeOffsets.Length);
+			}
+
+			List<SBlendshapePreset> copiedBlendshapePresets = null;
+			if (BlendshapePresets != null)
+			{
+				copiedBlendshapePresets = new List<SBlendshapePreset>();
+				for (var i = 0; i < BlendshapePresets.Count; i++)
+					copiedBlendshapePresets.Add(BlendshapePresets[i]);
+			}
+
+			List<Tuple.SerializableTuple<Transform, string>> copiedAccessoryParents = null;
+			if (AccessoryParents != null)
+			{
+				copiedAccessoryParents = new List<Tuple.SerializableTuple<Transform, string>>();
+				for (var i = 0; i < AccessoryParents.Count; i++)
+					copiedAccessoryParents.Add(AccessoryParents[i]);
+			}
+
+			List<Tuple.SerializableTuple<ETextureType, Renderer, int>> copiedTextureMaterialMap = null;
+			if (TextureMaterialMap != null)
+			{
+				copiedTextureMaterialMap = new List<Tuple.SerializableTuple<ETextureType, Renderer, int>>();
+				for (var i = 0; i < TextureMaterialMap.Count; i++)
+					copiedTextureMaterialMap.Add(TextureMaterialMap[i]);
+			}
+
+			List<SBlendShape> copiedBlendshapes = null;
+			if (Blendshapes != null)
+			{
+				copiedBlendshapes = new List<SBlendShape>();
+				for (var i = 0; i < Blendshapes.Count; i++)
+					copiedBlendshapes.Add(Blendshapes[i]);
+			}
+
+			List<SBodyPart> copiedBodyParts = null;
+			if (BodyParts != null)
+			{
+				copiedBodyParts = new List<SBodyPart>();
+				for (var i = 0; i < BodyParts.Count; i++)
+					copiedBodyParts.Add(BodyParts[i]);
+			}
+
+			List<SkinnedMeshRenderer> copiedBlendshapeRenderers = null;
+			if (BlendshapeRenderers != null)
+			{
+				copiedBlendshapeRenderers = new List<SkinnedMeshRenderer>();
+				for (var i = 0; i < BlendshapeRenderers.Count; i++)
+					copiedBlendshapeRenderers.Add(BlendshapeRenderers[i]);
+			}
+
+			List<Collider> copiedSFWColliders = null;
+			if (SFWColliders != null)
+			{
+				copiedSFWColliders = new List<Collider>();
+				for (var i = 0; i < SFWColliders.Count; i++)
+					copiedSFWColliders.Add(SFWColliders[i]);
+			}
+
+			List<Transform> copiedEyes = null;
+			if (Eyes != null)
+			{
+				copiedEyes = new List<Transform>();
+				for (var i = 0; i < Eyes.Count; i++)
+					copiedEyes.Add(Eyes[i]);
+			}
+
+			List<Transform> copiedBreasts = null;
+			if (Breasts != null)
+			{
+				copiedBreasts = new List<Transform>();
+				for (var i = 0; i < Breasts.Count; i++)
+					copiedBreasts.Add(Breasts[i]);
+			}
+
+			List<Transform> copiedButtocks = null;
+			if (Buttocks != null)
+			{
+				copiedButtocks = new List<Transform>();
+				for (var i = 0; i < Buttocks.Count; i++)
+					copiedButtocks.Add(Buttocks[i]);
+			}
+			
 			var template = new Template
 			{
+				// Base
 				TemplateType = TemplateType,
 				characterObjectType = CharacterObjectType,
 				Icon = Icon,
@@ -223,34 +350,75 @@ public class {Type} : {GetTemplateClass(this)}
 				Description = Description,
 				Tags = copiedTags,
 				IsNSFW = IsNSFW,
-				SupportedGendersFlags = SupportedGendersFlags,
-				HairType = HairType,
-				ClothingType = ClothingType,
-				StudioObjectType = StudioObjectType,
-				AccessoryType = AccessoryType,
-				DefaultParent = DefaultParent,
-				DefaultParentIdx = DefaultParentIdx,
-				ModdedSceneUsageFlags = ModdedSceneUsageFlags,
-				LargeBackground = LargeBackground,
-				ClothingStates = copiedStates,
 				Source = Source,
 				Type = Type,
 				Advanced = Advanced,
 				Usings = copiedIncludes,
-				Simulation = copiedSimulation,
+
+				// Hair
+				HairType = HairType,
+				
+				// Clothing
+				ClothingType = ClothingType,
+				ClothingStates = copiedStates,
+				ClippingDistance = ClippingDistance,
+				UseClippingFix = UseClippingFix,
+				BlendshapeOffsets = copiedBlendshapeOffsets,
+
+				// Studio
+				StudioObjectType = StudioObjectType,
+				
+				// Accessory
+				AccessoryType = AccessoryType,
+				DefaultParent = DefaultParent,
+				DefaultParentIdx = DefaultParentIdx,
+
+				// Modded Scene
+				ModdedSceneUsageFlags = ModdedSceneUsageFlags,
+				LargeBackground = LargeBackground,
+
+				// Texture
 				TextureType = TextureType,
 				Texture = Texture,
 				OverlayTarget = OverlayTarget,
 				OverlayMode = OverlayMode,
 				IsOverlay = IsOverlay,
 				OverlayColor = OverlayColor,
-				BlendshapeOffsets = copiedBlendshapeOffsets,
-				FKData = FKData,
-				ClippingDistance = ClippingDistance,
-				UseClippingFix = UseClippingFix,
+
+				// Animation
 				AnimationUsageFlags = AnimationUsageFlags,
 				AnimationClipContainers = copiedClipContainers,
 				AnimationFadeDuration = AnimationFadeDuration,
+
+				// Base Mesh
+				Avatar = Avatar,
+				SupportedGendersFlags = SupportedGendersFlags,
+				BlendshapePresets = copiedBlendshapePresets,
+				AccessoryParents = copiedAccessoryParents,
+				TextureMaterialMap = copiedTextureMaterialMap,
+				Blendshapes = copiedBlendshapes,
+				BodyParts = copiedBodyParts,
+				BlendshapeRenderers = copiedBlendshapeRenderers,
+				SFWColliders = copiedSFWColliders,
+				POV = POV,
+				FaceTransform = FaceTransform,
+				EyeData = EyeData,
+				MouthData = MouthData,
+				Cock = Cock,
+				BodyRootBone = BodyRootBone,
+				HeadRootBone = HeadRootBone,
+				PrivatesRootBone = PrivatesRootBone,
+				Eyes = copiedEyes,
+				Breasts = copiedBreasts,
+				Buttocks = copiedButtocks,
+				EyeControl = EyeControl,
+				ExpressionControl = ExpressionControl,
+				PoseControl = PoseControl,
+				
+				// Shared
+				Simulation = copiedSimulation,
+				FKData = FKData,
+				CompatibleBaseMeshes = copiedCompatibleBaseMeshes
 			};
 
 			return template;
@@ -283,6 +451,8 @@ public class {Type} : {GetTemplateClass(this)}
 						return "BaseHair";
 					case ECharacterObjectType.Texture:
 						return "BaseTexture";
+					case ECharacterObjectType.BaseMesh:
+						return "BaseBaseMesh";
 					default:
 						throw new ArgumentOutOfRangeException();
 				}

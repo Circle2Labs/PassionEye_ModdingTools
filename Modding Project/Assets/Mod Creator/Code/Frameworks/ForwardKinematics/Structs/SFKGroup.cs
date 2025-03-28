@@ -9,8 +9,6 @@ namespace Code.Frameworks.ForwardKinematics.Structs
 		public string Name;
 		
 		public SFKTransform[] Transforms;
-
-		public ESupportedGendersFlags SupportedGenders;
 		
 		public bool FutaExclusive;
 
@@ -19,7 +17,6 @@ namespace Code.Frameworks.ForwardKinematics.Structs
 			return new SFKGroup
 			{
 				Name = "New Group",
-				SupportedGenders = ESupportedGendersFlags.Female | ESupportedGendersFlags.Male,
 				FutaExclusive = false,
 				Transforms = Array.Empty<SFKTransform>()
 			};

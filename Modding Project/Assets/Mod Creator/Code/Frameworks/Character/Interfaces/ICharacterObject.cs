@@ -1,6 +1,5 @@
-﻿using Code.Frameworks.Character.CharacterObjects;
-using Code.Frameworks.Character.Enums;
-using Code.Frameworks.Character.Flags;
+﻿using Code.Frameworks.Character.Enums;
+using Code.Frameworks.Character.Structs;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Interfaces;
 using UnityEngine;
@@ -46,7 +45,7 @@ namespace Code.Frameworks.Character.Interfaces
         /// Is this item Not safe for work.
         /// </summary>   
         public bool IsNSFW { get; set; }
-        
+
         /// <summary>
         /// Should the object be reparentable or stay inside the container object
         /// </summary>
@@ -61,12 +60,12 @@ namespace Code.Frameworks.Character.Interfaces
         /// Physics Simulation related settings.
         /// </summary>
         public Simulation Simulation { get; set; }
-        
-        /// <summary>
-        /// Supported character Genders for this item.
-        /// </summary>
-        public ESupportedGendersFlags SupportedGendersFlags { get; set; }
 
+        /// <summary>
+        /// Base meshes compatible with this item
+        /// </summary>
+        public SCompatibleBaseMesh[] CompatibleBaseMeshes { get; set; }
+        
         public Character Character { get; }
         
         /// <summary>
@@ -83,11 +82,11 @@ namespace Code.Frameworks.Character.Interfaces
         /// GameObject for this character object
         /// </summary>
         public GameObject GetGameObject();
-        
+
         /// <summary>
         /// Reassign bones to given base mesh
         /// </summary>
-        public void SetupBoneMap(BaseBaseMesh baseMesh);
+        public void SetupBoneMap(IBaseMesh baseMesh);
 
         public void AddSimulationData();
     }

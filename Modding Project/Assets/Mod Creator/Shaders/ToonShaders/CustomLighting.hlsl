@@ -161,6 +161,11 @@ float3 DirectDiffuse(DiffuseData diffData, float3 mainLightColor) {
     ) * mainLightColor;
 }
 
+float3 Specularity(float3 lightDir, float3 viewDir, float3 normal, float power, float amount, float3 color){
+    float3 halfVec = normalize(lightDir + viewDir);
+    return pow(max(saturate(dot(normal, halfVec)), 0),power) * amount * color;
+}
+
 float3 Specularity(SpecularData specData, GeometryData geomData) {
     float3 halfVec = normalize(geomData.viewDir + geomData.lgtDir);
 
@@ -245,6 +250,12 @@ void ShadeAdditionalLights(FaceData faceData, GeometryData geomData, DiffuseData
             }
         #endif
     #endif
+}
+
+half3 IndirectLighting(float3 normal, float4 lightmapUV) {
+    float3 sh;
+    OUTPUT_SH(normal, sh);
+    return SAMPLE_GI(lightmapUV, sh, normal);
 }
 
 half3 IndirectLighting(GeometryData geomData) {

@@ -14,6 +14,8 @@ using Code.Frameworks.Character.CharacterObjects;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
+using Code.Frameworks.Character.Structs;
+using Code.Frameworks.ClippingFix.Enums;
 using Code.Frameworks.ModdedScenes;
 using Code.Frameworks.RayTracing;
 using Code.Frameworks.Studio.Interfaces;
@@ -21,7 +23,6 @@ using Code.Frameworks.Studio.StudioObjects;
 using Code.Tools;
 using Packages.SFB;
 using Railgun.AssetPipeline.Enums;
-using Railgun.AssetPipeline.Interfaces;
 using Railgun.AssetPipeline.Models;
 using Railgun.AssetPipeline.Services;
 using Railgun.AssetPipeline.Types;
@@ -47,10 +48,6 @@ namespace Code.Editor.ModEngine
 
 		private Vector2 builderScrollPosition;
 		
-		private Regex lodRegex = new ("^LOD\\d$");
-		
-		private const string uniqueIDFormat = "_#";
-
 		public void DrawBuilder()
 		{
 			builderScrollPosition = GUILayout.BeginScrollView(builderScrollPosition);
@@ -63,7 +60,7 @@ namespace Code.Editor.ModEngine
 			Manifest.Description = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BUILDER_DESC"), Manifest.Description);
 
 			Manifest.Author = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BUILDER_AUTHOR")}*", Manifest.Author);
-			if (Manifest.Author != null)
+			if (IsStandalone && Manifest.Author != null)
 				Manifest.Author = Regex.Replace(Manifest.Author, nameTypeFilter, "");
 			
 			Manifest.Version = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BUILDER_VERSION")}*", Manifest.Version);
@@ -276,8 +273,8 @@ namespace Code.Editor.ModEngine
 							template.Icon = characterObject.Icon;
 							template.Description = characterObject.Description;
 							template.IsNSFW = characterObject.IsNSFW;
-							template.SupportedGendersFlags = characterObject.SupportedGendersFlags;
 							template.Simulation = characterObject.Simulation;
+							template.CompatibleBaseMeshes = characterObject.CompatibleBaseMeshes;
 							
 							switch (comp)
 							{
@@ -302,9 +299,18 @@ namespace Code.Editor.ModEngine
 									template.DefaultParent = acc.DefaultParent;
 									template.Reparentable = acc.Reparentable;
 
-									for (var i = 0; i < defaultParents.Length; i++)
+									var accessoryParents = new List<string>();
+			
+									var compatibleBaseMeshes = acc.CompatibleBaseMeshes;
+									if (compatibleBaseMeshes != null && compatibleBaseMeshes.Length > 0)
 									{
-										if (defaultParents[i] != acc.DefaultParent) 
+										var baseMesh = compatibleBaseMeshes[0];
+										accessoryParents = GetAccessoryParents(new Tuple<string, byte>(baseMesh.GUID, baseMesh.ID));
+									}
+									
+									for (var i = 0; i < accessoryParents.Count; i++)
+									{
+										if (accessoryParents[i] != acc.DefaultParent) 
 											continue;
 										
 										template.DefaultParentIdx = i;
@@ -313,12 +319,39 @@ namespace Code.Editor.ModEngine
 									
 									break;
 								case ITexture tex:
+									template.CharacterObjectType = ECharacterObjectType.Texture;
 									template.TextureType = tex.TextureType;
 									template.Texture = tex.Texture;
 									template.IsOverlay = tex.IsOverlay;
 									template.OverlayTarget = tex.OverlayTarget;
 									template.OverlayMode = tex.OverlayMode;
 									template.OverlayColor = tex.OverlayColor;
+									break;
+								case IBaseMesh baseMesh:
+									template.CharacterObjectType = ECharacterObjectType.BaseMesh;
+									template.Avatar = AvatarBuilder.BuildHumanAvatar(((BaseBaseMesh)baseMesh).gameObject, baseMesh.AvatarData.ToHumanDescription());
+									template.SupportedGendersFlags = baseMesh.SupportedGendersFlags;
+									template.BlendshapePresets = baseMesh.BlendshapePresets.ToList();
+									template.AccessoryParents = baseMesh.AccessoryParents;
+									template.TextureMaterialMap = baseMesh.TextureMaterialMap;
+									template.Blendshapes = baseMesh.Blendshapes;
+									template.BodyParts = baseMesh.BodyParts;
+									template.BlendshapeRenderers = baseMesh.BlendshapeRenderers;
+									template.SFWColliders = baseMesh.SFWColliders;
+									template.POV = baseMesh.POV;
+									template.FaceTransform = baseMesh.FaceTransform;
+									template.EyeData = baseMesh.EyeData;
+									template.MouthData = baseMesh.MouthData;
+									template.Cock = baseMesh.Cock;
+									template.BodyRootBone = baseMesh.BodyRootBone;
+									template.HeadRootBone = baseMesh.HeadRootBone;
+									template.PrivatesRootBone = baseMesh.PrivatesRootBone;
+									template.Eyes = baseMesh.Eyes.ToList();
+									template.Breasts = baseMesh.Breasts.ToList();
+									template.Buttocks = baseMesh.Buttocks.ToList();
+									template.EyeControl = baseMesh.EyeControl;
+									template.ExpressionControl = baseMesh.ExpressionControl;
+									template.PoseControl = baseMesh.PoseControl;
 									break;
 							}
 						}
@@ -414,8 +447,14 @@ namespace Code.Editor.ModEngine
 				Debug.LogError($"Failed assigning renderers {e}");
 			}
 			
-			Thread.Sleep(100);
-			EditorUtility.DisplayProgressBar("Building Mod..", "Setting up BVHlist", 0.4f);
+			var modBuilder = ServiceProvider.Obtain<IModBuilderService>();
+			modBuilder.Reset();
+			
+			modBuilder.SetManifest(Manifest);
+			modBuilder.SetAssembly(!string.IsNullOrEmpty(Assembly.Item1) && Assembly.Item2 != null ? new Tuple<string, byte[]>(Assembly.Item1, Assembly.Item2) : null);
+			modBuilder.SetSettings(null);
+			
+			#region BVH
 			
 			var bvhList = new List<int>();
 			for (var i = 0; i < Templates.Count; i++)
@@ -475,6 +514,76 @@ namespace Code.Editor.ModEngine
 				}
 			}
 			
+			#endregion
+
+			#region Base Mesh
+
+			var baseMeshList = new List<int>();
+			for (var i = 0; i < Templates.Count; i++)
+			{
+				var template = Templates[i];
+				if (template.TemplateType != ETemplateType.CharacterObject || template.CharacterObjectType != ECharacterObjectType.BaseMesh)
+					continue;
+				
+				baseMeshList.Add(i);
+			}
+			
+			for (var i = 0; i < baseMeshList.Count; i++)
+			{
+				var template = Templates[baseMeshList[i]];
+				
+				Thread.Sleep(100);
+				EditorUtility.DisplayProgressBar("Building Mod..", $"Creating Base Mesh Rays for {template.Name}", (float)((i + 1) / (float)baseMeshList.Count));
+
+				try
+				{
+					var gameObject = (GameObject)Prefabs[baseMeshList[i]];
+					var baseMesh = gameObject.GetComponent<IBaseMesh>();
+
+					baseMesh.RaysIDs = new List<Tuple.SerializableTuple<ERaysResolution, byte>>();
+
+					var resolutions = Enum.GetValues(typeof(ERaysResolution));
+					var bodyRenderer = baseMesh.GetBodyRenderer()!.Value;
+
+					var skinnedMeshRenderer = bodyRenderer.Item1;
+					var mesh = skinnedMeshRenderer.sharedMesh;
+
+					var submesh = mesh.GetSubMesh(bodyRenderer.Item2);
+					var triangles = mesh.triangles;
+					var vertices = mesh.vertices;
+					var normals = mesh.normals;
+                        
+					skinnedMeshRenderer.transform.TransformPoints(vertices);
+					skinnedMeshRenderer.transform.TransformDirections(normals);
+					
+					for (var k = 0; k < resolutions.Length; k++)
+					{
+						var resolution = (ERaysResolution)resolutions.GetValue(k);
+						EditorUtility.DisplayProgressBar($"Building Base Mesh Rays for {template.Name}", $"Processing Rays for resolution {resolution.ToString()}", (float)((k + 1) / (float)resolutions.Length));
+
+						try
+						{
+							var accelStruct = RayUtils.BakeAccelerationStructure(submesh.indexStart, submesh.indexStart + submesh.indexCount, triangles, mesh.uv, (int)resolution);
+							var points3D = RayUtils.ScanUVs(accelStruct, (int)resolution, triangles, mesh.uv, vertices);
+							var rays = RayUtils.CalculateRays(points3D, normals, triangles);
+
+							var data = rays.ToBytesPtr();
+							baseMesh.RaysIDs.Add(new Tuple.SerializableTuple<ERaysResolution, byte>(resolution, modBuilder.AddObject(data)));
+						}
+						catch (Exception e)
+						{
+							Debug.LogError(e);
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					Debug.LogError($"Failed creating Base Mesh Rays for {template.Name} {e}");
+				}
+			}
+			
+			#endregion
+
 			var buildList = new List<Object>();
 			foreach (var obj in Prefabs)
 				buildList.AddUnique(obj);
@@ -523,16 +632,6 @@ namespace Code.Editor.ModEngine
 			{
 				Debug.LogError($"Failed adding unique IDs {e}");
 			}
-
-			Thread.Sleep(100);
-			EditorUtility.DisplayProgressBar("Building Mod..", "Setting up Mod", 0.9f);
-
-			var modBuilder = ServiceProvider.Obtain<IModBuilderService>();
-			modBuilder.Reset();
-			
-			modBuilder.SetManifest(Manifest);
-			modBuilder.SetAssembly(!string.IsNullOrEmpty(Assembly.Item1) && Assembly.Item2 != null ? new Tuple<string, byte[]>(Assembly.Item1, Assembly.Item2) : null);
-			modBuilder.SetSettings(null);
 			
 			Thread.Sleep(100);
 			EditorUtility.DisplayProgressBar("Building Mod..", $"Building objects", 0f);
@@ -696,6 +795,9 @@ namespace Code.Editor.ModEngine
 							case ECharacterObjectType.Texture:
 								comp = gameObject.AddComponent<BaseTexture>();
 								break;
+							case ECharacterObjectType.BaseMesh:
+								comp = gameObject.AddComponent<BaseBaseMesh>();
+								break;
 							default:
 								throw new ArgumentOutOfRangeException();
 						}
@@ -706,10 +808,10 @@ namespace Code.Editor.ModEngine
 						charaObject.Name = template.Name;
 						charaObject.Description = template.Description;
 						charaObject.IsNSFW = template.IsNSFW;
-						charaObject.SupportedGendersFlags = template.SupportedGendersFlags;
 						charaObject.Icon = template.Icon;
 						charaObject.Tags = template.Tags;
 						charaObject.Simulation = template.Simulation;
+						charaObject.CompatibleBaseMeshes = template.CompatibleBaseMeshes;
 					}
 					
 					switch (comp)
@@ -744,6 +846,32 @@ namespace Code.Editor.ModEngine
 							tex.OverlayMode = template.OverlayMode;
 							tex.OverlayColor = template.OverlayColor;
 							break;
+						case IBaseMesh baseMesh:
+							baseMesh.ObjectType = ECharacterObjectType.BaseMesh;
+							baseMesh.AvatarData = new SAvatarData(template.Avatar.humanDescription);
+							baseMesh.SupportedGendersFlags = template.SupportedGendersFlags;
+							baseMesh.BlendshapePresets = template.BlendshapePresets.ToArray();
+							baseMesh.AccessoryParents = template.AccessoryParents;
+							baseMesh.TextureMaterialMap = template.TextureMaterialMap;
+							baseMesh.Blendshapes = template.Blendshapes;
+							baseMesh.BodyParts = template.BodyParts;
+							baseMesh.BlendshapeRenderers = template.BlendshapeRenderers;
+							baseMesh.SFWColliders = template.SFWColliders;
+							baseMesh.POV = template.POV;
+							baseMesh.FaceTransform = template.FaceTransform;
+							baseMesh.EyeData = template.EyeData;
+							baseMesh.MouthData = template.MouthData;
+							baseMesh.Cock = template.Cock;
+							baseMesh.BodyRootBone = template.BodyRootBone;
+							baseMesh.HeadRootBone = template.HeadRootBone;
+							baseMesh.PrivatesRootBone = template.PrivatesRootBone;
+							baseMesh.Eyes = template.Eyes.ToArray();
+							baseMesh.Breasts = template.Breasts.ToArray();
+							baseMesh.Buttocks = template.Buttocks.ToArray();
+							baseMesh.EyeControl = true;
+							baseMesh.ExpressionControl = true;
+							baseMesh.PoseControl = true;
+						break;
 					}
 				}
 				else if (template.TemplateType == ETemplateType.StudioObject)
@@ -846,25 +974,28 @@ namespace Code.Editor.ModEngine
 					if (lods.Count == 0)
 						continue;
 					
-					if (lods.Count is > 0 and < 3)
+					if (lods.Count is > 1 and < 3)
 					{
 						Debug.LogError($"There must be either none, or at least 3 LODs for {template.TemplateType.ToString()} {template.Name}");
 						continue;
 					}
-					
-					var lodGroup = gameObject.GetComponent<LODGroup>();
-					if (lodGroup == null)
-						lodGroup = gameObject.AddComponent<LODGroup>();
 
-					lodGroup.SetLODs(lods.ToArray());
-					
-					var lodHolder = gameObject.GetComponent<LODHolder>();
-					if (lodHolder == null)
-						lodHolder = gameObject.AddComponent<LODHolder>();
-					
-					lodHolder.LODGroup = lodGroup;
+					if (lods.Count > 1)
+					{
+						var lodGroup = gameObject.GetComponent<LODGroup>();
+						if (lodGroup == null)
+							lodGroup = gameObject.AddComponent<LODGroup>();
 
-					Debug.Log($"Created LOD Group and assigned {lods.Count} valid LODs for {template.TemplateType.ToString()} {template.Name}");
+						lodGroup.SetLODs(lods.ToArray());
+					
+						var lodHolder = gameObject.GetComponent<LODHolder>();
+						if (lodHolder == null)
+							lodHolder = gameObject.AddComponent<LODHolder>();
+					
+						lodHolder.LODGroup = lodGroup;
+
+						Debug.Log($"Created LOD Group and assigned {lods.Count} valid LODs for {template.TemplateType.ToString()} {template.Name}");
+					}
 				}
 				else if (template.TemplateType == ETemplateType.CharacterObject)
 				{
@@ -899,27 +1030,30 @@ namespace Code.Editor.ModEngine
 						if (lods.Count == 0)
 							continue;
 						
-						if (lods.Count is > 0 and < 3)
+						if (lods.Count is > 1 and < 3)
 						{
 							Debug.LogError($"There must be either none, or at least 3 LODs for {template.TemplateType.ToString()} {template.Name}");
 							continue;
 						}
-						
-						var stateGameObject = target.gameObject;
 
-						var lodGroup = stateGameObject.GetComponent<LODGroup>();
-						if (lodGroup == null)
-							lodGroup = stateGameObject.AddComponent<LODGroup>();
+						if (lods.Count > 1)
+						{
+							var stateGameObject = target.gameObject;
+
+							var lodGroup = stateGameObject.GetComponent<LODGroup>();
+							if (lodGroup == null)
+								lodGroup = stateGameObject.AddComponent<LODGroup>();
 						
-						lodGroup.SetLODs(lods.ToArray());
+							lodGroup.SetLODs(lods.ToArray());
 					
-						var lodHolder = stateGameObject.GetComponent<LODHolder>();
-						if (lodHolder == null)
-							lodHolder = stateGameObject.AddComponent<LODHolder>();
+							var lodHolder = stateGameObject.GetComponent<LODHolder>();
+							if (lodHolder == null)
+								lodHolder = stateGameObject.AddComponent<LODHolder>();
 					
-						lodHolder.LODGroup = lodGroup;
+							lodHolder.LODGroup = lodGroup;
 						
-						Debug.Log($"Created LOD Group and assigned {lods.Count} valid LODs for {template.TemplateType.ToString()} {template.Name} target {target.name}");
+							Debug.Log($"Created LOD Group and assigned {lods.Count} valid LODs for {template.TemplateType.ToString()} {template.Name} target {target.name}");
+						}
 					}
 				}
 			}
@@ -1124,6 +1258,289 @@ namespace Code.Editor.ModEngine
 						Debug.LogWarning($"Object for {template.Name} is not empty. Texture mods must have empty GameObjects assigned with no meshes");
 					}
 
+					if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.BaseMesh)
+					{
+						var shapes = new List<string>();
+						
+						if (template.BlendshapeRenderers == null || template.BlendshapeRenderers.Count == 0)
+						{
+							pass = false;
+							Debug.LogWarning($"No blendshape renderers set up for {template.Name}");
+						}
+						else
+						{
+							for (var k = 0; k < template.BlendshapeRenderers.Count; k++)
+							{
+								var blendshapeRenderer = template.BlendshapeRenderers[k];
+								if (blendshapeRenderer == null)
+								{
+									pass = false;
+									Debug.LogWarning($"Blendshape renderer {k} is invalid for {template.Name}");
+								}
+								else
+								{
+									for (var j = 0; j < blendshapeRenderer.sharedMesh.blendShapeCount; j++)
+									{
+										shapes.Add(blendshapeRenderer.sharedMesh.GetBlendShapeName(j));
+									}
+								}
+							}
+						}
+						
+						if (!shapes.Contains(template.MouthData.OpenBlendShape))
+						{
+							pass = false;
+							Debug.LogWarning($"None of the blendshape renderers contain the Mouth opening blendshape for {template.Name}");
+						}
+					
+						if (!shapes.Contains(template.EyeData.BlinkBlendShapeLeft))
+						{
+							pass = false;
+							Debug.LogWarning($"None of the blendshape renderers contain the Blink (left) blendshape for {template.Name}");
+						}
+					
+						if (!shapes.Contains(template.EyeData.BlinkBlendShapeRight))
+						{
+							pass = false;
+							Debug.LogWarning($"None of the blendshape renderers contain the Blink (right) blendshape for {template.Name}");
+						}
+						
+						if (template.Blendshapes == null || template.Blendshapes.Count == 0)
+						{
+							pass = false;
+							Debug.LogWarning($"No blendshapes set up for {template.Name}");
+						}
+						else
+						{
+							for (var k = 0; k < template.Blendshapes.Count; k++)
+							{
+								var blendshape = template.Blendshapes[k];
+								if (blendshape.Title == "")
+								{
+									pass = false;
+									Debug.LogWarning($"Blendshape title {k} is invalid for {template.Name}");
+								}
+
+								for (var j = 0; j < blendshape.Blendshapes.Length; j++)
+								{
+									var strShape = blendshape.Blendshapes[j];
+									if (!shapes.Contains(strShape))
+									{
+										pass = false;
+										Debug.LogWarning($"None of the blendshape renderers contain the {j} shape for blendshape {blendshape.Title} for {template.Name}");
+									}
+								}
+								
+								if (blendshape.FaceCategory == EFaceBlendShapeCategory.None && blendshape.BodyCategory == EBodyBlendShapeCategory.None)
+								{
+									Debug.LogWarning($"Blendshape {k} has no category specified for {template.Name}");
+								}
+
+								if (blendshape.NSFWRange[0] > blendshape.NSFWRange[1])
+								{
+									pass = false;
+									Debug.LogWarning($"Blendshape {k} minimum NSFW range is larger than the maximum for {template.Name}");
+								}
+								else if (blendshape.NSFWRange[0] == blendshape.NSFWRange[1])
+								{
+									pass = false;
+									Debug.LogWarning($"Blendshape {k} minimum NSFW range is the same as the maximum {template.Name}");
+								}
+								
+								if (blendshape.SFWRange[0] > blendshape.SFWRange[1])
+								{
+									pass = false;
+									Debug.LogWarning($"Blendshape {k} minimum SFW range is larger than the maximum for {template.Name}");
+								}
+								else if (blendshape.SFWRange[0] == blendshape.SFWRange[1])
+								{
+									pass = false;
+									Debug.LogWarning($"Blendshape {k} minimum SFW range is the same as the maximum {template.Name}");
+								}
+							}
+						}
+						
+						if (template.Eyes == null || template.Eyes.Count == 0)
+						{
+							pass = false;
+							Debug.LogWarning($"No eyes set up for {template.Name}");
+						}
+						else
+						{
+							for (var k = 0; k < template.Eyes.Count; k++)
+							{
+								var eye = template.Eyes[k];
+								if (eye != null)
+									continue;
+
+								pass = false;
+								Debug.LogWarning($"Eye {k} is invalid for {template.Name}");
+							}
+						}
+					
+						if (template.Breasts == null || template.Breasts.Count == 0)
+						{
+							Debug.LogWarning($"No breasts set up for {template.Name}");
+						}
+						else
+						{
+							for (var k = 0; k < template.Breasts.Count; k++)
+							{
+								var breast = template.Breasts[k];
+								if (breast != null)
+									continue;
+
+								pass = false;
+								Debug.LogWarning($"Breast {k} is invalid for {template.Name}");
+							}
+						}
+						
+						if (template.Buttocks == null || template.Buttocks.Count == 0)
+						{
+							Debug.LogWarning($"No buttocks set up for {template.Name}");
+						}
+						else
+						{
+							for (var k = 0; k < template.Buttocks.Count; k++)
+							{
+								var buttock = template.Buttocks[k];
+								if (buttock != null)
+									continue;
+
+								pass = false;
+								Debug.LogWarning($"Buttock {k} is invalid for {template.Name}");
+							}
+						}
+						
+						if (template.PrivatesRootBone == null)
+						{
+							pass = false;
+							Debug.LogWarning($"Privates root bone is invalid for {template.Name}");
+						}
+					
+						if (template.HeadRootBone == null)
+						{
+							pass = false;
+							Debug.LogWarning($"Head root bone is invalid for {template.Name}");
+						}
+					
+						if (template.BodyRootBone == null)
+						{
+							pass = false;
+							Debug.LogWarning($"Body root bone is invalid for {template.Name}");
+						}
+					
+						if (template.Cock == null)
+						{
+							pass = false;
+							Debug.LogWarning($"Cock object is invalid for {template.Name}");
+						}
+
+						if (template.Avatar == null)
+						{
+							pass = false;
+							Debug.LogWarning($"Avatar is invalid for {template.Name}");
+						}
+						
+						if (template.TextureMaterialMap == null || template.TextureMaterialMap.Count < 2)
+						{
+							pass = false;
+							Debug.LogWarning($"Renderer map is invalid for {template.Name}");
+						}
+						else
+						{
+							var face = template.TextureMaterialMap[0];
+							if (face.Item2 == null)
+							{
+								pass = false;
+								Debug.LogWarning($"Face renderer is invalid for {template.Name}");
+							}
+							else
+							{
+								var mats = face.Item2.sharedMaterials;
+								if (mats.Length < face.Item3)
+								{
+									pass = false;
+									Debug.LogWarning($"Face material index is invalid for {template.Name}");
+								}
+							}
+							
+							var body = template.TextureMaterialMap[1];
+							if (body.Item2 == null)
+							{
+								pass = false;
+								Debug.LogWarning($"Body renderer is invalid for {template.Name}");
+							}
+							else
+							{
+								var mats = body.Item2.sharedMaterials;
+								if (mats.Length < body.Item3)
+								{
+									pass = false;
+									Debug.LogWarning($"Body material index is invalid for {template.Name}");
+								}
+							}
+
+							if (face.Item2 == body.Item2 && face.Item3 == body.Item3)
+							{
+								pass = false;
+								Debug.LogWarning($"Face and body material can not be the same for {template.Name}");
+							}
+						}
+						
+						if (template.SFWColliders == null || template.SFWColliders.Count == 0)
+						{
+							pass = false;
+							Debug.LogWarning($"No SFW colliders set up for {template.Name}");
+						}
+						else
+						{
+							for (var k = 0; k < template.SFWColliders.Count; k++)
+							{
+								if (template.SFWColliders[k] != null)
+									continue;
+
+								pass = false;
+								Debug.LogWarning($"SFW collider {k} is invalid for {template.Name}");
+							}
+						}
+						
+						if (template.BodyParts == null || template.BodyParts.Count == 0)
+						{
+							pass = false;
+							Debug.LogWarning($"No body parts set up for {template.Name}");
+						}
+						else
+						{
+							for (var k = 0; k < template.BodyParts.Count; k++)
+							{
+								var bodyPart = template.BodyParts[k];
+								if (bodyPart.Bone != null)
+									continue;
+
+								pass = false;
+								Debug.LogWarning($"Body part {bodyPart.Type} is invalid for {template.Name}");
+							}
+						}
+						
+						if (template.AccessoryParents == null || template.AccessoryParents.Count == 0)
+						{
+							pass = false;
+							Debug.LogWarning($"No accessory parents set up for {template.Name}");
+						}
+						else
+						{
+							for (var k = 0; k < template.AccessoryParents.Count; k++)
+							{
+								if (template.AccessoryParents[k].Item1 != null)
+									continue;
+
+								pass = false;
+								Debug.LogWarning($"Accessory parent {k} is invalid for {template.Name}");
+							}
+						}
+					}
+					
 					if (template.TemplateType == ETemplateType.Animation)
 					{
 						var animation = gameObject.GetComponent<IAnimation>();
@@ -1290,13 +1707,25 @@ namespace Code.Editor.ModEngine
 						SceneManager.SetActiveScene(currentScene);
 					}
 				}
-
-				if (template.TemplateType == ETemplateType.CharacterObject && template.SupportedGendersFlags == ESupportedGendersFlags.None)
-					Debug.LogWarning($"Supported genders is None for {template.Name}. This might cause the item to not show up");
-
+				
 				if (template.TemplateType == ETemplateType.Animation && template.AnimationUsageFlags == EAnimationUsageFlags.None)
 					Debug.LogWarning($"Usage flags is None for {template.Name}. This might cause the animation to not show up");
 
+				if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.BaseMesh)
+				{
+					if (template.SupportedGendersFlags == ESupportedGendersFlags.None)
+					{
+						pass = false;
+						Debug.LogWarning($"No supported genders specified for {template.Name}");
+					}
+					
+					if (template.Avatar == null)
+					{
+						pass = false;
+						Debug.LogWarning($"Avatar is invalid for {template.Name}");
+					}
+				}
+				
 				if (template.FKData.Groups != null)
 				{
 					foreach (var group in template.FKData.Groups)
@@ -1368,9 +1797,13 @@ namespace Code.Editor.ModEngine
 							case ITexture texture:
 								contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("texturetype", texture.TextureType)).ToArray();
 								break;
+							case IBaseMesh baseMesh:
+								contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("basemesh", true)).ToArray();
+								contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("supportedgenders", baseMesh.SupportedGendersFlags)).ToArray();
+								break;
 						} 
-						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("supportedgenders", characterObject.SupportedGendersFlags)).ToArray();
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("nsfw", characterObject.IsNSFW)).ToArray();
+						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("compatiblebasemeshes", SCompatibleBaseMesh.ToObjects(characterObject.CompatibleBaseMeshes))).ToArray();
 						break;
 					case ModdedScene moddedScene:
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("moddedscene", moddedScene.UsageFlags)).ToArray();
@@ -1397,239 +1830,5 @@ namespace Code.Editor.ModEngine
 			
 			return contentDescriptor;
 		}
-
-		private void addUniqueIDs(List<Object> objects)
-		{
-			var id = 0;
-			foreach (var go in objects)
-			{
-				foreach (var transform in ((GameObject)go).GetComponentsInChildren<Transform>(true))
-				{
-					transform.name = transform.name + uniqueIDFormat + id;
-					id++;
-				}
-
-				id = 0;
-			}
-		}
-
-		private void removeUniqueIDs(List<Object> objects)
-		{
-			foreach (var go in objects.Where(go => go != null))
-			{
-				removeUniqueID(go);
-			}
-		}
-		
-		private void removeUniqueID(Object obj)
-		{
-			foreach (var transform in ((GameObject)obj).GetComponentsInChildren<Transform>(true))
-			{
-				var index = transform.name.LastIndexOf(uniqueIDFormat, StringComparison.InvariantCultureIgnoreCase);
-				if (index == -1)
-					continue;
-
-				transform.name = transform.name[..index];
-			}
-		}
-		
-		private void verticalList(List<Object> list, ETemplateType type, string labelTitle)
-		{
-			GUILayout.BeginHorizontal();
-			GUILayout.Label(labelTitle + itemsCount(Templates.Count(t => t.TemplateType == type)));
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
-			{
-				if (Templates.Count < 254)
-				{
-					list.Add(new Object());
-					Templates.Add(new Template { TemplateType = type });
-
-					CurrentTemplate = -1;
-				}
-				else
-				{
-					Debug.LogWarning("More than 254 modded objects in a single mod is not supported");
-				}
-			}
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
-			{
-				for (var i = Templates.Count - 1; i >= 0; i--)
-				{
-					if (Templates[i].TemplateType != type) 
-						continue;
-					
-					list.RemoveAt(i);
-					Templates.RemoveAt(i);
-				}
-
-				CurrentTemplate = -1;
-			}
-			GUILayout.EndHorizontal();
-
-			var templates = Templates.Where(t => t.TemplateType == type).ToArray();
-			
-			for (var i = 0; i < templates.Length; i++)
-			{
-				var current = Templates.FindIndex(t => t == templates[i]);
-
-				GUILayout.BeginHorizontal();
-				
-				if (type == ETemplateType.ModdedScene)
-					list[current] = EditorGUILayout.ObjectField("", list[current], typeof(SceneAsset), false, GUILayout.Width(250));
-				else
-					list[current] = EditorGUILayout.ObjectField("", list[current], typeof(GameObject), true, GUILayout.Width(250));
-
-				if (list[current] != null && type != ETemplateType.ModdedScene)
-				{
-					var go = (GameObject)list[current];
-					if (go.scene != SceneManager.GetActiveScene())
-						list[current] = null;
-				}
-				
-				if (GUILayout.Button((CurrentTemplate == current ? "*" : "") + "" + Templates[current].Name))
-					CurrentTemplate = current;
-				
-				if (GUILayout.Button("/\\", GUILayout.Width(25)))
-				{
-					if (i == 0)
-						return;
-
-					var target = Templates.FindIndex(t => t == templates[i - 1]);
-					
-					(Templates[current], Templates[target]) = (Templates[target], Templates[current]);
-					(list[current], list[target]) = (list[target], list[current]);
-
-					if (CurrentTemplate == current)
-						CurrentTemplate = target;
-					else if (CurrentTemplate == target)
-						CurrentTemplate = current;
-				}
-				
-				if (GUILayout.Button("\\/", GUILayout.Width(25)))
-				{
-					if (i == templates.Length - 1)
-						return;
-					
-					var target = Templates.FindIndex(t => t == templates[i + 1]);
-					
-					(Templates[current], Templates[target]) = (Templates[target], Templates[current]);
-					(list[current], list[target]) = (list[target], list[current]);
-					
-					if (CurrentTemplate == current)
-						CurrentTemplate = target;
-					else if (CurrentTemplate == target)
-						CurrentTemplate = current;
-				}
-				
-				if (GUILayout.Button("-", GUILayout.Width(25)))
-				{
-					list.RemoveAt(i);
-					Templates.Remove(templates[i]);
-					
-					CurrentTemplate = -1;
-					return;
-				}
-				GUILayout.EndHorizontal();
-			}
-		}
-		
-		private void verticalList(List<string> list, string labelTitle)
-		{
-			GUILayout.BeginHorizontal();
-			GUILayout.Label(labelTitle + itemsCount(list.Count));
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
-				list.Add("");
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
-				list.Clear();
-			GUILayout.EndHorizontal();
-			
-			for (var i = 0; i < list.Count; i++)
-			{
-				GUILayout.BeginHorizontal();
-				list[i] = EditorGUILayout.TextField("", list[i]);
-				if (GUILayout.Button("-", GUILayout.Width(25)))
-					list.RemoveAt(i);
-				GUILayout.EndHorizontal();
-			}
-		}
-		
-		private void logBuildModObject(ModObject modObject)
-		{
-            Debug.Log($"-----------BEGIN MODOBJECT {modObject.Name}------------");
-            Debug.Log($"{modObject.Name} contains {modObject.Children.Count} children and {modObject.Components.Count} components.");
-
-			if(modObject.Components.Count > 0)
-			{
-                Debug.Log($"-----------BEGIN COMPONENTS {modObject.Name}------------");
-                foreach (var comp in modObject.Components)
-                {
-                    Debug.Log($"{comp.Type.Item1} contains {comp.ChildrenLinks.Count} links to other components, {comp.TypeLinks.Count} links to custom types, {comp.AssetLinks.Count} links to assets and {comp.ArrayLinks.Count} links to arrays.");
-
-					if(comp.TypeLinks.Count > 0)
-					{
-                        Debug.Log($"-----------BEGIN DUMP TYPELINKS {modObject.Name}------------");
-                        foreach (KeyValue kv in comp.TypeLinks)
-                        {
-                            if (kv.Value is IAssetPipelineType arr)
-                            {
-                                Debug.Log($"Key {kv.Key}, Value {arr.GetType()}");
-                            }
-                        }
-                        Debug.Log($"-----------END DUMP TYPELINKS {modObject.Name}------------");
-                    }
-
-                    if (comp.AssetLinks.Count > 0)
-                    {
-                        Debug.Log($"-----------BEGIN DUMP ASSETLINKS {modObject.Name}------------");
-                        foreach (KeyValue kv in comp.AssetLinks)
-                        {
-                            if (kv.Value is Asset arr)
-                            {
-                                Debug.Log($"Key {kv.Key}, Value {arr.GetType()}");
-                            }
-                        }
-                        Debug.Log($"-----------END DUMP ASSETLINKS {modObject.Name}------------");
-                    }
-
-                    if (comp.ChildrenLinks.Count > 0)
-                    {
-                        Debug.Log($"-----------BEGIN DUMP CHILDRENLINKS {modObject.Name}------------");
-                        foreach (KeyValue kv in comp.ChildrenLinks)
-                        {
-                            if (kv.Value is Array arr)
-                            {
-                                Debug.Log($"Key {kv.Key}, Value {arr.GetValue(0)} {arr.GetValue(1)}");
-                            }
-                        }
-                        Debug.Log($"-----------END DUMP CHILDRENLINKS {modObject.Name}------------");
-                    }
-
-                    if (comp.ArrayLinks.Count > 0)
-                    {
-                        Debug.Log($"-----------BEGIN DUMP ARRAYLINKS {modObject.Name}------------");
-                        foreach (KeyValue kv in comp.ArrayLinks)
-                        {
-							if(kv.Value is Array arr)
-							{
-                                Debug.Log($"Key {kv.Key}, Value {arr.GetValue(0)} {arr.GetValue(1)}");
-                            }
-                        }
-                        Debug.Log($"-----------END DUMP ARRAYLINKS {modObject.Name}------------");
-                    }
-                }
-                Debug.Log($"-----------END COMPONENTS {modObject.Name}------------");
-            }
-            
-			if(modObject.Children.Count > 0)
-			{
-                Debug.Log($"-----------BEGIN CHILDREN OF {modObject.Name}------------");
-                foreach (var child in modObject.Children)
-                {
-                    logBuildModObject(child);
-                }
-                Debug.Log($"-----------END CHILDREN OF {modObject.Name}------------");
-            }
-            Debug.Log($"-----------END MODOBJECT {modObject.Name}------------");
-        }
 	}
 }
