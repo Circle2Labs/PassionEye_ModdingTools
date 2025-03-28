@@ -220,7 +220,7 @@ namespace Code.Editor.ModEngine
 					return;
 
 				var modLoader = ServiceProvider.Obtain<IModLoader>();
-                var mod = modLoader.LoadMod(files[0]).Result;
+                var mod = modLoader.LoadMod(files[0], false, false).Result;
 				if (mod == null)
 				{
 					Debug.LogError("Failed loading mod " + files[0]);
@@ -331,7 +331,7 @@ namespace Code.Editor.ModEngine
 									template.CharacterObjectType = ECharacterObjectType.BaseMesh;
 									template.Avatar = AvatarBuilder.BuildHumanAvatar(((BaseBaseMesh)baseMesh).gameObject, baseMesh.AvatarData.ToHumanDescription());
 									template.SupportedGendersFlags = baseMesh.SupportedGendersFlags;
-									template.BlendshapePresets = baseMesh.BlendshapePresets.ToList();
+									template.BlendshapePresets = baseMesh.BlendshapePresets?.ToList();
 									template.AccessoryParents = baseMesh.AccessoryParents;
 									template.TextureMaterialMap = baseMesh.TextureMaterialMap;
 									template.Blendshapes = baseMesh.Blendshapes;
@@ -346,12 +346,13 @@ namespace Code.Editor.ModEngine
 									template.BodyRootBone = baseMesh.BodyRootBone;
 									template.HeadRootBone = baseMesh.HeadRootBone;
 									template.PrivatesRootBone = baseMesh.PrivatesRootBone;
-									template.Eyes = baseMesh.Eyes.ToList();
-									template.Breasts = baseMesh.Breasts.ToList();
-									template.Buttocks = baseMesh.Buttocks.ToList();
+									template.Eyes = baseMesh.Eyes?.ToList();
+									template.Breasts = baseMesh.Breasts?.ToList();
+									template.Buttocks = baseMesh.Buttocks?.ToList();
 									template.EyeControl = baseMesh.EyeControl;
 									template.ExpressionControl = baseMesh.ExpressionControl;
 									template.PoseControl = baseMesh.PoseControl;
+									template.FKData = baseMesh.FKData;
 									break;
 							}
 						}
@@ -850,7 +851,7 @@ namespace Code.Editor.ModEngine
 							baseMesh.ObjectType = ECharacterObjectType.BaseMesh;
 							baseMesh.AvatarData = new SAvatarData(template.Avatar.humanDescription);
 							baseMesh.SupportedGendersFlags = template.SupportedGendersFlags;
-							baseMesh.BlendshapePresets = template.BlendshapePresets.ToArray();
+							baseMesh.BlendshapePresets = template.BlendshapePresets?.ToArray();
 							baseMesh.AccessoryParents = template.AccessoryParents;
 							baseMesh.TextureMaterialMap = template.TextureMaterialMap;
 							baseMesh.Blendshapes = template.Blendshapes;
@@ -865,12 +866,13 @@ namespace Code.Editor.ModEngine
 							baseMesh.BodyRootBone = template.BodyRootBone;
 							baseMesh.HeadRootBone = template.HeadRootBone;
 							baseMesh.PrivatesRootBone = template.PrivatesRootBone;
-							baseMesh.Eyes = template.Eyes.ToArray();
-							baseMesh.Breasts = template.Breasts.ToArray();
-							baseMesh.Buttocks = template.Buttocks.ToArray();
+							baseMesh.Eyes = template.Eyes?.ToArray();
+							baseMesh.Breasts = template.Breasts?.ToArray();
+							baseMesh.Buttocks = template.Buttocks?.ToArray();
 							baseMesh.EyeControl = true;
 							baseMesh.ExpressionControl = true;
 							baseMesh.PoseControl = true;
+							baseMesh.FKData = template.FKData;
 						break;
 					}
 				}

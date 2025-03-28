@@ -1,0 +1,263 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-3888720702817631863
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 7
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: EyeMaterial
+  m_Shader: {fileID: 4800000, guid: 51866735b289e2a46b606abea75ea48d, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _ENABLEHIGHLIGHT_ON
+  - _ENABLEINNERIRIS_ON
+  - _ENABLEOUTERIRIS_ON
+  - _ENABLEPUPIL_ON
+  - _ENABLESECONDARYHIGHLIGHT_ON
+  - _ENABLESHADOW_ON
+  - _HIGHLIGHTCOLORMODE_NONE
+  - _INNERIRISCOLORMODE_NONE
+  - _INNERIRISGRADIENTTYPE_GRADIENT_CIRCLE
+  - _ISLEFTEYE_ON
+  - _OUTERIRISCOLORMODE_NONE
+  - _OUTERIRISGRADIENTTYPE_GRADIENT_CIRCLE
+  - _PUPILCOLORMODE_NONE
+  - _PUPILGRADIENTTYPE_GRADIENT_CIRCLE
+  - _SECONDARYHIGHLIGHTCOLORMODE_NONE
+  - _SECONDARYHIGHLIGHTMIRRORX_ON
+  - _SECONDARYHIGHLIGHTMIRRORY_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HighlightTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _InnerIrisTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MRFATex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OuterIrisTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PerlinTex:
+        m_Texture: {fileID: 2800000, guid: 13bc4b4e3112beb44aa2a187d6e5af7e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PupilTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SecondaryHighlightTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints:
+    - _IrisLinesSeed: 0
+    m_Floats:
+    - _AlphaClip: 0
+    - _AlphaToMask: 0
+    - _AutoHighlightColor: 0
+    - _Blend: 0
+    - _BlendModePreserveSpecular: 1
+    - _BumpScale: 1
+    - _ClearCoatMask: 0
+    - _ClearCoatSmoothness: 0
+    - _ColorPupilTexture: 0
+    - _Cull: 2
+    - _Cutoff: 0.5
+    - _DetailAlbedoMapScale: 1
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 0
+    - _DstBlendAlpha: 0
+    - _EnableHighlight: 1
+    - _EnableInnerIris: 1
+    - _EnableIrisLines: 0
+    - _EnableOuterIris: 1
+    - _EnablePupil: 1
+    - _EnableSecondaryHighlight: 1
+    - _EnableShadow: 1
+    - _EnvironmentReflections: 1
+    - _GlossMapScale: 0
+    - _Glossiness: 0
+    - _GlossyReflections: 0
+    - _HighlightColorMode: 0
+    - _HighlightDeadzone: 0.1
+    - _HighlightDeadzoneAttenuation: 1
+    - _HighlightScale: 1
+    - _InnerIrisColorMode: 0
+    - _InnerIrisGradientMidpoint: 0.5
+    - _InnerIrisGradientSharpness: 0.5
+    - _InnerIrisGradientType: 2
+    - _InnerIrisMidpoint: 0.5
+    - _InnerIrisXPos: 0.5
+    - _InnerIrisXScale: 0.287
+    - _InnerIrisYPos: 0.5
+    - _InnerIrisYScale: 0.41
+    - _IrisLinesAngleEnd: 1
+    - _IrisLinesAngleStart: 0
+    - _IrisLinesCount: 300
+    - _IrisLinesInvertAngle: 0
+    - _IrisLinesWidth: 0.3
+    - _IsLeftEye: 1
+    - _IsTeary: 0
+    - _Metallic: 0
+    - _MinimumLightLevel: 0.5
+    - _MovementX: 0
+    - _MovementY: 0
+    - _OcclusionStrength: 1
+    - _OuterIrisColorMode: 0
+    - _OuterIrisGradientMidpoint: 0.5
+    - _OuterIrisGradientSharpness: 0.5
+    - _OuterIrisGradientType: 2
+    - _OuterIrisXPos: 0.5
+    - _OuterIrisXScale: 0.33
+    - _OuterIrisYPos: 0.5
+    - _OuterIrisYScale: 0.5
+    - _Parallax: 0.005
+    - _PupilColorMode: 0
+    - _PupilGradientMidpoint: 0.58
+    - _PupilGradientSharpness: 0.5
+    - _PupilGradientType: 2
+    - _PupilXPos: 0.507
+    - _PupilXScale: 0.1
+    - _PupilYPos: 0.507
+    - _PupilYScale: 0.15
+    - _QueueOffset: 0
+    - _ReceiveShadows: 1
+    - _SecondaryHighlightColorMode: 0
+    - _SecondaryHighlightMirrorX: 1
+    - _SecondaryHighlightMirrorY: 1
+    - _SecondaryHighlightScale: 1
+    - _ShadowCurve: 0.21
+    - _ShadowHeight: 0.8
+    - _ShadowHorizontalOffset: 0.373
+    - _ShadowSmoothness: 0
+    - _Smoothness: 0.5
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
+    - _Surface: 0
+    - _TearyAmount: 0.0135
+    - _TearySpeed: 0.385
+    - _UseHighlightTexture: 0
+    - _UseInnerIrisTexture: 0
+    - _UseOuterIrisTexture: 0
+    - _UsePupilTexture: 0
+    - _UseSecondaryHighlightTexture: 0
+    - _WorkflowMode: 1
+    - _ZTest: 4
+    - _ZWrite: 1
+    m_Colors:
+    - _BackgroundColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _FaceCenter: {r: -7.519663, g: -1.4867077, b: -0.001172185, a: 0}
+    - _FaceFwdVec: {r: -0.00000023841852, g: -0.048835244, b: 0.99880683, a: 0}
+    - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _InnerIrisBackgroundColor: {r: 1, g: 0.28773582, b: 0.9189973, a: 1}
+    - _InnerIrisColor: {r: 0.6320754, g: 0.08918159, b: 0, a: 1}
+    - _InnerIrisColor1: {r: 1, g: 0.29011518, b: 0, a: 1}
+    - _InnerIrisColor2: {r: 1, g: 0, b: 0, a: 1}
+    - _InnerIrisForegroundColor: {r: 0, g: 0, b: 0, a: 1}
+    - _IrisLinesColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OuterIrisColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OuterIrisColor1: {r: 0, g: 0, b: 0, a: 1}
+    - _OuterIrisColor2: {r: 0, g: 0, b: 0, a: 1}
+    - _PupilColor: {r: 0, g: 0, b: 0, a: 1}
+    - _PupilColor1: {r: 0, g: 0, b: 0, a: 1}
+    - _PupilColor2: {r: 0, g: 0, b: 0, a: 1}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+  m_BuildTextureStacks: []
