@@ -1,7 +1,10 @@
-#include "Assets/GameAssets/Shaders/ToonShaders/NdotL.hlsl"
-#include "Assets/GameAssets/Shaders/ToonShaders/CustomLighting.hlsl"
-#include "Assets/GameAssets/Shaders/BlendModes.hlsl"
-#include "Assets/GameAssets/Shaders/Utils.hlsl"
+#ifndef RailShaderFunc
+#define RailShaderFunc
+
+#include "../../Shaders/ToonShaders/NdotL.hlsl"
+#include "../../Shaders/ToonShaders/CustomLighting.hlsl"
+#include "../../Shaders/BlendModes.hlsl"
+#include "../../Shaders/Utils.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 float LuminanceFormula(float3 color)
@@ -25,3 +28,4 @@ float CalculateAlpha(float alpha, float cutoff, float surface) {
     
     return OutputAlpha(alpha, surface);
 }
+#endif

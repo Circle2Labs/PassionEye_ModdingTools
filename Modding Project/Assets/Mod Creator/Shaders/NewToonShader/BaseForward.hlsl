@@ -1,21 +1,8 @@
 ﻿#ifndef BASE_FORWARD
 #define BASE_FORWARD
 
-#include_with_pragmas "Assets/GameAssets/Shaders/ToonShaders/ToonVariants.hlsl"
-#include "Assets/GameAssets/Shaders/ToonShaders/ToonVariants.hlsl"
-
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
-
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
-#endif
-#include "Assets/GameAssets/Shaders/ToonShaders/NdotL.hlsl"
-#include "Assets/GameAssets/Shaders/ToonShaders/CustomLighting.hlsl"
-#include "Assets/GameAssets/Shaders/BlendModes.hlsl"
-#include "Assets/GameAssets/Shaders/Utils.hlsl"
-#include "./ShaderFunctions.hlsl"
+#include_with_pragmas "./CommonInclude.hlsl"
+#include "./CommonInclude.hlsl"
 
 GLOBAL_CBUFFER_START(ToonGlobalBuffer, b0)
 // light smoothing

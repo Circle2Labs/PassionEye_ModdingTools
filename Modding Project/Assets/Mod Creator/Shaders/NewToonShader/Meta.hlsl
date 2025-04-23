@@ -3,18 +3,11 @@
 
 #pragma vertex UniversalVertexMeta
 #pragma fragment RailMetaLit
-#include_with_pragmas "Assets/GameAssets/Shaders/ToonShaders/ToonVariants.hlsl"
-#include "Assets/GameAssets/Shaders/ToonShaders/ToonVariants.hlsl"
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+#include_with_pragmas "./CommonInclude.hlsl"
+#include "./CommonInclude.hlsl"
 
-#include "Assets/GameAssets/Shaders/ToonShaders/NdotL.hlsl"
-#include "Assets/GameAssets/Shaders/ToonShaders/CustomLighting.hlsl"
-#include "Assets/GameAssets/Shaders/BlendModes.hlsl"
-#include "Assets/GameAssets/Shaders/Utils.hlsl"
-#include "./ShaderFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UniversalMetaPass.hlsl"
 
 CBUFFER_START (UnityPerMaterial)
 float4 _TintColor;
@@ -26,8 +19,6 @@ SamplerState sampler_NormalMap;
 float4 _NormalMap_ST;
 float _NormalStrength;
 CBUFFER_END
-
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UniversalMetaPass.hlsl"
 
 #pragma shader_feature_local_fragment _EMISSION
 //#pragma shader_feature EDITOR_VISUALIZATION
