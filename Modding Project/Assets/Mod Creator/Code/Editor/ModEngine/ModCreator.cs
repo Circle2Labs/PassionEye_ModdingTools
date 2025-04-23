@@ -1,5 +1,5 @@
 //#define MODCREATOR_VERBOSE
-//#define MODCREATOR_STANDALONE
+#define MODCREATOR_STANDALONE
 
 using System;
 using System.Collections.Generic;
