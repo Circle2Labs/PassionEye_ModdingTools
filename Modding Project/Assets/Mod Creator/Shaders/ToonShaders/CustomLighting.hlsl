@@ -270,7 +270,7 @@ half3 IndirectLighting(GeometryData geomData) {
     #ifdef SHADERGRAPH_PREVIEW
         return 0;
     #else
-        float3 sh;
+        float3 sh = float3(0,0,0);
         OUTPUT_SH(geomData.nrmWs, sh);
         return sh;//SAMPLE_GI(geomData.lightmapUV, sh, geomData.nrmWs);
     #endif

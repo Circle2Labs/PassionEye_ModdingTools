@@ -11,6 +11,7 @@
 #if defined(LOD_FADE_CROSSFADE)
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif
+
 #include "../ToonShaders/NdotL.hlsl"
 #include "../ToonShaders/CustomLighting.hlsl"
 #include "../BlendModes.hlsl"

@@ -2,9 +2,6 @@
 #define RailShaderFunc
 
 #include "../../Shaders/ToonShaders/NdotL.hlsl"
-#include "../../Shaders/ToonShaders/CustomLighting.hlsl"
-#include "../../Shaders/BlendModes.hlsl"
-#include "../../Shaders/Utils.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 float LuminanceFormula(float3 color)
