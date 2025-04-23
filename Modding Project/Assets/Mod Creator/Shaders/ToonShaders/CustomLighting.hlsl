@@ -255,7 +255,15 @@ void ShadeAdditionalLights(FaceData faceData, GeometryData geomData, DiffuseData
 half3 IndirectLighting(float3 normal, float4 lightmapUV) {
     float3 sh;
     OUTPUT_SH(normal, sh);
-    return SAMPLE_GI(lightmapUV, sh, normal);
+    #if defined(LIGHTMAP_ON) && defined(DYNAMICLIGHTMAP_ON)
+    return SAMPLE_GI(lightmapUV.xy, lightmapUV.zw, sh, normal);
+    #elif defined(DYNAMICLIGHTMAP_ON)
+    return SAMPLE_GI(lightmapUV.xy, lightmapUV.zw, sh, normal);
+    #elif defined(LIGHTMAP_ON)
+    return SAMPLE_GI(lightmapUV.xy, sh, normal);
+    #else //probes
+    return SAMPLE_GI(lightmapUV.xyz, sh, normal);
+    #endif
 }
 
 half3 IndirectLighting(GeometryData geomData) {
@@ -264,7 +272,7 @@ half3 IndirectLighting(GeometryData geomData) {
     #else
         float3 sh;
         OUTPUT_SH(geomData.nrmWs, sh);
-        return SAMPLE_GI(geomData.lightmapUV, sh, geomData.nrmWs);
+        return sh;//SAMPLE_GI(geomData.lightmapUV, sh, geomData.nrmWs);
     #endif
 }
 

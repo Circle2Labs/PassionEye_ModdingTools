@@ -851,7 +851,7 @@ namespace Code.Editor.ModEngine
 							baseMesh.ObjectType = ECharacterObjectType.BaseMesh;
 							baseMesh.AvatarData = new SAvatarData(template.Avatar.humanDescription);
 							baseMesh.SupportedGendersFlags = template.SupportedGendersFlags;
-							baseMesh.BlendshapePresets = template.BlendshapePresets?.ToArray();
+							baseMesh.BlendshapePresets = template.BlendshapePresets.ToArray();
 							baseMesh.AccessoryParents = template.AccessoryParents;
 							baseMesh.TextureMaterialMap = template.TextureMaterialMap;
 							baseMesh.Blendshapes = template.Blendshapes;
@@ -866,9 +866,9 @@ namespace Code.Editor.ModEngine
 							baseMesh.BodyRootBone = template.BodyRootBone;
 							baseMesh.HeadRootBone = template.HeadRootBone;
 							baseMesh.PrivatesRootBone = template.PrivatesRootBone;
-							baseMesh.Eyes = template.Eyes?.ToArray();
-							baseMesh.Breasts = template.Breasts?.ToArray();
-							baseMesh.Buttocks = template.Buttocks?.ToArray();
+							baseMesh.Eyes = template.Eyes.ToArray();
+							baseMesh.Breasts = template.Breasts.ToArray();
+							baseMesh.Buttocks = template.Buttocks.ToArray();
 							baseMesh.EyeControl = true;
 							baseMesh.ExpressionControl = true;
 							baseMesh.PoseControl = true;
@@ -1105,31 +1105,31 @@ namespace Code.Editor.ModEngine
 			if (string.IsNullOrEmpty(Manifest.Name))
 			{
 				pass = false;
-				Debug.LogWarning("Mod name is not set");
+				Debug.LogError("Mod name is not set");
 			}
 			
 			if (string.IsNullOrEmpty(Manifest.Author))
 			{
 				pass = false;
-				Debug.LogWarning("Mod author is not set");
+				Debug.LogError("Mod author is not set");
 			}
 			
 			if (string.IsNullOrEmpty(Manifest.Version))
 			{
 				pass = false;
-				Debug.LogWarning("Mod version is not set");
+				Debug.LogError("Mod version is not set");
 			}
 			
 			if (Prefabs.Count == 0 || Templates.Count == 0)
 			{
 				pass = false;
-				Debug.LogWarning("There are no objects or components set");
+				Debug.LogError("There are no objects or components set");
 			}
 			
 			if (Prefabs.Count != Templates.Count)
 			{
 				pass = false;
-				Debug.LogWarning($"Objects {Prefabs.Count} and Components {Templates.Count} count mismatch");
+				Debug.LogError($"Objects {Prefabs.Count} and Components {Templates.Count} count mismatch");
 			}
 			
 			for (var i = 0; i < Templates.Count; i++)
@@ -1153,7 +1153,7 @@ namespace Code.Editor.ModEngine
 						if (sceneComp == null)
 						{
 							pass = false;
-							Debug.LogWarning($"Component is not added for {template.Name}");
+							Debug.LogError($"Component is not added for {template.Name}");
 						}
 						else
 						{
@@ -1163,7 +1163,7 @@ namespace Code.Editor.ModEngine
 								if (anim.ClipContainers.Length == 0)
 								{
 									pass = false;
-									Debug.LogWarning($"Containers not assigned for {anim.name} in scene {template.Name}");
+									Debug.LogError($"Containers not assigned for {anim.name} in scene {template.Name}");
 								}
 
 								for (var k = 0; k < anim.ClipContainers.Length; k++)
@@ -1172,7 +1172,7 @@ namespace Code.Editor.ModEngine
 									if (container.Clips.Length == 0)
 									{
 										pass = false;
-										Debug.LogWarning($"No clips specified for {anim.name} container {k} in scene {template.Name}");
+										Debug.LogError($"No clips specified for {anim.name} container {k} in scene {template.Name}");
 									}
 
 									for (var l = 0; l < container.Clips.Length; l++)
@@ -1180,7 +1180,7 @@ namespace Code.Editor.ModEngine
 										if (container.Clips[l] == null)
 										{
 											pass = false;
-											Debug.LogWarning($"Invalid clips found in {anim.name} container {k} in scene {template.Name}");
+											Debug.LogError($"Invalid clips found in {anim.name} container {k} in scene {template.Name}");
 										}
 									}
 								}
@@ -1201,7 +1201,7 @@ namespace Code.Editor.ModEngine
 					if ((template.TemplateType == ETemplateType.CharacterObject && gameObject.GetComponent<ICharacterObject>() == null) || (template.TemplateType == ETemplateType.StudioObject && gameObject.GetComponent<IStudioObject>() == null))
 					{
 						pass = false;
-						Debug.LogWarning($"Component is not added for {template.Name}");
+						Debug.LogError($"Component is not added for {template.Name}");
 					}
 
 					if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.Clothing)
@@ -1213,12 +1213,12 @@ namespace Code.Editor.ModEngine
 							if (fullState == null)
 							{
 								pass = false;
-								Debug.LogWarning($"Full state missing for {template.Name}");
+								Debug.LogError($"Full state missing for {template.Name}");
 							}
 							else if (fullState.GetComponentInChildren<SkinnedMeshRenderer>() == null)
 							{
 								pass = false;
-								Debug.LogWarning($"Skinned mesh renderer missing for full state of {template.Name}. Make sure your mesh has an Armature");
+								Debug.LogError($"Skinned mesh renderer missing for full state of {template.Name}. Make sure your mesh has an Armature");
 							}
 
 							var halfState = clothingObject.GetStateObject(EClothingState.Half);
@@ -1229,13 +1229,13 @@ namespace Code.Editor.ModEngine
 							else if (halfState.GetComponentInChildren<SkinnedMeshRenderer>() == null)
 							{
 								pass = false;
-								Debug.LogWarning($"Skinned mesh renderer missing for half state of {template.Name}. Make sure your mesh has an Armature");
+								Debug.LogError($"Skinned mesh renderer missing for half state of {template.Name}. Make sure your mesh has an Armature");
 							}
 
 							if (fullState == halfState && fullState != null)
 							{
 								pass = false;
-								Debug.LogWarning($"Full and half states of {template.Name} are the same object. Make sure they are separate objects or unassign the half state");
+								Debug.LogError($"Full and half states of {template.Name} are the same object. Make sure they are separate objects or unassign the half state");
 							}
 						}
 					}
@@ -1246,7 +1246,7 @@ namespace Code.Editor.ModEngine
 						if (texture.Texture == null)
 						{
 							pass = false;
-							Debug.LogWarning($"Texture missing for {template.Name}");
+							Debug.LogError($"Texture missing for {template.Name}");
 						}
 
 						var components = gameObject.GetComponents<Component>().ToList();
@@ -1257,7 +1257,7 @@ namespace Code.Editor.ModEngine
 							continue;
 						
 						pass = false;
-						Debug.LogWarning($"Object for {template.Name} is not empty. Texture mods must have empty GameObjects assigned with no meshes");
+						Debug.LogError($"Object for {template.Name} is not empty. Texture mods must have empty GameObjects assigned with no meshes");
 					}
 
 					if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.BaseMesh)
@@ -1267,7 +1267,7 @@ namespace Code.Editor.ModEngine
 						if (template.BlendshapeRenderers == null || template.BlendshapeRenderers.Count == 0)
 						{
 							pass = false;
-							Debug.LogWarning($"No blendshape renderers set up for {template.Name}");
+							Debug.LogError($"No blendshape renderers set up for {template.Name}");
 						}
 						else
 						{
@@ -1277,7 +1277,7 @@ namespace Code.Editor.ModEngine
 								if (blendshapeRenderer == null)
 								{
 									pass = false;
-									Debug.LogWarning($"Blendshape renderer {k} is invalid for {template.Name}");
+									Debug.LogError($"Blendshape renderer {k} is invalid for {template.Name}");
 								}
 								else
 								{
@@ -1292,25 +1292,25 @@ namespace Code.Editor.ModEngine
 						if (!shapes.Contains(template.MouthData.OpenBlendShape))
 						{
 							pass = false;
-							Debug.LogWarning($"None of the blendshape renderers contain the Mouth opening blendshape for {template.Name}");
+							Debug.LogError($"None of the blendshape renderers contain the Mouth opening blendshape for {template.Name}");
 						}
 					
 						if (!shapes.Contains(template.EyeData.BlinkBlendShapeLeft))
 						{
 							pass = false;
-							Debug.LogWarning($"None of the blendshape renderers contain the Blink (left) blendshape for {template.Name}");
+							Debug.LogError($"None of the blendshape renderers contain the Blink (left) blendshape for {template.Name}");
 						}
 					
 						if (!shapes.Contains(template.EyeData.BlinkBlendShapeRight))
 						{
 							pass = false;
-							Debug.LogWarning($"None of the blendshape renderers contain the Blink (right) blendshape for {template.Name}");
+							Debug.LogError($"None of the blendshape renderers contain the Blink (right) blendshape for {template.Name}");
 						}
 						
 						if (template.Blendshapes == null || template.Blendshapes.Count == 0)
 						{
 							pass = false;
-							Debug.LogWarning($"No blendshapes set up for {template.Name}");
+							Debug.LogError($"No blendshapes set up for {template.Name}");
 						}
 						else
 						{
@@ -1320,7 +1320,7 @@ namespace Code.Editor.ModEngine
 								if (blendshape.Title == "")
 								{
 									pass = false;
-									Debug.LogWarning($"Blendshape title {k} is invalid for {template.Name}");
+									Debug.LogError($"Blendshape title {k} is invalid for {template.Name}");
 								}
 
 								for (var j = 0; j < blendshape.Blendshapes.Length; j++)
@@ -1329,7 +1329,7 @@ namespace Code.Editor.ModEngine
 									if (!shapes.Contains(strShape))
 									{
 										pass = false;
-										Debug.LogWarning($"None of the blendshape renderers contain the {j} shape for blendshape {blendshape.Title} for {template.Name}");
+										Debug.LogError($"None of the blendshape renderers contain the {j} shape for blendshape {blendshape.Title} for {template.Name}");
 									}
 								}
 								
@@ -1341,23 +1341,23 @@ namespace Code.Editor.ModEngine
 								if (blendshape.NSFWRange[0] > blendshape.NSFWRange[1])
 								{
 									pass = false;
-									Debug.LogWarning($"Blendshape {k} minimum NSFW range is larger than the maximum for {template.Name}");
+									Debug.LogError($"Blendshape {k} minimum NSFW range is larger than the maximum for {template.Name}");
 								}
 								else if (blendshape.NSFWRange[0] == blendshape.NSFWRange[1])
 								{
 									pass = false;
-									Debug.LogWarning($"Blendshape {k} minimum NSFW range is the same as the maximum {template.Name}");
+									Debug.LogError($"Blendshape {k} minimum NSFW range is the same as the maximum {template.Name}");
 								}
 								
 								if (blendshape.SFWRange[0] > blendshape.SFWRange[1])
 								{
 									pass = false;
-									Debug.LogWarning($"Blendshape {k} minimum SFW range is larger than the maximum for {template.Name}");
+									Debug.LogError($"Blendshape {k} minimum SFW range is larger than the maximum for {template.Name}");
 								}
 								else if (blendshape.SFWRange[0] == blendshape.SFWRange[1])
 								{
 									pass = false;
-									Debug.LogWarning($"Blendshape {k} minimum SFW range is the same as the maximum {template.Name}");
+									Debug.LogError($"Blendshape {k} minimum SFW range is the same as the maximum {template.Name}");
 								}
 							}
 						}
@@ -1365,7 +1365,7 @@ namespace Code.Editor.ModEngine
 						if (template.Eyes == null || template.Eyes.Count == 0)
 						{
 							pass = false;
-							Debug.LogWarning($"No eyes set up for {template.Name}");
+							Debug.LogError($"No eyes set up for {template.Name}");
 						}
 						else
 						{
@@ -1376,7 +1376,13 @@ namespace Code.Editor.ModEngine
 									continue;
 
 								pass = false;
-								Debug.LogWarning($"Eye {k} is invalid for {template.Name}");
+								Debug.LogError($"Eye {k} is invalid for {template.Name}");
+							}
+
+							if (template.Eyes.Count != 2)
+							{
+								pass = false;
+								Debug.LogError($"Only 2 eyes are currently supported for {template.Name}");
 							}
 						}
 					
@@ -1393,7 +1399,13 @@ namespace Code.Editor.ModEngine
 									continue;
 
 								pass = false;
-								Debug.LogWarning($"Breast {k} is invalid for {template.Name}");
+								Debug.LogError($"Breast {k} is invalid for {template.Name}");
+							}
+							
+							if (template.Breasts.Count != 2 && template.Breasts.Count != 0)
+							{
+								pass = false;
+								Debug.LogError($"Only 2 or 0 breasts are currently supported for {template.Name}");
 							}
 						}
 						
@@ -1410,44 +1422,50 @@ namespace Code.Editor.ModEngine
 									continue;
 
 								pass = false;
-								Debug.LogWarning($"Buttock {k} is invalid for {template.Name}");
+								Debug.LogError($"Buttock {k} is invalid for {template.Name}");
+							}
+							
+							if (template.Buttocks.Count != 2 && template.Buttocks.Count != 0)
+							{
+								pass = false;
+								Debug.LogError($"Only 2 or 0 buttocks are currently supported for {template.Name}");
 							}
 						}
 						
 						if (template.PrivatesRootBone == null)
 						{
 							pass = false;
-							Debug.LogWarning($"Privates root bone is invalid for {template.Name}");
+							Debug.LogError($"Privates root bone is invalid for {template.Name}");
 						}
 					
 						if (template.HeadRootBone == null)
 						{
 							pass = false;
-							Debug.LogWarning($"Head root bone is invalid for {template.Name}");
+							Debug.LogError($"Head root bone is invalid for {template.Name}");
 						}
 					
 						if (template.BodyRootBone == null)
 						{
 							pass = false;
-							Debug.LogWarning($"Body root bone is invalid for {template.Name}");
+							Debug.LogError($"Body root bone is invalid for {template.Name}");
 						}
 					
 						if (template.Cock == null)
 						{
 							pass = false;
-							Debug.LogWarning($"Cock object is invalid for {template.Name}");
+							Debug.LogError($"Cock object is invalid for {template.Name}");
 						}
 
 						if (template.Avatar == null)
 						{
 							pass = false;
-							Debug.LogWarning($"Avatar is invalid for {template.Name}");
+							Debug.LogError($"Avatar is invalid for {template.Name}");
 						}
 						
 						if (template.TextureMaterialMap == null || template.TextureMaterialMap.Count < 2)
 						{
 							pass = false;
-							Debug.LogWarning($"Renderer map is invalid for {template.Name}");
+							Debug.LogError($"Renderer map is invalid for {template.Name}");
 						}
 						else
 						{
@@ -1455,7 +1473,7 @@ namespace Code.Editor.ModEngine
 							if (face.Item2 == null)
 							{
 								pass = false;
-								Debug.LogWarning($"Face renderer is invalid for {template.Name}");
+								Debug.LogError($"Face renderer is invalid for {template.Name}");
 							}
 							else
 							{
@@ -1463,7 +1481,7 @@ namespace Code.Editor.ModEngine
 								if (mats.Length < face.Item3)
 								{
 									pass = false;
-									Debug.LogWarning($"Face material index is invalid for {template.Name}");
+									Debug.LogError($"Face material index is invalid for {template.Name}");
 								}
 							}
 							
@@ -1471,7 +1489,7 @@ namespace Code.Editor.ModEngine
 							if (body.Item2 == null)
 							{
 								pass = false;
-								Debug.LogWarning($"Body renderer is invalid for {template.Name}");
+								Debug.LogError($"Body renderer is invalid for {template.Name}");
 							}
 							else
 							{
@@ -1479,21 +1497,21 @@ namespace Code.Editor.ModEngine
 								if (mats.Length < body.Item3)
 								{
 									pass = false;
-									Debug.LogWarning($"Body material index is invalid for {template.Name}");
+									Debug.LogError($"Body material index is invalid for {template.Name}");
 								}
 							}
 
 							if (face.Item2 == body.Item2 && face.Item3 == body.Item3)
 							{
 								pass = false;
-								Debug.LogWarning($"Face and body material can not be the same for {template.Name}");
+								Debug.LogError($"Face and body material can not be the same for {template.Name}");
 							}
 						}
 						
 						if (template.SFWColliders == null || template.SFWColliders.Count == 0)
 						{
 							pass = false;
-							Debug.LogWarning($"No SFW colliders set up for {template.Name}");
+							Debug.LogError($"No SFW colliders set up for {template.Name}");
 						}
 						else
 						{
@@ -1503,14 +1521,14 @@ namespace Code.Editor.ModEngine
 									continue;
 
 								pass = false;
-								Debug.LogWarning($"SFW collider {k} is invalid for {template.Name}");
+								Debug.LogError($"SFW collider {k} is invalid for {template.Name}");
 							}
 						}
 						
 						if (template.BodyParts == null || template.BodyParts.Count == 0)
 						{
 							pass = false;
-							Debug.LogWarning($"No body parts set up for {template.Name}");
+							Debug.LogError($"No body parts set up for {template.Name}");
 						}
 						else
 						{
@@ -1521,14 +1539,14 @@ namespace Code.Editor.ModEngine
 									continue;
 
 								pass = false;
-								Debug.LogWarning($"Body part {bodyPart.Type} is invalid for {template.Name}");
+								Debug.LogError($"Body part {bodyPart.Type} is invalid for {template.Name}");
 							}
 						}
 						
 						if (template.AccessoryParents == null || template.AccessoryParents.Count == 0)
 						{
 							pass = false;
-							Debug.LogWarning($"No accessory parents set up for {template.Name}");
+							Debug.LogError($"No accessory parents set up for {template.Name}");
 						}
 						else
 						{
@@ -1538,7 +1556,7 @@ namespace Code.Editor.ModEngine
 									continue;
 
 								pass = false;
-								Debug.LogWarning($"Accessory parent {k} is invalid for {template.Name}");
+								Debug.LogError($"Accessory parent {k} is invalid for {template.Name}");
 							}
 						}
 					}
@@ -1549,7 +1567,7 @@ namespace Code.Editor.ModEngine
 						if (animation.ClipContainers.Length == 0)
 						{
 							pass = false;
-							Debug.LogWarning($"Containers not assigned for {template.Name}");
+							Debug.LogError($"Containers not assigned for {template.Name}");
 						}
 
 						for (var k = 0; k < animation.ClipContainers.Length; k++)
@@ -1558,7 +1576,7 @@ namespace Code.Editor.ModEngine
 							if (container.Clips.Length == 0)
 							{
 								pass = false;
-								Debug.LogWarning($"No clips specified for container {k} in {template.Name}");
+								Debug.LogError($"No clips specified for container {k} in {template.Name}");
 							}
 
 							for (var l = 0; l < container.Clips.Length; l++)
@@ -1566,7 +1584,7 @@ namespace Code.Editor.ModEngine
 								if (container.Clips[l] == null)
 								{
 									pass = false;
-									Debug.LogWarning($"Invalid clips found in container {k} in {template.Name}");
+									Debug.LogError($"Invalid clips found in container {k} in {template.Name}");
 								}
 							}
 						}
@@ -1592,7 +1610,7 @@ namespace Code.Editor.ModEngine
 							if (armature == null)
 							{
 								pass = false;
-								Debug.LogWarning($"Armature for {template.Name} was not found. Skinned meshes must have an armature at the root of the object, with the name of \"Armature\"");
+								Debug.LogError($"Armature for {template.Name} was not found. Skinned meshes must have an armature at the root of the object, with the name of \"Armature\"");
 							}
 						}
 					}
@@ -1600,7 +1618,7 @@ namespace Code.Editor.ModEngine
 				else
 				{
 					pass = false;
-					Debug.LogWarning($"Object is not set for {template.Name}");
+					Debug.LogError($"Object is not set for {template.Name}");
 				}
 			}
 
@@ -1615,7 +1633,7 @@ namespace Code.Editor.ModEngine
 						continue;
 					
 					pass = false;
-					Debug.LogWarning($"Items {Templates[i].Name} and {Templates[k].Name} share the same object. This is not allowed");
+					Debug.LogError($"Items {Templates[i].Name} and {Templates[k].Name} share the same object. This is not allowed");
 				}
 			}
 			
@@ -1629,13 +1647,13 @@ namespace Code.Editor.ModEngine
 			if (Prefabs.Count == 0 || Templates.Count == 0)
 			{
 				pass = false;
-				Debug.LogWarning("There are no objects or components set");
+				Debug.LogError("There are no objects or components set");
 			}
 			
 			if (Prefabs.Count != Templates.Count)
 			{
 				pass = false;
-				Debug.LogWarning($"Objects {Prefabs.Count} and Components {Templates.Count} count mismatch");
+				Debug.LogError($"Objects {Prefabs.Count} and Components {Templates.Count} count mismatch");
 			}
 
 			for (var i = 0; i < Templates.Count; i++)
@@ -1645,25 +1663,25 @@ namespace Code.Editor.ModEngine
 				if (Prefabs[i] == null)
 				{
 					pass = false;
-					Debug.LogWarning($"Object is not set for {template.Name}");
+					Debug.LogError($"Object is not set for {template.Name}");
 				}
 				
 				if (string.IsNullOrEmpty(template.Name))
 				{
 					pass = false;
-					Debug.LogWarning($"Name is not set for {template.Name}");
+					Debug.LogError($"Name is not set for {template.Name}");
 				}
 				
 				if (template.Icon == null)
 				{
 					pass = false;
-					Debug.LogWarning($"Icon is not set for {template.Name}");
+					Debug.LogError($"Icon is not set for {template.Name}");
 				}
 				
 				if (template.TemplateType == ETemplateType.ModdedScene && template.LargeBackground == null)
 				{
 					pass = false;
-					Debug.LogWarning($"Large Background is not set for {template.Name}");
+					Debug.LogError($"Large Background is not set for {template.Name}");
 				}
 				
 				if (template.TemplateType == ETemplateType.ModdedScene && Prefabs[i] != null)
@@ -1683,7 +1701,7 @@ namespace Code.Editor.ModEngine
 						case 0:
 						{
 							pass = false;
-							Debug.LogWarning($"Root object 'ModdedScene' not found for {template.Name}");
+							Debug.LogError($"Root object 'ModdedScene' not found for {template.Name}");
 							break;
 						}
 						case 1:
@@ -1691,14 +1709,14 @@ namespace Code.Editor.ModEngine
 							if (objects[0].name != "ModdedScene")
 							{
 								pass = false;
-								Debug.LogWarning($"Root object 'ModdedScene' not found for {template.Name}");
+								Debug.LogError($"Root object 'ModdedScene' not found for {template.Name}");
 							}
 							break;
 						}
 						case > 1:
 						{
 							pass = false;
-							Debug.LogWarning($"Multiple root objects found for {template.Name}");
+							Debug.LogError($"Multiple root objects found for {template.Name}");
 							break;
 						}
 					}
@@ -1718,13 +1736,13 @@ namespace Code.Editor.ModEngine
 					if (template.SupportedGendersFlags == ESupportedGendersFlags.None)
 					{
 						pass = false;
-						Debug.LogWarning($"No supported genders specified for {template.Name}");
+						Debug.LogError($"No supported genders specified for {template.Name}");
 					}
 					
 					if (template.Avatar == null)
 					{
 						pass = false;
-						Debug.LogWarning($"Avatar is invalid for {template.Name}");
+						Debug.LogError($"Avatar is invalid for {template.Name}");
 					}
 				}
 				
@@ -1735,7 +1753,7 @@ namespace Code.Editor.ModEngine
 						if (group.Transforms == null || group.Transforms.Length == 0)
 						{
 							pass = false;
-							Debug.LogWarning($"FK Group {group.Name} for {template.Name} does not have any transforms");
+							Debug.LogError($"FK Group {group.Name} for {template.Name} does not have any transforms");
 							
 							continue;
 						}
@@ -1746,9 +1764,28 @@ namespace Code.Editor.ModEngine
 								continue;
 							
 							pass = false;
-							Debug.LogWarning($"FK Group {group.Name} transform {transform.Name} for {template.Name} is null");
+							Debug.LogError($"FK Group {group.Name} transform {transform.Name} for {template.Name} is null");
 							
 							break;
+						}
+
+						for (var outerIndex = 0; outerIndex < group.Transforms.Length; outerIndex++)
+						{
+							var outerTransform = group.Transforms[outerIndex];
+							
+							for (var innerIndex = 0; innerIndex < group.Transforms.Length; innerIndex++)
+							{
+								if (outerIndex == innerIndex)
+									continue;
+								
+								var innerTransform = group.Transforms[innerIndex];
+
+								if (outerTransform.Name != innerTransform.Name)
+									continue;
+
+								pass = false;
+								Debug.LogError($"FK Group {group.Name} has multiple transforms with the same name {innerTransform.Name} for {template.Name}");
+							}
 						}
 					}
 				}
@@ -1767,7 +1804,7 @@ namespace Code.Editor.ModEngine
 						continue;
 					
 					pass = false;
-					Debug.LogWarning($"Items {Templates[i].Name} and {Templates[k].Name} share the same object. This is not allowed");
+					Debug.LogError($"Items {Templates[i].Name} and {Templates[k].Name} share the same object. This is not allowed");
 				}
 			}
 

@@ -1,5 +1,5 @@
 //#define MODCREATOR_VERBOSE
-#define MODCREATOR_STANDALONE
+//#define MODCREATOR_STANDALONE
 
 using System;
 using System.Collections.Generic;
@@ -61,7 +61,7 @@ namespace Code.Editor.ModEngine
 		public const bool IsVerbose = false;
 #endif
 
-		public const string Version = "v0.1.8.1";
+		public const string Version = "v0.1.9.0";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};

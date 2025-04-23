@@ -10,7 +10,7 @@
 #pragma multi_compile _ SHADOWS_SHADOWMASK
 #pragma multi_compile _ _LIGHT_COOKIES //we might evend disable this if needed
 //#pragma multi_compile _ _LIGHT_LAYERS //temporarely disabled, we'll introduce it later
-//#pragma multi_compile _ DYNAMICLIGHTMAP_ON //realtime GI, probably needed for later
+#pragma multi_compile _ DYNAMICLIGHTMAP_ON //realtime GI, probably needed for later
 #pragma multi_compile _ LIGHTMAP_ON
 #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
 #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE

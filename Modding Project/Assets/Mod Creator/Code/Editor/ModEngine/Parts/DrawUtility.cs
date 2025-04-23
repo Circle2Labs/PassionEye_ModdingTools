@@ -186,8 +186,8 @@ namespace Code.Editor.ModEngine
 				
 				if (GUILayout.Button("-", GUILayout.Width(25)))
 				{
-					list.RemoveAt(i);
-					Templates.Remove(templates[i]);
+					Templates.RemoveAt(current);
+					list.RemoveAt(current);
 					
 					CurrentTemplate = -1;
 					return;

@@ -27,12 +27,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Black_Tightness: 1.12
-    - _Black_Tightness_B: 0
-    - _Contrast: 0.8
-    - _Linear_Lenght: 0.455
-    - _Linear_Start: 0.7
-    - _Max_Brightness: 1
+    - _Black_Tightness: 1
     m_Colors: []
   m_BuildTextureStacks: []
 --- !u!114 &6384295607199208918

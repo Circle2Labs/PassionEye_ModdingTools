@@ -296,6 +296,10 @@ float AddEyePart(float enable, float useTexture, float colorMode, Texture2D _tex
             return tex.a;
         } else
         {
+            if (enable == 0.0)
+            {
+                tex.a = 0.0;
+            }
             addColor(tex);
             return tex.a;
         }
@@ -417,8 +421,8 @@ float4 frag(Varyings IN) : SV_TARGET
     }
     
     addSDF(sdf, shadowColor, shadowColor, 0.0, shadowAlpha);
-    
-    //highlight
+
+     //highlight
     if(_EnableHighlight > 0.0)
     {
         //the highlight moves depending on the light direction
@@ -454,30 +458,38 @@ float4 frag(Varyings IN) : SV_TARGET
         if(dist < _HighlightDeadzone)
         {
             //lerp up to 0.05 distance
+            /*
             float lerp_amount = saturate(remap(_HighlightDeadzone, _HighlightDeadzone/2.0,
                                         0.0, 1.0,dist));
             _HighlightColor = lerp(_HighlightColor, findLastValidSDF(_BackgroundColor),
                                    lerp_amount * _HighlightDeadzoneAttenuation);
-        }
-        
-        //add the highlight
-        float2 highlightSize = _UseHighlightTexture ? float2(.15, .15) : float2(0.08, 0.15);
-        AddEyePart(_EnableHighlight, _UseHighlightTexture, _HighlightColorMode, _HighlightTexture,
-         _HighlightColor, _HighlightColor, 0, 0, 0,
-          highlightPos.x, highlightPos.y, _HighlightScale * highlightSize.x, _HighlightScale * highlightSize.y, uv);
-
-        //secondary highlight
-        highlightPos.x = _SecondaryHighlightMirrorX > 0.0 ? 1.0 - highlightPos.x : highlightPos.x;
-        highlightPos.y = _SecondaryHighlightMirrorY > 0.0 ? 1.0 - highlightPos.y : highlightPos.y;
-        
-        float2 secondaryHighlightSize = _UseSecondaryHighlightTexture ? float2(.06, .06) : float2(0.04, 0.06);
-        
-        AddEyePart(_EnableSecondaryHighlight, _UseSecondaryHighlightTexture, _SecondaryHighlightColorMode, _SecondaryHighlightTexture,
-         _HighlightColor, _HighlightColor, 0, 0, 0,
-          highlightPos.x, highlightPos.y, _SecondaryHighlightScale * secondaryHighlightSize.x,
-           _SecondaryHighlightScale * secondaryHighlightSize.y, uv);
+            */
+            // lerp only the alpha
+            float lerp_amount = saturate(remap(_HighlightDeadzone, 0.0,
+                                        0.0, 1.0,dist));
+            _HighlightColor.a = lerp(_HighlightColor.a, 0,
+                                      lerp_amount * _HighlightDeadzoneAttenuation);
     }
+    
+    //add the highlight
+    float2 highlightSize = _UseHighlightTexture ? float2(.15, .15) : float2(0.08, 0.15);
+    AddEyePart(_EnableHighlight, _UseHighlightTexture, _HighlightColorMode, _HighlightTexture,
+     _HighlightColor, _HighlightColor, 0, 0, 0,
+      highlightPos.x, highlightPos.y, _HighlightScale * highlightSize.x, _HighlightScale * highlightSize.y, uv);
 
+    //secondary highlight
+    highlightPos.x = _SecondaryHighlightMirrorX > 0.0 ? 1.0 - highlightPos.x : highlightPos.x;
+    highlightPos.y = _SecondaryHighlightMirrorY > 0.0 ? 1.0 - highlightPos.y : highlightPos.y;
+    
+    float2 secondaryHighlightSize = _UseSecondaryHighlightTexture ? float2(.06, .06) : float2(0.04, 0.06);
+    
+    AddEyePart(_EnableSecondaryHighlight, _UseSecondaryHighlightTexture, _SecondaryHighlightColorMode, _SecondaryHighlightTexture,
+     _HighlightColor, _HighlightColor, 0, 0, 0,
+      highlightPos.x, highlightPos.y, _SecondaryHighlightScale * secondaryHighlightSize.x,
+       _SecondaryHighlightScale * secondaryHighlightSize.y, uv);
+
+    }
+    
     float4 color = 0;
 
     //apply main light
@@ -530,9 +542,14 @@ float4 frag(Varyings IN) : SV_TARGET
         color.rgb += diffuse;
     #endif
 
+    float4 finalColor;
+    
     if (_EnableLighting > 0.0)
-        return renderSDF(_BackgroundColor) * color;
+        finalColor = renderSDF(_BackgroundColor) * color;
     else
-        return renderSDF(_BackgroundColor);
+        finalColor = renderSDF(_BackgroundColor);
+
+    finalColor.a = 1.0;
+    return finalColor;
 }
 
