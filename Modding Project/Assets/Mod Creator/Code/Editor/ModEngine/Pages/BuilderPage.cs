@@ -33,6 +33,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
+using Shader = UnityEngine.Shader;
 using Tuple = Code.Tools.Tuple;
 using Vector2 = UnityEngine.Vector2;
 
@@ -1634,6 +1635,40 @@ namespace Code.Editor.ModEngine
 					
 					pass = false;
 					Debug.LogError($"Items {Templates[i].Name} and {Templates[k].Name} share the same object. This is not allowed");
+				}
+			}
+
+			var toonShader = Shader.Find("Toon/ToonShader");
+			
+			for (var i = 0; i < Prefabs.Count; i++)
+			{
+				var prefab = Prefabs[i];
+				var template = Templates[i];
+
+				if (prefab == null || template.TemplateType == ETemplateType.ModdedScene || prefab is not GameObject gameObject)
+					continue;
+				
+				// hair shader isn't there yet so don't notify for that
+				if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.Hair)
+					continue;
+				
+				var renderers = gameObject.GetComponentsInChildren<Renderer>();
+				foreach (var renderer in renderers)
+				{
+					var mats = renderer.sharedMaterials;
+					if (mats == null)
+						continue;
+
+					foreach (var mat in mats)
+					{
+						if (mat == null)
+							continue;
+
+						if (mat.shader != toonShader)
+							continue;
+
+						Debug.LogWarning($"Object {template.Name} uses deprecated shader {toonShader.name}. Consider upgrading as this shader will be removed in the future");
+					}
 				}
 			}
 			
