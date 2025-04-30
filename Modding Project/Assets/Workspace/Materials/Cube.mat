@@ -8,12 +8,13 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Cube
-  m_Shader: {fileID: 4800000, guid: 444c859f9b741184dbbab549a81eb802, type: 3}
-  m_Parent: {fileID: 2100000, guid: 1474ac931c608196f96134ca351eb565, type: 2}
+  m_Shader: {fileID: 4800000, guid: 04a1d81bce3f8614ea93ee4bde86e6ae, type: 3}
+  m_Parent: {fileID: 2100000, guid: fa03f372bbc1c3a259b39d737d98bd46, type: 2}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
+  m_ValidKeywords: []
+  m_InvalidKeywords:
   - _ALPHASOURCE_VALUE
-  m_InvalidKeywords: []
+  - _AUTOSPECULARCOLOR_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0

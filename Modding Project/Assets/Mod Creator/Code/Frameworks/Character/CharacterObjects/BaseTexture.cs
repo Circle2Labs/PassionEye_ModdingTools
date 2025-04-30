@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
+using Code.Frameworks.Character.Structs;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Tools;
 using Railgun.AssetPipeline.Attributes;
@@ -69,7 +70,7 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public Simulation[] Simulations { get; set; }
 		
 		[field: SerializeField]
-		public ESupportedGendersFlags SupportedGendersFlags { get; set; }
+		public SCompatibleBaseMesh[] CompatibleBaseMeshes { get; set; }
 
 		[field: SerializeField]
 		public Renderer[] Renderers { get; set; }
@@ -128,7 +129,7 @@ namespace Code.Frameworks.Character.CharacterObjects
 			return 0;
 		}
 		
-		public void SetupBoneMap(BaseBaseMesh baseMesh)
+		public void SetupBoneMap(IBaseMesh baseMesh)
 		{
 			
 		}

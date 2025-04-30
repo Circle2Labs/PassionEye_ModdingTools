@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Character.CharacterObjects;
+using Code.Frameworks.Character.Enums;
 using Code.Tools;
 using Microsoft.CSharp;
 using Packages.SFB;
@@ -111,7 +112,7 @@ namespace Code.Editor.ModEngine
 
 		public void DrawAdvancedToggle(Template template)
 		{
-			if (template.TemplateType is ETemplateType.ModdedScene or ETemplateType.Animation)
+			if (template.TemplateType is ETemplateType.ModdedScene or ETemplateType.Animation || template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.BaseMesh)
 				return;
 			
 			template.Advanced = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_ADVEDIT"), template.Advanced);
@@ -131,19 +132,19 @@ namespace Code.Editor.ModEngine
 			if (string.IsNullOrEmpty(template.Type))
 			{
 				pass = false;
-				Debug.LogWarning($"Custom Type is not set for {template.Name}");
+				Debug.LogError($"Custom Type is not set for {template.Name}");
 			}
 
 			if (Templates.Any(innerTemplate => innerTemplate != template && innerTemplate.Advanced && innerTemplate.Type == template.Type))
 			{
 				pass = false;
-				Debug.LogWarning($"Custom Type is not unique for {template.Name}");
+				Debug.LogError($"Custom Type is not unique for {template.Name}");
 			}
 					
 			if (string.IsNullOrEmpty(template.Source))
 			{
 				pass = false;
-				Debug.LogWarning($"Source Code is not set for for {template.Name}");
+				Debug.LogError($"Source Code is not set for for {template.Name}");
 			}
 		}
 		
@@ -154,7 +155,7 @@ namespace Code.Editor.ModEngine
 			
 			checkAsm = false;
 			pass = false;
-			Debug.LogWarning("Mod assembly is not built");
+			Debug.LogError("Mod assembly is not built");
 		}
 		
 		public void BuildAssembly(string asmName, string code)

@@ -49,6 +49,12 @@ float ellipseSDF(float2 uv, float2 axis, float2 center)
     return length(uv - center) - 1.0;
 }
 
+float quadraticSDF(float2 uv, float a, float b, float c)
+{
+    float y = a * uv.x * uv.x + b * uv.x + c;
+    return y - uv.y;
+}
+
 //gradient functions
 
 float calcSDFGradientEllipse(float2 uv, float2 radius, float2 center, float gradient_type,

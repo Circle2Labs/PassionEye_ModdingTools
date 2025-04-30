@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Code.EditorScripts.ModCreator;
-using Code.Frameworks.Character.Interfaces;
-using Code.Frameworks.Studio.Interfaces;
 using Code.Managers;
 using UnityEditor;
 using UnityEngine;
@@ -262,82 +260,9 @@ namespace Code.Editor.ModEngine
 			}
 		}
 
-		public void RemoveGameComponents()
-		{
-			foreach (var prefab in Prefabs)
-			{
-				if (prefab == null || prefab is not GameObject gameObject)
-					return;
-
-				var charaObject = gameObject.GetComponent<ICharacterObject>();
-				if (charaObject != null)
-				{
-					Debug.LogWarning($"Removing game component {charaObject}");
-					DestroyImmediate((Component)charaObject);
-				}
-				
-				var studioObject = gameObject.GetComponent<IStudioObject>();
-				if (studioObject != null)
-				{
-					Debug.LogWarning($"Removing game component {studioObject}");
-					DestroyImmediate((Component)studioObject);
-				}
-			}
-		}
-		
-		public void FixNonexistentStates()
-		{
-			foreach (var template in Templates)
-				template.SetupStates();
-		}
-
 		public string GetLocalizedString(string key)
 		{
 			return LocalizationManager.Instance.GetLocalizedString(AvailableLanguages[Language], key).Value;
-		}
-
-		public Enum LocalizedEnumPopup(string label, Enum selected, string localizationRoot, params GUILayoutOption[] options)
-		{
-			var names = Enum.GetNames(selected.GetType());
-			for (var i = 0; i < names.Length; i++)
-				names[i] = GetLocalizedString(localizationRoot + names[i].ToUpper());
-			
-			var popup = EditorGUILayout.Popup(label, Convert.ToInt32(selected), names, options);
-			return (Enum)Enum.ToObject(selected.GetType(), popup);
-		}
-		
-		private void verticalPresetList(List<string> list)
-		{
-			for (var i = 0; i < list.Count; i++)
-			{
-				if (Presets[i] == null)
-				{
-					SetupPresets();
-					return;
-				}
-				
-				GUILayout.BeginHorizontal();
-				
-				if (GUILayout.Button(Presets[i]))
-					LoadPreset(Presets[i]);
-
-				if (GUILayout.Button(GetLocalizedString("MODCREATOR_PRESETSLANGUAGE_REPLACE"), GUILayout.Width(75)))
-				{
-					AssetDatabase.DeleteAsset(Path.Combine(ModCreatorPath, $"Code/Editor/ModEngine/Presets/{Presets[i]}.prefab"));
-					SavePreset(Presets[i]);
-					Debug.Log($"Replaced preset {Presets[i]}");
-				}
-				
-				if (GUILayout.Button("-", GUILayout.Width(25)))
-				{
-					AssetDatabase.DeleteAsset(Path.Combine(ModCreatorPath, $"Code/Editor/ModEngine/Presets/{Presets[i]}.prefab"));
-					Debug.Log($"Removed preset {Presets[i]}");
-					
-					SetupPresets();
-				}
-				
-				GUILayout.EndHorizontal();
-			}
 		}
 	}
 }

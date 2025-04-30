@@ -69,7 +69,7 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public byte[] BVHData { get; set; }
 		
 		[field: SerializeField]
-		public ESupportedGendersFlags SupportedGendersFlags { get; set; }
+		public SCompatibleBaseMesh[] CompatibleBaseMeshes { get; set; }
 
 		[field: SerializeField]
 		public Renderer[] Renderers { get; set; }
@@ -83,7 +83,7 @@ namespace Code.Frameworks.Character.CharacterObjects
 
 		}
 
-		public void SetupBoneMap(BaseBaseMesh baseMesh)
+		public void SetupBoneMap(IBaseMesh baseMesh)
 		{
 			
 		}

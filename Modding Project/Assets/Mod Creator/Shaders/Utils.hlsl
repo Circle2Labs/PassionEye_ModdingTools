@@ -10,6 +10,10 @@
 #endif
 
 #define INFLATE(x, vert, norm) vert += norm * x
+#define PI 3.14159265359
+#define CBufTexture(x) Texture2D x; SamplerState sampler##x; float4 x##_ST
+
+#define ret3(x) return float4(x,1)
 
 /**
  * \brief Inverses a linear interpolation
@@ -19,6 +23,10 @@
  * \return Amount to mix from and to to generate value.
  */
 float invLerp(float from, float to, float value) {
+    return (value - from) / (to - from);
+}
+
+float3 invLerp(float3 from, float3 to, float3 value) {
     return (value - from) / (to - from);
 }
 
@@ -32,6 +40,12 @@ float invLerp(float from, float to, float value) {
  * \return value remapped into output range.
  */
 float remap(float fromMin, float fromMax, float toMin, float toMax, float value) {
+    float rel = invLerp(fromMin, fromMax, value);
+    return lerp(toMin, toMax, rel);
+}
+
+
+float3 remap(float3 fromMin, float3 fromMax, float3 toMin, float3 toMax, float3 value) {
     float rel = invLerp(fromMin, fromMax, value);
     return lerp(toMin, toMax, rel);
 }
@@ -207,6 +221,80 @@ float2 deformScaleUV(float2 uv, float2 deform)
 {
     float2 deformFrac = 1.0 / deform;
     return (uv * deformFrac) + ((1 - deformFrac) / 2.0);
+}
+
+/**
+ * \brief Calculates the RGB color of a given kelvin temperature.
+ * \param kelvin Temperature in kelvin.
+ * \return RGB color of the temperature.
+ */
+float3 kelvinToRGB(float kelvin)
+{
+    float temp = kelvin / 100;
+    float red, green, blue;
+
+    if (temp <= 66)
+    {
+        red = 255;
+    } else {
+        red = temp - 60;
+        red = 329.698727446 * pow(red, -0.1332047592);
+        if (red < 0) red = 0;
+        if (red > 255) red = 255;
+    }
+
+    if (temp <= 66)
+    {
+        green = temp;
+        green = 99.4708025861 * log(green) - 161.1195681661;
+        if (green < 0) green = 0;
+        if (green > 255) green = 255;
+    } else {
+        green = temp - 60;
+        green = 288.1221695283 * pow(green, -0.0755148492);
+        if (green < 0) green = 0;
+        if (green > 255) green = 255;
+    }
+
+    if (temp >= 66)
+    {
+        blue = 255;
+    } else if (temp <= 19) {
+        blue = 0;
+    } else {
+        blue = temp - 10;
+        blue = 138.5177312231 * log(blue) - 305.0447927307;
+        if (blue < 0) blue = 0;
+        if (blue > 255) blue = 255;
+    }
+
+    return float3(red / 255, green / 255, blue / 255);
+}
+
+/**
+ * \brief Converts a time coefficient (hour) to a kelvin temperature.
+ * \param coeff Time coefficient.
+ * \return Kelvin temperature.
+ */
+float TimeCoefficientToKelvin(float coeff){ //0-1 -> 0:00-24:00
+    // minimum at 2:00, maximum at 14:00
+    // shift coefficient so 0 = 2:00
+    coeff = (coeff + (2.0 / 24.0)) % 1.0;
+    if (coeff < 0.5) {
+        return lerp(2000, 6500, coeff * 2);
+    } else {
+        return lerp(6500, 2000, (coeff - 0.5) * 2);
+    }
+}
+
+float smoothClamp(float x, float a, float b)
+{
+    return smoothstep(0., 1., (x - a)/(b - a))*(b - a) + a;
+}
+
+float softClamp(float x, float a, float b)
+{
+    return smoothstep(0., 1., (2./3.)*(x - a)/(b - a) + (1./6.))*(b - a) + a;
 }
 
 #endif

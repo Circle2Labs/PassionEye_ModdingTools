@@ -1,28 +1,21 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
-using Assets.Code.Frameworks.Animation.Enums;
 using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation.Structs;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
+using Code.Frameworks.Character.Interfaces;
 using Code.Frameworks.ForwardKinematics.Structs;
 using Code.Frameworks.ModdedScenes.Flags;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.Studio.Enums;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using Code.Frameworks.Character.Structs;
 using Code.Frameworks.ClippingFix.Enums;
-using Code.Frameworks.RayTracing;
-using UnityEngine.Rendering;
-using Ray = Code.Frameworks.RayTracing.Ray;
-using Timer = System.Timers.Timer;
+using Tuple = Code.Tools.Tuple;
 
 namespace Code.Editor.ModEngine
 {
@@ -31,217 +24,20 @@ namespace Code.Editor.ModEngine
 		[SerializeField]
 		public bool[] BasicFolds = new bool[4];
 		
-		private static GUIStyle guiStyle;
-		public static GUIStyle GUIStyle
-		{
-			get
-			{
-				if (guiStyle != null)
-					return guiStyle;
-
-				guiStyle = new GUIStyle();
-				return guiStyle;
-			}
-		}
-		
-		private static Texture2D texture;
-		public static Texture2D Texture
-		{
-			get
-			{
-				if (texture != null)
-					return texture;
-
-				texture = new Texture2D(1, 1);
-				return texture;
-			}
-		}
-
 		// todo: figure out how to localize enum flags field
 
-		// todo: figure out a better solution. Maybe allow the user to pick for which base mesh they are making the item and then populate this list accordingly.
-		private readonly string[] defaultParents =
-		{
-			// enpi
-			//"DEF_hips.001","DEF_buttocks.L.001","DEF_buttocks.L.001_end","DEF_buttocks.R.001","DEF_buttocks.R.001_end","DEF_hips.002","DEF_hips.002_end","DEF_hips.L.001","DEF_thigh.L.001","DEF_thigh.L.002","DEF_shin.L.001","DEF_feet.L.001","DEF_feet.L.003","DEF_feet.L.003_end","DEF_Toe_master.L.001","DEF_index_toe.L.002","DEF_index_toe.L.003","DEF_index_toe.L.003_end","DEF_middle_toe.L.002","DEF_middle_toe.L.003","DEF_middle_toe.L.003_end","DEF_pinky_toe.L.002","DEF_pinky_toe.L.002_end","DEF_ring_toe.L.002","DEF_ring_toe.L.003","DEF_ring_toe.L.003_end","DEF_thumb_toe.L.002","DEF_thumb_toe.L.002_end","DEF_hips.R.001","DEF_thigh.R.001","DEF_thigh.R.002","DEF_shin.R.001","DEF_feet.R.001","DEF_feet.R.003","DEF_feet.R.003_end","DEF_Toe_master.R.001","DEF_index_toe.R.002","DEF_index_toe.R.003","DEF_index_toe.R.003_end","DEF_middle_toe.R.002","DEF_middle_toe.R.003","DEF_middle_toe.R.003_end","DEF_pinky_toe.R.002","DEF_pinky_toe.R.002_end","DEF_ring_toe.R.002","DEF_ring_toe.R.003","DEF_ring_toe.R.003_end","DEF_thumb_toe.R.002","DEF_thumb_toe.R.002_end","DEF_penis.001","DEF_penis.002","DEF_penis.003","DEF_penis.003_end","DEF_spine.001","DEF_spine.002","DEF_spine.003","DEF_breast.L.001","DEF_breast.L.002","DEF_breast.L.003","DEF_breast.L.003_end","DEF_breast.R.001","DEF_breast.R.002","DEF_breast.R.003","DEF_breast.R.003_end","DEF_neck.001","DEF_head.001","DEF_Ear_L.001","DEF_Ear_L.002","DEF_Ear_L.003","DEF_Ear_L.004","DEF_Ear_L.005","DEF_Ear_L.005_end","DEF_Ear_R.001","DEF_Ear_R.002","DEF_Ear_R.003","DEF_Ear_R.004","DEF_Ear_R.005","DEF_Ear_R.005_end","DEF_eye_L.001","DEF_eye_L.001_end","DEF_eye_R.001","DEF_eye_R.001_end","DEF_Jaw.001","DEF_Jaw_L.002","DEF_Jaw_L.003","DEF_Jaw_L.004","DEF_Jaw_L.004_end","DEF_Jaw_R.002","DEF_Jaw_R.003","DEF_Jaw_R.004","DEF_Jaw_R.004_end","DEF_LipMouthBottom.001","DEF_LipMouthBottom.001_end","DEF_tongue.001","DEF_tongue.002","DEF_tongue.003","DEF_tongue.003_end","DEF_Nose.001","DEF_Nose.001_end","DEF_Scalp_L.001","DEF_Scalp_L.002","DEF_Scalp_L.003","DEF_Scalp_L.004","DEF_Scalp_L.004_end","DEF_Scalp_R.001","DEF_Scalp_R.002","DEF_Scalp_R.003","DEF_Scalp_R.004","DEF_Scalp_R.004_end","DEF_UpperCheek_L.001","DEF_UpperCheek_L.002","DEF_UpperCheek_L.003","DEF_UpperCheek_L.003_end","DEF_UpperCheek_R.001","DEF_UpperCheek_R.002","DEF_UpperCheek_R.003","DEF_UpperCheek_R.003_end","DEF_LipMouthUpper.001","DEF_LipMouthUpper.001_end","DEF_shoulder.L.001","DEF_biceps.L.001","DEF_biceps.L.002","DEF_forearm.L.001","DEF_hand.L.001","DEF_index.L.002","DEF_index.L.003","DEF_index.L.004","DEF_index.L.004_end","DEF_middle.L.002","DEF_middle.L.003","DEF_middle.L.004","DEF_middle.L.004_end","DEF_pinky.L.002","DEF_pinky.L.003","DEF_pinky.L.004","DEF_pinky.L.004_end","DEF_ring.L.002","DEF_ring.L.003","DEF_ring.L.004","DEF_ring.L.004_end","DEF_thumb.L.001","DEF_thumb.L.002","DEF_thumb.L.003","DEF_thumb.L.003_end","DEF_shoulder.R.001","DEF_biceps.R.001","DEF_biceps.R.002","DEF_forearm.R.001","DEF_hand.R.001","DEF_index.R.002","DEF_index.R.003","DEF_index.R.004","DEF_index.R.004_end","DEF_middle.R.002","DEF_middle.R.003","DEF_middle.R.004","DEF_middle.R.004_end","DEF_pinky.R.002","DEF_pinky.R.003","DEF_pinky.R.004","DEF_pinky.R.004_end","DEF_ring.R.002","DEF_ring.R.003","DEF_ring.R.004","DEF_ring.R.004_end","DEF_thumb.R.001","DEF_thumb.R.002","DEF_thumb.R.003","DEF_thumb.R.003_end"
-			// rappy
-			"Armature","Hips","Buttocks.L.001","Buttocks.R.001","Penis.000","Penis.001","Penis.002","Spine","Chest","UpperChest","Breast.L.001","Breast.L","Breast.R.001","Breast.R","Neck","Head","Cheak.L","Cheak_shape.L","Cheak.R","Cheak_shape.R","Chin.L","Chin.R","Ctrl.lip.corner.L","Ctrl.lip.corner.R","Ctrl.lip.lower","lip.lower.L","lip.lower.R","Ctrl.lip.lower.L","lip.lower.L.001","Ctrl.lip.lower.R","lip.lower.R.001","Ctrl.lip.upper","lip.upper.L","lip.upper.R","Ctrl.lip.upper.L","lip.upper.L.001","Ctrl.lip.upper.R","lip.upper.R.001","ctrl.tongue.000","ctrl.tongue.001","ctrl.tongue.002","ear rings.L","ear rings.R","Eye.L","Eye.R","Jaw_shape.L","Jaw.L","Jaw_shape.R","Jaw.R","teeth.lower","teeth.upper","tongue.000","tongue.001","tongue.002","Shoulder.L","UpperArm.L","LowerArm.L","Hand.L","palm.01.L","f_index.01.L","f_index.02.L","f_index.03.L","thumb.01.L","thumb.02.L","thumb.03.L","palm.02.L","f_middle.01.L","f_middle.02.L","f_middle.03.L","palm.03.L","f_ring.01.L","f_ring.02.L","f_ring.03.L","palm.04.L","f_pinky.01.L","f_pinky.02.L","f_pinky.03.L","Shoulder.R","UpperArm.R","LowerArm.R","Hand.R","palm.01.R","f_index.01.R","f_index.02.R","f_index.03.R","thumb.01.R","thumb.02.R","thumb.03.R","palm.02.R","f_middle.01.R","f_middle.02.R","f_middle.03.R","palm.03.R","f_ring.01.R","f_ring.02.R","f_ring.03.R","palm.04.R","f_pinky.01.R","f_pinky.02.R","f_pinky.03.R","UpperLeg.L","LowerLeg.L","Foot.L","Toes.L","Toes.Index.L.001","Toes.Index.L.002","Toes.Middle.L.001","Toes.Middle.L.002","Toes.Pinky.L.001","Toes.Ring.L.001","Toes.Ring.L.002","Toes.Thumb.L.001","Toes.Thumb.L.002","UpperLeg.R","LowerLeg.R","Foot.R","Toes.R","Toes.Index.R.001","Toes.Index.R.002","Toes.Middle.R.001","Toes.Middle.R.002","Toes.Pinky.R.001","Toes.Ring.R.001","Toes.Ring.R.002","Toes.Thumb.R.001","Toes.Thumb.R.002","Waist.L","Waist.R"
-		};
-
-		private readonly string[] bodyBlendshapes =
-		{
-			"Breast Size", "Breast Depth", "Breast Shape", "Nipple Depth", "Nipple Size", "Areola Size", "Areola Depth", "Neck Width", "Neck Thickness", "Upper Torso Width", "Upper Torso Thickness", "Lower Torso Width", "Lower Torso Thickness", "Torso Position", "Torso Thickness", "Waist Width", "Waist Thickness", "Hip Width", "Hip Thickness", "Butt Size", "Butt Angle", "Butt Spacing", "Shoulder Width", "Shpulder Thickness", "Upper Arm Width", "Upper Arm Thickness", "Elbow Width", "Elbow Thickness", "Forearm Width", "Forearm Thickness", "Wrist Scale", "Hand Scale", "Upper Thigh Width", "Upper Thigh Thickness", "Lower Thigh Width", "Lower Thigh Thickness", "Knee Width", "Knee Thickness", "Calves Vertical Position", "Calves Definition", "Ankle Width", "Ankle Thickness", "Labia 1 Length", "Labia 1 Width", "Labia 2 Size", "Labia 2 Thickness", "Labia 1 Opening", "Labia 1 Spread", "Labia 2 Opening", "Labia 2 Spread", "Clitoris Size", "Vaginal Hole Size"
-		};
-		
 		private EPreset selectedPhysicsPreset;
 		
 		private Vector2 basicScrollPosition;
 
+		private bool bodyPartsFold;
+		private bool accessoryParentsFold;
+		private bool blendshapesFold;
+		private bool blendshapePresetsFold;
+		
 		private bool blendshapeOffsetsFold;
 		private bool physicsSimulationFold;
 		private bool forwardKinematicsFold;
-		
-		private Template copyBuffer;
-		private SimulationData? copySimulationData;
-
-		private Tuple<Transform, SkinnedMeshRenderer[]> previewingClothingClone;
-		private Template previewingTemplate;
-		private EClothingState previewingState;
-		private Dictionary<string, Transform> previewingBodyBones;
-		private Timer previewTimer;
-
-		private readonly SynchronizationContext context = SynchronizationContext.Current;
-
-		private GameObject previewingBody;
-		public GameObject PreviewingBody
-		{
-			get
-			{
-				if (previewingBody != null)
-					return previewingBody;
-
-				previewingBodyMaterial = null;
-				
-				previewingBody = Instantiate(Resources.Load<GameObject>("ClippingFixPreviewBody"));
-				previewingBodyBones = new Dictionary<string,Transform>();
-				
-				var renderer = PreviewingBody.transform.Find("LOD0").GetComponent<SkinnedMeshRenderer>();
-				var bones = renderer.bones;
-
-				foreach (var bone in bones)
-					previewingBodyBones.Add(bone.name, bone);
-				
-				return previewingBody;
-			}
-		}
-
-		private Material previewingBodyMaterial;
-		public Material PreviewingBodyMaterial
-		{
-			get
-			{
-				if (previewingBodyMaterial != null)
-					return previewingBodyMaterial;
-				
-				// This is not using sharedMaterial because it would modify the material of the file that modders use for reference
-				previewingBodyMaterial = PreviewingBody.transform.Find("LOD0").GetComponent<Renderer>().material;
-				return PreviewingBodyMaterial;
-			}
-		}
-		
-		private CustomRenderTexture previewingClippingFixTexture;
-		public CustomRenderTexture PreviewingClippingFixTexture
-		{
-			get
-			{
-				if (previewingClippingFixTexture != null)
-					return previewingClippingFixTexture;
-				
-				var resolution = BodyRaysResolution;
-
-				previewingClippingFixTexture =
-					new CustomRenderTexture((int)resolution, (int)resolution, RenderTextureFormat.R8);
-				previewingClippingFixTexture.enableRandomWrite = true;
-				previewingClippingFixTexture.doubleBuffered = true;
-				previewingClippingFixTexture.material = CoreUtils.CreateEngineMaterial(Shader.Find("White"));
-				previewingClippingFixTexture.Create();
-				previewingClippingFixTexture.Initialize();
-				previewingClippingFixTexture.Update();
-				
-				// set the texture to the material
-				PreviewingBodyMaterial.SetTexture("_AlphaMap", previewingClippingFixTexture);
-				
-				return previewingClippingFixTexture;
-			}
-		}
-
-		private bool hidePreviewRenderers;
-		public bool HidePreviewRenderers
-		{
-			get => hidePreviewRenderers;
-			set
-			{
-				var previousValue = hidePreviewRenderers;
-				hidePreviewRenderers = value;
-				
-				if (previewingTemplate == null || previousValue == hidePreviewRenderers)
-					return;
-				
-				previewingClothingClone.Item1.gameObject.SetActive(!value);
-			}
-		}
-
-		private ERaysResolution bodyRaysResolution = (ERaysResolution)3;
-
-		public ERaysResolution BodyRaysResolution
-		{
-			get
-			{
-				switch ((int)bodyRaysResolution)
-				{
-					case 0:
-						return ERaysResolution.Low;
-					case 1:
-						return ERaysResolution.Medium;
-					case 2:
-						return ERaysResolution.High;
-					case 3:
-						return ERaysResolution.VeryHigh;
-				}
-
-				return ERaysResolution.Low;
-			}
-		}
-
-		// todo: handle multiple base meshes
-		private Dictionary<ERaysResolution, Ray[]> bodyRays;
-		public Dictionary<ERaysResolution, Ray[]> BodyRays
-		{
-			get
-			{
-				if (bodyRays != null)
-					return bodyRays;
-
-				string raysPath;
-				
-				if (IsStandalone)
-					raysPath = "Assets/Mod Creator/ClippingFixRays/pr.PR-builtin.BaseMeshFemale-";
-				else
-					raysPath = "Assets/GameAssets/Addressables/ClippingFixRays/pr.PR-builtin.BaseMeshFemale-";
-				
-				var dict = new Dictionary<ERaysResolution, Ray[]>();
-				
-				var resolutions = Enum.GetValues(typeof(ERaysResolution));
-				for (var i = 0; i < resolutions.Length; i++)
-				{
-					var resolution = (ERaysResolution)resolutions.GetValue(i);
-					
-					var bytes = File.ReadAllBytes($"{raysPath}{resolution.ToString()}.bytes");
-					var rays = bytes.ToRaysPtr();
-
-					dict[resolution] = rays;
-				}
-
-				bodyRays = dict;
-				return bodyRays;
-			}
-		}
-		
-		// actual properties for baking
-		
-		private BVHNodeGPU[] bvhNodes;
-		private Triangle[] triangles;
-		
-		// compute shaders
-		private ComputeShader clippingFixShader;
-		private int clippingFixKernel;
-
-		private ComputeShader dilaterShader;
-		private int dilaterKernel;
-		
-		private ComputeBuffer raysBuffer;
-
-		private CustomRenderTexture bakerTempRT;
 		
 		public void DrawBasic()
 		{
@@ -256,7 +52,6 @@ namespace Code.Editor.ModEngine
 			{
 				EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_COMPCONF"), EditorStyles.boldLabel);
 				template.CharacterObjectType = (ECharacterObjectType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_TYPE")}*", template.CharacterObjectType, "MODCREATOR_BASIC_TYPE_");
-				template.SupportedGendersFlags = (ESupportedGendersFlags)EditorGUILayout.EnumFlagsField($"{GetLocalizedString("MODCREATOR_BASIC_GENDERS")}*", template.SupportedGendersFlags);
 
 				switch (template.CharacterObjectType)
 				{
@@ -337,8 +132,21 @@ namespace Code.Editor.ModEngine
 						template.Reparentable = EditorGUILayout.ToggleLeft($"{GetLocalizedString("MODCREATOR_BASIC_REPARENTABLE")}*", template.Reparentable);
 						if (template.Reparentable)
 						{
-							template.DefaultParentIdx = EditorGUILayout.Popup($"{GetLocalizedString("MODCREATOR_BASIC_PARENT")}*", template.DefaultParentIdx, defaultParents);
-							template.DefaultParent = defaultParents[template.DefaultParentIdx];
+							var accessoryParents = new List<string>();
+			
+							var compatibleBaseMeshes = template.CompatibleBaseMeshes;
+							if (compatibleBaseMeshes != null && compatibleBaseMeshes.Length > 0)
+							{
+								var baseMesh = compatibleBaseMeshes[0];
+								accessoryParents = GetAccessoryParents(new Tuple<string, byte>(baseMesh.GUID, baseMesh.ID));
+							}
+							
+							template.DefaultParentIdx = EditorGUILayout.Popup($"{GetLocalizedString("MODCREATOR_BASIC_PARENT")}*", template.DefaultParentIdx, accessoryParents.ToArray());
+							
+							if (template.DefaultParentIdx > accessoryParents.Count - 1 || template.DefaultParentIdx < 0)
+								template.DefaultParent = "";
+							else
+								template.DefaultParent = accessoryParents[template.DefaultParentIdx];
 						}
 						
 						GUILayout.Space(5);
@@ -376,10 +184,183 @@ namespace Code.Editor.ModEngine
 						GUILayout.FlexibleSpace();
 						GUILayout.EndHorizontal();
 						break;
+					case ECharacterObjectType.BaseMesh:
+						template.Avatar = (Avatar)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_AVATAR")}*", template.Avatar, typeof(Avatar), false);
+						template.SupportedGendersFlags = (ESupportedGendersFlags)EditorGUILayout.EnumFlagsField($"{GetLocalizedString("MODCREATOR_BASIC_GENDERS")}*", template.SupportedGendersFlags);
+						
+						GUILayout.Space(5);
+
+						if (template.TextureMaterialMap == null || template.TextureMaterialMap.Count != 2)
+							template.TextureMaterialMap = new List<Tuple.SerializableTuple<ETextureType, Renderer, int>> { new (ETextureType.FaceSkin, null, 0), new (ETextureType.BodySkin, null, 0) };
+
+						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_FACE"));
+						var faceTextureMap = template.TextureMaterialMap[0];
+						
+						GUILayout.BeginHorizontal();
+						faceTextureMap.Item2 = (Renderer)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_RENDERER")}*", faceTextureMap.Item2, typeof(Renderer), true);
+						faceTextureMap.Item3 = EditorGUILayout.IntField($"{GetLocalizedString("MODCREATOR_BASIC_SUBMESH")}*", faceTextureMap.Item3, GUILayout.Width(200));
+						GUILayout.EndHorizontal();
+						
+						template.TextureMaterialMap[0] = faceTextureMap;
+						
+						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_BODY"));
+						var bodyTextureMap = template.TextureMaterialMap[1];
+						
+						GUILayout.BeginHorizontal();
+						bodyTextureMap.Item2 = (Renderer)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_RENDERER")}*", bodyTextureMap.Item2, typeof(Renderer), true);
+						bodyTextureMap.Item3 = EditorGUILayout.IntField($"{GetLocalizedString("MODCREATOR_BASIC_SUBMESH")}*", bodyTextureMap.Item3, GUILayout.Width(200));
+						GUILayout.EndHorizontal();
+
+						template.TextureMaterialMap[1] = bodyTextureMap;
+						
+						GUILayout.Space(5);
+						
+						var eyeData = template.EyeData;
+						eyeData.BlinkBlendShapeLeft = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_EYEDATA_BLINKSHAPE_LEFT")}*", eyeData.BlinkBlendShapeLeft);
+						eyeData.BlinkBlendShapeRight = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_EYEDATA_BLINKSHAPE_RIGHT")}*", eyeData.BlinkBlendShapeRight);
+						template.EyeData = eyeData;
+						
+						GUILayout.Space(5);
+						
+						var mouthData = template.MouthData;
+						mouthData.OpenBlendShape = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_MOUTHDATA_OPENSHAPE")}*", mouthData.OpenBlendShape);
+						template.MouthData = mouthData;
+						
+						GUILayout.Space(5);
+						
+						template.POV = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_POVTR")}*", template.POV, typeof(Transform), true);
+						template.FaceTransform = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_FACETR")}*", template.FaceTransform, typeof(Transform), true);
+
+						GUILayout.Space(5);
+						
+						template.Cock = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_COCKBONE")}*", template.Cock, typeof(Transform), true);
+						template.BodyRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_BODYROOTBONE")}*", template.BodyRootBone, typeof(Transform), true);
+						template.HeadRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_HEADROOTBONE")}*", template.HeadRootBone, typeof(Transform), true);
+						template.PrivatesRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_PRIVATESROOTBONE")}*", template.PrivatesRootBone, typeof(Transform), true);
+
+						GUILayout.Space(5);
+
+						template.Eyes ??= new List<Transform>();
+						template.Breasts ??= new List<Transform>();
+						template.Buttocks ??= new List<Transform>();
+						
+						verticalList(template.Eyes, $"{GetLocalizedString("MODCREATOR_BASIC_EYES")}*");
+						verticalList(template.Breasts, GetLocalizedString("MODCREATOR_BASIC_BREASTS"));
+						verticalList(template.Buttocks, GetLocalizedString("MODCREATOR_BASIC_BUTTOCKS"));
+						
+						template.BlendshapeRenderers ??= new List<SkinnedMeshRenderer>();
+						template.SFWColliders ??= new List<Collider>();
+
+						verticalList(template.SFWColliders, $"{GetLocalizedString("MODCREATOR_BASIC_SFWCOLLIDERS")}*");
+						verticalList(template.BlendshapeRenderers, $"{GetLocalizedString("MODCREATOR_BASIC_SHAPERENDERERS")}*");
+						
+						GUILayout.BeginHorizontal();
+						
+						GUI.enabled = Prefabs[Templates.IndexOf(template)] != null;
+						var autofillBlendshapeRenderers = GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_AUTOFILL"));
+						GUI.enabled = true;
+						
+						if (autofillBlendshapeRenderers)
+						{
+							template.BlendshapeRenderers.Clear();
+
+							var prefab = (GameObject)Prefabs[Templates.IndexOf(template)];
+							var renderers = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+							
+							foreach (var rend in renderers)
+								template.BlendshapeRenderers.Add(rend);
+						}
+						
+						if (GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_REMOVEINVALID")))
+						{
+							for (var i = template.BlendshapeRenderers.Count - 1; i >= 0; i--)
+							{
+								var rend = template.BlendshapeRenderers[i];
+								if (rend == null)
+								{
+									template.BlendshapeRenderers.RemoveAt(i);
+									Debug.Log($"Removed index {i}");
+									continue;
+								}
+
+								if (!rend.name.StartsWith("LOD") || rend.name.EndsWith("0"))
+									continue;
+
+								template.BlendshapeRenderers.RemoveAt(i);
+								Debug.Log($"Removed {rend.name}");
+							}
+						}
+						
+						GUILayout.EndHorizontal();
+						
+						bodyParts(template);
+						accessoryParents(template);
+						blendshapes(template);
+						blendshapePresets(template);
+						
+						forwardKinematics(template);
+
+						if (!IsStandalone && GUILayout.Button("Read from selected"))
+						{
+							var selected = Selection.activeGameObject;
+							if (selected != null && selected.TryGetComponent<IBaseMesh>(out var baseMesh))
+							{
+								template.TemplateType = ETemplateType.CharacterObject;
+								template.CharacterObjectType = ECharacterObjectType.BaseMesh;
+								template.Icon = baseMesh.Icon;
+								template.Name = baseMesh.Name;
+								template.Description = baseMesh.Description;
+								template.Tags = baseMesh.Tags;
+								template.IsNSFW = baseMesh.IsNSFW;
+								
+								template.Simulation = baseMesh.Simulation;
+								template.FKData = baseMesh.FKData;
+								template.CompatibleBaseMeshes = baseMesh.CompatibleBaseMeshes;
+								
+								template.Avatar = baseMesh.Avatar;
+								template.SupportedGendersFlags = baseMesh.SupportedGendersFlags;
+								template.BlendshapePresets = baseMesh.BlendshapePresets.ToList();
+								template.AccessoryParents = baseMesh.AccessoryParents;
+								template.TextureMaterialMap = baseMesh.TextureMaterialMap;
+								template.Blendshapes = baseMesh.Blendshapes;
+								template.BodyParts = baseMesh.BodyParts;
+								template.BlendshapeRenderers = baseMesh.BlendshapeRenderers;
+								template.SFWColliders = baseMesh.SFWColliders;
+								template.POV = baseMesh.POV;
+								template.FaceTransform = baseMesh.FaceTransform;
+								template.EyeData = baseMesh.EyeData;
+								template.MouthData = baseMesh.MouthData;
+								template.Cock = baseMesh.Cock;
+								template.BodyRootBone = baseMesh.BodyRootBone;
+								template.HeadRootBone = baseMesh.HeadRootBone;
+								template.PrivatesRootBone = baseMesh.PrivatesRootBone;
+								template.Eyes = baseMesh.Eyes.ToList();
+								template.Breasts = baseMesh.Breasts.ToList();
+								template.Buttocks = baseMesh.Buttocks.ToList();
+								template.EyeControl = baseMesh.EyeControl;
+								template.ExpressionControl = baseMesh.ExpressionControl;
+								template.PoseControl = baseMesh.PoseControl;
+							}
+							else
+							{
+								Debug.LogWarning("No IBaseMesh selected");
+							}
+						}
+						break;
 					default:
 						throw new ArgumentOutOfRangeException();
 				}
+
+				GUILayout.Space(5);
+
+				if (template.CompatibleBaseMeshes == null)
+				{
+					var availableBaseMeshes = GetBaseMeshes();
+					template.CompatibleBaseMeshes = availableBaseMeshes.Count == 0 ? Array.Empty<SCompatibleBaseMesh>() : new [] { new SCompatibleBaseMesh(availableBaseMeshes[0]) };
+				}
 				
+				template.CompatibleBaseMeshes = verticalList(template.CompatibleBaseMeshes, $"{GetLocalizedString("MODCREATOR_BASIC_COMPATIBLEBASEMESHES")}*");
+
 				GUILayout.Space(10);
 			}
 			else if (template.TemplateType == ETemplateType.StudioObject)
@@ -485,15 +466,174 @@ namespace Code.Editor.ModEngine
 			GUILayout.EndHorizontal();
 		}
 		
-		public GUIStyle GetBackgroundStyle(Color color)
+		private void bodyParts(Template template)
 		{
-			Texture.SetPixel(0, 0, color);
-			Texture.Apply();
+			GUILayout.Space(5);
+
+			template.BodyParts ??= new List<SBodyPart>();
+
+			// unity can you be more hacky than this?
+			var style = EditorStyles.foldout;
+			var previousStyle = style.fontStyle;
 			
-			GUIStyle.normal.background = Texture;
-			return GUIStyle;
+			style.fontStyle = FontStyle.Bold;
+			bodyPartsFold = EditorGUILayout.Foldout(bodyPartsFold, $"{GetLocalizedString("MODCREATOR_BASIC_BODYPARTS")}*", true);
+			style.fontStyle = previousStyle;
+
+			if (!bodyPartsFold) 
+				return;
+
+			verticalList(template.BodyParts, "List");
+		}
+		
+		private void accessoryParents(Template template)
+		{
+			GUILayout.Space(5);
+
+			template.AccessoryParents ??= new List<Tuple.SerializableTuple<Transform, string>>();
+
+			// unity can you be more hacky than this?
+			var style = EditorStyles.foldout;
+			var previousStyle = style.fontStyle;
+			
+			style.fontStyle = FontStyle.Bold;
+			accessoryParentsFold = EditorGUILayout.Foldout(accessoryParentsFold, $"{GetLocalizedString("MODCREATOR_BASIC_ACCESSORYPARENTS")}*", true);
+			style.fontStyle = previousStyle;
+
+			if (!accessoryParentsFold) 
+				return;
+
+			verticalList(template.AccessoryParents, "List");
+
+			GUILayout.BeginHorizontal();
+
+			GUI.enabled = template.BodyRootBone != null;
+			var autofillAccessoryParents = GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_AUTOFILL"));
+			GUI.enabled = true;
+						
+			if (autofillAccessoryParents)
+			{
+				template.AccessoryParents.Clear();
+							
+				var transforms = template.BodyRootBone.GetComponentsInChildren<Transform>(true);
+				foreach (var transform in transforms)
+					template.AccessoryParents.Add(new Tuple.SerializableTuple<Transform, string>(transform, transform.name));
+			}
+						
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_REMOVEINVALID")))
+			{
+				for (var i = template.AccessoryParents.Count - 1; i >= 0; i--)
+				{
+					var tuple = template.AccessoryParents[i];
+					if (tuple.Item2.EndsWith(".C") || tuple.Item2 == "SFWCollider" || tuple.Item1 == template.FaceTransform || tuple.Item2 == "POV" || tuple.Item1 == null)
+					{
+						template.AccessoryParents.RemoveAt(i);
+						Debug.Log($"Removed {tuple.Item2}");
+					}
+				}
+			}
+						
+			GUILayout.EndHorizontal();
 		}
 
+		private void blendshapes(Template template)
+		{
+			GUILayout.Space(5);
+
+			template.Blendshapes ??= new List<SBlendShape>();
+
+			// unity can you be more hacky than this?
+			var style = EditorStyles.foldout;
+			var previousStyle = style.fontStyle;
+			
+			style.fontStyle = FontStyle.Bold;
+			blendshapesFold = EditorGUILayout.Foldout(blendshapesFold, $"{GetLocalizedString("MODCREATOR_BASIC_BLENDSHAPES")}*", true);
+			style.fontStyle = previousStyle;
+
+			if (!blendshapesFold) 
+				return;
+
+			verticalList(template.Blendshapes, "List");
+
+			GUILayout.BeginHorizontal();
+			
+			GUI.enabled = template.BlendshapeRenderers != null && template.BlendshapeRenderers.Count > 0;
+			var autofillBlendShapes = GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_AUTOFILL"));
+			var autofillBlendShapesNew = GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_AUTOFILLNEW"));
+			GUI.enabled = true;
+			
+			if (autofillBlendShapes || autofillBlendShapesNew)
+			{
+				if (!autofillBlendShapesNew)
+					template.Blendshapes.Clear();
+				
+				foreach (var meshRenderer in template.BlendshapeRenderers)
+				{
+					var sharedMesh = meshRenderer.sharedMesh;
+
+					for (var i = 0; i < sharedMesh.blendShapeCount; i++)
+					{
+						var thisName = sharedMesh.GetBlendShapeName(i);
+						var nextName = i < sharedMesh.blendShapeCount - 1 ? sharedMesh.GetBlendShapeName(i + 1) : "";
+			
+						if (containsBlendshape(template, thisName) || containsBlendshape(template, nextName)) 
+							continue;
+			
+						if (thisName.Contains("-ve") && nextName.Contains("+ve"))
+						{
+							var blendshapeTitle = thisName.Replace("_", " ")[..(thisName.Length - 4)];
+							template.Blendshapes.Add(new SBlendShape { Blendshapes = new [] {thisName, nextName}, Title = blendshapeTitle});
+							i++;
+						}
+						else
+						{
+							template.Blendshapes.Add(new SBlendShape { Blendshapes = new [] {thisName}, Title = thisName.Replace("_", " ")});
+						}
+
+						Debug.Log($"Added {thisName} {nextName}");
+					}
+				}
+			}
+
+			GUILayout.EndHorizontal();
+			
+			GUILayout.BeginHorizontal();
+
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_DEFAULTRANGES")))
+			{
+				for (var i = 0; i < template.Blendshapes.Count; i++)
+				{
+					var blendShape = template.Blendshapes[i];
+					blendShape.SFWRange = new[] { -100, 100 };
+					blendShape.NSFWRange = new[] { -100, 100 };
+
+					template.Blendshapes[i] = blendShape;
+				}
+			}
+			
+			GUILayout.EndHorizontal();
+		}
+		
+		private void blendshapePresets(Template template)
+		{
+			GUILayout.Space(5);
+
+			template.BlendshapePresets ??= new List<SBlendshapePreset>();
+
+			// unity can you be more hacky than this?
+			var style = EditorStyles.foldout;
+			var previousStyle = style.fontStyle;
+			
+			style.fontStyle = FontStyle.Bold;
+			blendshapePresetsFold = EditorGUILayout.Foldout(blendshapePresetsFold, GetLocalizedString("MODCREATOR_BASIC_BLENDSHAPEPRESETS"), true);
+			style.fontStyle = previousStyle;
+
+			if (!blendshapePresetsFold) 
+				return;
+
+			verticalList(template.BlendshapePresets, "List");
+		}
+		
 		private void blendshapeOffsets(Template template)
 		{
 			GUILayout.Space(5);
@@ -511,6 +651,15 @@ namespace Code.Editor.ModEngine
 
 			if (!blendshapeOffsetsFold) 
 				return;
+
+			var bodyBlendshapes = new List<string>();
+			
+			var compatibleBaseMeshes = template.CompatibleBaseMeshes;
+			if (compatibleBaseMeshes != null && compatibleBaseMeshes.Length > 0)
+			{
+				var baseMesh = compatibleBaseMeshes[0];
+				bodyBlendshapes = GetBodyBlendshapes(new Tuple<string, byte>(baseMesh.GUID, baseMesh.ID));
+			}
 			
 			foreach (var blendshape in bodyBlendshapes)
 			{
@@ -529,7 +678,7 @@ namespace Code.Editor.ModEngine
 			}
 			
 			GUILayout.BeginHorizontal();
-			GUILayout.Label($"List{itemsCount(bodyBlendshapes.Length)}");
+			GUILayout.Label($"List{itemsCount(bodyBlendshapes.Count)}");
 			GUILayout.FlexibleSpace();
 			if (GUILayout.Button(GetLocalizedString("MODCREATOR_RESET"), GUILayout.Width(50)))
 			{
@@ -545,6 +694,10 @@ namespace Code.Editor.ModEngine
 			for (var i = 0; i < tempList.Count; i++)
 			{
 				var offset = tempList[i];
+				
+				if (!bodyBlendshapes.Contains(offset.Name))
+					continue;
+				
 				tempList[i] = new SBlendshapeOffset(offset.Name, EditorGUILayout.Slider(offset.Name, offset.Offset, -100f, 100f));
 			}
 
@@ -801,7 +954,6 @@ namespace Code.Editor.ModEngine
 					if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.BaseMesh)
 					{
 						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_FK_CHARASETTINGS"), EditorStyles.boldLabel);
-						fkGroup.SupportedGenders = (ESupportedGendersFlags)EditorGUILayout.EnumFlagsField($"{GetLocalizedString("MODCREATOR_BASIC_GENDERS")}*", fkGroup.SupportedGenders);
 						fkGroup.FutaExclusive = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_FK_FUTAEXCLUSIVE"), fkGroup.FutaExclusive);
 					}
 
@@ -957,441 +1109,6 @@ namespace Code.Editor.ModEngine
 
 			if (template.UseClippingFix != previousClippingFix || template.ClippingDistance != previousClippingDistance || BodyRaysResolution != previousBodyRaysResolution)
 				refreshPreview(previousClippingDistance, previousBodyRaysResolution);
-		}
-		
-		private string dragTransformNameSingle(string label, string transformName, Object parentObject)
-		{
-			if (parentObject == null || parentObject is not GameObject parent)
-				return "";
-			
-			var trs = parent.GetComponentsInChildren<Transform>();
-			Transform tr = null;
-
-			foreach (var child in trs)
-			{
-				if (child.name != transformName)
-					continue;
-
-				tr = child;
-				break;
-			}
-			
-			var objField = (Transform)EditorGUILayout.ObjectField(label, tr, typeof(Transform), true);
-			return objField != null ? objField.name : "";
-		}
-		
-		private void verticalDragTransformNameList(List<string> list, string labelTitle, Object parentObject)
-		{
-			GUILayout.BeginHorizontal();
-			GUILayout.Label(labelTitle + itemsCount(list.Count));
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
-				list.Add("");
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
-				list.Clear();
-			GUILayout.EndHorizontal();
-			
-			if (parentObject == null || parentObject is not GameObject parent)
-				return;
-
-			var trs = parent.GetComponentsInChildren<Transform>();
-			
-			for (var i = 0; i < list.Count; i++)
-			{
-				Transform tr = null;
-
-				foreach (var child in trs)
-				{
-					if (child.name != list[i])
-						continue;
-
-					tr = child;
-					break;
-				}
-				
-				GUILayout.BeginHorizontal();
-				
-				var objField = (Transform)EditorGUILayout.ObjectField("", tr, typeof(Transform), true);
-				if (objField != null)
-					list[i] = objField.name;
-				else
-					list[i] = "";
-				
-				if (GUILayout.Button("-", GUILayout.Width(25)))
-					list.RemoveAt(i);
-				
-				GUILayout.EndHorizontal();
-			}
-		}
-		
-		private SClipContainer[] verticalList(SClipContainer[] array, string labelTitle)
-		{
-			GUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
-			
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
-				array = array.Append(new SClipContainer()).ToArray();
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
-				array = Array.Empty<SClipContainer>();
-			
-			GUILayout.EndHorizontal();
-			
-			for (var i = 0; i < array.Length; i++)
-			{
-				GUILayout.BeginVertical();
-				
-				GUILayout.BeginHorizontal();
-
-				var container = array[i];
-				container.ClipUsageFlags = (EClipUsageFlags)EditorGUILayout.EnumFlagsField($"{GetLocalizedString("MODCREATOR_BASIC_USAGE")}*", container.ClipUsageFlags);
-
-				if (GUILayout.Button("-", GUILayout.Width(25)))
-				{
-					array = array.Where((_, k) => i != k).ToArray();
-					break;
-				}
-				
-				GUILayout.EndHorizontal();
-				
-				container.ClipContainerType = (EClipContainerType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_CONTAINERTYPE")}*", container.ClipContainerType, "MODCREATOR_BASIC_CONTAINERTYPE_");
-				
-				container.Clips ??= Array.Empty<AnimationClip>();
-				container.Clips = verticalList(container.Clips, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS")}*");
-
-				if (container.ClipContainerType == EClipContainerType.Single)
-				{
-					if (container.Clips.Length == 0)
-						container.Clips = new AnimationClip[1];
-					else if (container.Clips.Length > 1)
-						container.Clips = new[] { container.Clips[0] };
-				}
-				else
-				{
-					if (container.Clips.Length == 0)
-						container.Clips = new AnimationClip[2];
-					else if (container.Clips.Length < 2)
-						container.Clips = new[] { container.Clips[0], null };
-				}
-				
-				if (container.Clips.Length > 1)
-				{
-					GUILayout.Space(5);
-					
-					container.Thresholds ??= Array.Empty<float>();
-
-					if (container.Thresholds.Length != container.Clips.Length)
-						container.Thresholds = new float[container.Clips.Length];
-
-					container.Positions ??= Array.Empty<Vector2>();
-
-					if (container.Positions.Length != container.Clips.Length)
-						container.Positions = new Vector2[container.Clips.Length];
-
-					if (container.ClipContainerType == EClipContainerType.Linear)
-					{
-						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CONTAINERTYPE_LINEAR"), EditorStyles.boldLabel);
-						GUILayout.BeginHorizontal();
-						container.ParameterName = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_PARAMNAME")}*", container.ParameterName);
-						container.ParameterInitialValue = EditorGUILayout.FloatField($"{GetLocalizedString("MODCREATOR_BASIC_PARAMINITVALUE")}*", container.ParameterInitialValue);
-						GUILayout.EndHorizontal();
-					
-						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_THRESHOLDS"), EditorStyles.boldLabel);
-						for (var k = 0; k < container.Thresholds.Length; k++)
-							container.Thresholds[k] = EditorGUILayout.FloatField("", container.Thresholds[k]);
-					}
-					else if (container.ClipContainerType == EClipContainerType.TwoDimensional)
-					{
-						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_CONTAINERTYPE_TWODIMENSIONAL"), EditorStyles.boldLabel);
-						GUILayout.BeginHorizontal();
-						container.ParameterXName = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_PARAMXNAME")}*", container.ParameterXName);
-						container.ParameterYName = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_PARAMYNAME")}*", container.ParameterYName);
-						GUILayout.EndHorizontal();
-						container.ParameterXYInitialValue = EditorGUILayout.Vector2Field($"{GetLocalizedString("MODCREATOR_BASIC_PARAMINITVALUE")}*", container.ParameterXYInitialValue);
-					
-						EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_POSITIONS"), EditorStyles.boldLabel);
-						for (var k = 0; k < container.Positions.Length; k++)
-							container.Positions[k] = EditorGUILayout.Vector2Field("", container.Positions[k]);
-					}
-				}
-				
-				GUILayout.EndVertical();
-				
-				array[i] = container;
-			}
-
-			return array;
-		}
-
-		private void focusSelectedObject()
-		{
-			var sceneView = SceneView.lastActiveSceneView;
-				
-			var focusedField = sceneView.GetType().GetField("m_WasFocused", BindingFlags.NonPublic | BindingFlags.Instance);
-			focusedField.SetValue(sceneView, false);
-			
-			sceneView.FrameSelected(false, true);
-		}
-
-		private void startPreview(Template template, EClothingState state, Transform clothingTransform)
-		{
-			Debug.Log("Entering clothing preview mode");
-
-			// hide all states except the one we need so we can grab the appropriate renderers when cloning
-			for (var i = 0; i < template.ClothingStates.Length; i++)
-				if (template.ClothingStates[i] != null)
-					template.ClothingStates[i].gameObject.SetActive(state == (EClothingState)i);
-			
-			// get a copy of the clothing so it can be used as a preview
-			var clone = Instantiate(clothingTransform);
-			
-			// get only renderers on active objects (the correct state)
-			var renderers = clone.GetComponentsInChildren<SkinnedMeshRenderer>(false);
-
-			// re-enable all states again
-			foreach (var stateObject in template.ClothingStates)
-				if (stateObject != null)
-					stateObject.gameObject.SetActive(true);
-			
-			previewingClothingClone = new Tuple<Transform, SkinnedMeshRenderer[]>(clone, renderers);
-			previewingTemplate = template;
-			previewingState = state;
-			
-			// hide all original objects
-			foreach (var prefab in Prefabs)
-			{
-				if (prefab == null || prefab is not GameObject gameObject)
-					continue;
-				
-				gameObject.SetActive(false);
-			}
-			
-			PreviewingBodyMaterial.SetTexture("_AlphaMap", null);
-			PreviewingBody.SetActive(true);
-
-			/*// remap preview clothing bones to body bones (todo: handle lods)
-			foreach (var skinnedMeshRenderer in previewingClothingClone.Item2)
-			{
-				var currentBones = skinnedMeshRenderer.bones;
-				var newBones = new Transform[currentBones.Length];
-				for (var i = 0; i < currentBones.Length; i++)
-				{
-					var bone = currentBones[i].gameObject;
-					previewingBodyBones.TryGetValue(bone.name, out newBones[i]);
-
-					if (newBones[i] == null)
-						newBones[i] = bone.transform;
-				}
-				skinnedMeshRenderer.bones = newBones;
-			}
-			
-			// bake preview clothing meshes to adjust to new bones
-			foreach (var skinnedMeshRenderer in previewingClothingClone.Item2)
-			{
-				var transform = skinnedMeshRenderer.transform;
-				
-				var previousPosition = transform.localPosition;
-				var previousAngles = transform.localEulerAngles;
-				
-				transform.localPosition = Vector3.zero;
-				transform.localEulerAngles = Vector3.zero;
-
-				var newMesh = new Mesh();
-				skinnedMeshRenderer.BakeMesh(newMesh, true);
-				skinnedMeshRenderer.sharedMesh = newMesh;
-
-				transform.localPosition = previousPosition;
-				transform.localEulerAngles = previousAngles;
-			}*/
-			
-			Selection.activeGameObject = clone.gameObject;
-			focusSelectedObject();
-			
-			HidePreviewRenderers = !HidePreviewRenderers;
-			HidePreviewRenderers = !HidePreviewRenderers;
-			
-			clippingFixShader = Resources.Load<ComputeShader>("Compute/TransparencyBaker");
-			clippingFixKernel = clippingFixShader.FindKernel("CastRaysBVH");
-
-			dilaterShader = Resources.Load<ComputeShader>("Compute/DilateTexture");
-			dilaterKernel = dilaterShader.FindKernel("DilateTexture");
-			
-			bvhNodes = null;
-			triangles = null;
-			
-			// reset textures
-			PreviewingClippingFixTexture?.Release();
-			previewingClippingFixTexture = null;
-			
-			bakerTempRT?.Release();
-			bakerTempRT = null;
-			
-			refreshPreview(-1, BodyRaysResolution);
-		}
-
-		// PreviewingBodyMaterial - material of the test body
-		// PreviewingBody - gameobject of the test body
-		// previewingState - clothing state being previewed
-		// previewingClothingRenderers - all renderers that belong to the clothing state being previewed
-		// BodyRaysResolution - selected resolution of body rays (make sure to use the property, not the field)
-		// BodyRays - dictionary of resolution->ray[] (make sure to use the property, not the field)
-
-		private void refreshPreview(float previousClippingDistance, ERaysResolution previousBodyRaysResolution)
-		{
-			if (previewingTemplate == null)
-				return;
-
-			if (!HidePreviewRenderers)
-			{
-				previewingClothingClone.Item1.gameObject.SetActive(false);
-
-				if (previewTimer == null)
-				{
-					previewTimer = new Timer();
-					previewTimer.Interval = 500;
-					previewTimer.AutoReset = false;
-					previewTimer.Enabled = true;
-					previewTimer.Elapsed += delegate { context.Send(delegate { timerElapsed(); }, null); };
-				}
-
-				previewTimer.Stop();
-				previewTimer.Start();
-			}
-			
-			// PreviewingBodyMaterial - material of the test body
-			// PreviewingBody - gameobject of the test body
-			// previewingState - clothing state being previewed
-			// previewingClothingRenderers - all renderers that belong to the clothing state being previewed
-			
-			// if it's the first time we're baking, we need to build the BVH
-			if (bvhNodes == null || triangles == null)
-			{
-				Raycaster raycaster = new();
-
-				foreach (var renderer in previewingClothingClone.Item2)
-					raycaster.AddMesh(renderer.sharedMesh, renderer.transform);
-
-				raycaster.BuildBVH();
-
-				(bvhNodes, triangles) = raycaster.BvhRoot.ToGPU();
-			}
-			
-			// if resolution is changed, we need to update the rays buffer and the textures
-			if(BodyRaysResolution != previousBodyRaysResolution || raysBuffer == null)
-			{
-				// the getter will automatically create the texture when needed if it doesn't exist
-
-				PreviewingClippingFixTexture?.Release();
-				previewingClippingFixTexture = null;
-				
-				bakerTempRT?.Release();
-				bakerTempRT = null;
-				
-				var rays = BodyRays[BodyRaysResolution];
-				
-				raysBuffer = new ComputeBuffer(rays.Length, Ray.Size);
-				raysBuffer.SetData(rays);
-				
-				clippingFixShader.SetBuffer(clippingFixKernel, "Rays", raysBuffer);
-			}
-			
-			var bvhNodesBuffer = new ComputeBuffer(bvhNodes.Length, BVHNodeGPU.Size);
-			bvhNodesBuffer.SetData(bvhNodes);
-			
-			var trianglesBuffer = new ComputeBuffer(triangles.Length, Triangle.Size);
-			trianglesBuffer.SetData(triangles);
-			
-			// we only have one bvh root, so the only offset is 0
-			var bvhNodesOffsets = new ComputeBuffer(1, sizeof(int));
-			bvhNodesOffsets.SetData(new[] { 0 });
-			
-			// same as above, we only have one clothing piece so one distance
-			var raycastDistancesBuffer = new ComputeBuffer(1, sizeof(float));
-			raycastDistancesBuffer.SetData(new[] { previewingTemplate.ClippingDistance });
-
-			if (bakerTempRT == null)
-			{
-				bakerTempRT = new CustomRenderTexture((int)BodyRaysResolution, (int)BodyRaysResolution, RenderTextureFormat.R8);
-				bakerTempRT.doubleBuffered = true;
-				bakerTempRT.enableRandomWrite = true;
-				bakerTempRT.material = new Material(Shader.Find("White"));
-				bakerTempRT.Create();
-				bakerTempRT.Initialize();
-				bakerTempRT.Update();
-			}
-
-			clippingFixShader.SetTexture(clippingFixKernel, "Hitmap", bakerTempRT);
-			clippingFixShader.SetBuffer(clippingFixKernel, "Rays", raysBuffer);
-			clippingFixShader.SetBuffer(clippingFixKernel, "BVHNodes", bvhNodesBuffer);
-			clippingFixShader.SetBuffer(clippingFixKernel, "Triangles", trianglesBuffer);
-			clippingFixShader.SetBuffer(clippingFixKernel, "NodesOffsets", bvhNodesOffsets);
-			clippingFixShader.SetBuffer(clippingFixKernel, "RaycastDistances", raycastDistancesBuffer);
-            
-			var fence = Graphics.CreateAsyncGraphicsFence();
-			clippingFixShader.Dispatch(clippingFixKernel, bakerTempRT.width / 32, bakerTempRT.height / 32, 1);
-			Graphics.WaitOnAsyncGraphicsFence(fence);
-
-			// then dilate the texture
-			// TODO: set the dilation radius as a parameter
-			dilaterShader.SetInt("kernelSize", 6);
-			dilaterShader.SetTexture(dilaterKernel, "original", bakerTempRT);
-			dilaterShader.SetTexture(dilaterKernel, "result", PreviewingClippingFixTexture);
-            
-			fence = Graphics.CreateAsyncGraphicsFence();
-			dilaterShader.Dispatch(dilaterKernel, PreviewingClippingFixTexture.width / 32, PreviewingClippingFixTexture.height / 32, 1);
-			Graphics.WaitOnAsyncGraphicsFence(fence);
-			
-			// cleanup
-			bvhNodesBuffer.Release();
-			trianglesBuffer.Release();
-			bvhNodesOffsets.Release();
-			raycastDistancesBuffer.Release();
-			
-			SceneView.RepaintAll();
-		}
-		
-		private void stopPreview()
-		{
-			if (previewingTemplate == null)
-				return;
-
-			Debug.Log("Exiting clothing preview mode");
-
-			foreach (var prefab in Prefabs)
-			{
-				if (prefab == null || prefab is not GameObject gameObject)
-					continue;
-				
-				gameObject.SetActive(true);
-			}
-
-			previewTimer?.Stop();
-			
-			bvhNodes = null;
-			triangles = null;
-			
-			raysBuffer?.Release();
-			raysBuffer = null;
-			
-			bakerTempRT?.Release();
-			bakerTempRT = null;
-
-			previewingClippingFixTexture?.Release();
-			previewingClippingFixTexture = null;
-
-			DestroyImmediate(previewingClothingClone.Item1.gameObject);
-			PreviewingBody.SetActive(false);
-
-			Selection.activeGameObject = null;
-			focusSelectedObject();
-
-			previewingTemplate = null;
-		}
-
-		private void timerElapsed()
-		{
-			if (HidePreviewRenderers)
-				return;
-
-			previewingClothingClone.Item1.gameObject.SetActive(true);
 		}
 	}
 }

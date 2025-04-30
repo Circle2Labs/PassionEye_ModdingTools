@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Character.Enums;
+using Code.Frameworks.Character.Structs;
 using Railgun.AssetPipeline.Models;
 using UnityEditor;
 using UnityEngine;
@@ -60,7 +61,7 @@ namespace Code.Editor.ModEngine
 		public const bool IsVerbose = false;
 #endif
 
-		public const string Version = "v0.1.8.1";
+		public const string Version = "v0.1.9.0";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};
@@ -80,6 +81,7 @@ namespace Code.Editor.ModEngine
 			window.minSize = new UnityEngine.Vector2(700, 500);
 			window.Show();
 			window.InitializeLanguages();
+			window.InitializeBaseMeshes();
 		}
 		
 		public void OnGUI()
@@ -139,89 +141,7 @@ namespace Code.Editor.ModEngine
 		{
 			stopPreview();
 			SavePreset("_previous_state_", true);
-		}
-		
-		public void FixAccessoryParents()
-		{
-			foreach (var template in Templates.Where(template => template.TemplateType == ETemplateType.CharacterObject).Where(template => template.CharacterObjectType == ECharacterObjectType.Accessory))
-				for (var i = 0; i < defaultParents.Length; i++)
-					if (defaultParents[i] == template.DefaultParent)
-						template.DefaultParentIdx = i;
-		}
-		
-		public void RemoveBrokenComponents()
-        {
-        	foreach (var prefab in Prefabs)
-        	{
-        		if (prefab == null || prefab is not GameObject gameObject)
-        			return;
-
-        		var transforms = gameObject.GetComponentsInChildren<Transform>(true);
-        		foreach (var transform in transforms)
-        		{
-        			var removed = GameObjectUtility.RemoveMonoBehavioursWithMissingScript(transform.gameObject);
-        			if (removed > 0)
-        				Debug.LogWarning($"Removed {removed} broken scripts from {prefab}");
-        		}
-        	}
-        }
-
-		private string[] verticalList(string[] array, string labelTitle)
-		{
-			GUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
-				array = array.Append("").ToArray();
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
-				array = Array.Empty<string>();
-			GUILayout.EndHorizontal();
-			
-			for (var i = 0; i < array.Length; i++)
-			{
-				array[i] ??= "";
-				
-				GUILayout.BeginHorizontal();
-				array[i] = EditorGUILayout.TextField("", array[i]);
-				array[i] = array[i].Replace("\"", "");
-				if (GUILayout.Button("-", GUILayout.Width(25)))
-				{
-					array[i] = null;
-					array = array.Where(s => s != null).ToArray();
-				}
-				GUILayout.EndHorizontal();
-			}
-
-			return array;
-		}
-
-		private AnimationClip[] verticalList(AnimationClip[] array, string labelTitle)
-		{
-			GUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
-
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
-				array = array.Append(null).ToArray();
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
-				array = Array.Empty<AnimationClip>();
-			GUILayout.EndHorizontal();
-			
-			for (var i = 0; i < array.Length; i++)
-			{
-				GUILayout.BeginHorizontal();
-				array[i] = (AnimationClip)EditorGUILayout.ObjectField("", array[i], typeof(AnimationClip), false);
-				
-				if (GUILayout.Button("-", GUILayout.Width(25)))
-					array = array.Where((_, k) => i != k).ToArray();
-				
-				GUILayout.EndHorizontal();
-			}
-
-			return array;
-		}
-
-		private string itemsCount(int count)
-		{
-			return $" ({count} item{(count == 1 ? "" : "s")})";
+			UnloadBaseMeshes();
 		}
 	}
 }

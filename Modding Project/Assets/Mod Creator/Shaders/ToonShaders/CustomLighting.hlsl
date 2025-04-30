@@ -161,6 +161,11 @@ float3 DirectDiffuse(DiffuseData diffData, float3 mainLightColor) {
     ) * mainLightColor;
 }
 
+float3 Specularity(float3 lightDir, float3 viewDir, float3 normal, float power, float amount, float3 color){
+    float3 halfVec = normalize(lightDir + viewDir);
+    return pow(max(saturate(dot(normal, halfVec)), 0),power) * amount * color;
+}
+
 float3 Specularity(SpecularData specData, GeometryData geomData) {
     float3 halfVec = normalize(geomData.viewDir + geomData.lgtDir);
 
@@ -247,13 +252,27 @@ void ShadeAdditionalLights(FaceData faceData, GeometryData geomData, DiffuseData
     #endif
 }
 
+half3 IndirectLighting(float3 normal, float4 lightmapUV) {
+    float3 sh;
+    OUTPUT_SH(normal, sh);
+    #if defined(LIGHTMAP_ON) && defined(DYNAMICLIGHTMAP_ON)
+    return SAMPLE_GI(lightmapUV.xy, lightmapUV.zw, sh, normal);
+    #elif defined(DYNAMICLIGHTMAP_ON)
+    return SAMPLE_GI(lightmapUV.xy, lightmapUV.zw, sh, normal);
+    #elif defined(LIGHTMAP_ON)
+    return SAMPLE_GI(lightmapUV.xy, sh, normal);
+    #else //probes
+    return SAMPLE_GI(lightmapUV.xyz, sh, normal);
+    #endif
+}
+
 half3 IndirectLighting(GeometryData geomData) {
     #ifdef SHADERGRAPH_PREVIEW
         return 0;
     #else
-        float3 sh;
+        float3 sh = float3(0,0,0);
         OUTPUT_SH(geomData.nrmWs, sh);
-        return SAMPLE_GI(geomData.lightmapUV, sh, geomData.nrmWs);
+        return sh;//SAMPLE_GI(geomData.lightmapUV, sh, geomData.nrmWs);
     #endif
 }
 

@@ -1,0 +1,2 @@
+These materials are using the old shader and are deprecated
+Please use the materials inside NewMaterials instead
