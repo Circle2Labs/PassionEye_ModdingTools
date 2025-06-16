@@ -7,6 +7,7 @@ using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Structs;
 using Code.Frameworks.ForwardKinematics.Structs;
+using Code.Frameworks.InteractionSystem.Interactions.Base.H.Enums;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes.Flags;
 using Code.Frameworks.Studio.Enums;
@@ -204,6 +205,19 @@ public class {Type} : {GetTemplateClass(this)}
 
 		// Animation crossfade duration
 		public float AnimationFadeDuration = 0.25f;
+
+		public EHAnimationType HAnimationType = EHAnimationType.Penetration;
+		public ESupportedClimaxTypesFlags HAnimationSupportedClimaxTypes = ESupportedClimaxTypesFlags.Inside | ESupportedClimaxTypesFlags.Outside;
+		
+		public bool HAnimationArouseActive = true;
+		public bool HAnimationArousePassive = true;
+		
+		public float HAnimationArousalMultiplier = 1f;
+		public float HAnimationVerticalCameraOffset = 1f;
+		
+		public AnimationClip[] HAnimationIdleClips = Array.Empty<AnimationClip>();
+		public SClimaxAnimation[] HAnimationNonClimaxClips = Array.Empty<SClimaxAnimation>();
+		public Tuple.SerializableTuple<EClimaxType, SClimaxAnimation[]>[] HAnimationClimaxClips = Array.Empty<Tuple.SerializableTuple<EClimaxType, SClimaxAnimation[]>>();
 		
 		#endregion
 		
@@ -339,6 +353,30 @@ public class {Type} : {GetTemplateClass(this)}
 				for (var i = 0; i < Buttocks.Count; i++)
 					copiedButtocks.Add(Buttocks[i]);
 			}
+
+			AnimationClip[] copiedHAnimationIdleClips = null;
+			if (HAnimationIdleClips != null)
+			{
+				copiedHAnimationIdleClips = new AnimationClip[HAnimationIdleClips.Length];
+				Array.Copy(HAnimationIdleClips, copiedHAnimationIdleClips, HAnimationIdleClips.Length);
+			}
+
+			Tuple.SerializableTuple<EClimaxType, SClimaxAnimation[]>[] copiedHAnimationClimaxClips = null;
+			if (HAnimationClimaxClips != null)
+			{
+				copiedHAnimationClimaxClips = new Tuple.SerializableTuple<EClimaxType, SClimaxAnimation[]>[HAnimationClimaxClips.Length];
+				for (var i = 0; i < HAnimationClimaxClips.Length; i++)
+				{
+					var tuple = HAnimationClimaxClips[i];
+					
+					var copiedTuple = new Tuple.SerializableTuple<EClimaxType, SClimaxAnimation[]>();
+					copiedTuple.Item1 = tuple.Item1;
+					copiedTuple.Item2 = new SClimaxAnimation[tuple.Item2.Length];
+					Array.Copy(tuple.Item2, copiedTuple.Item2, tuple.Item2.Length);
+					
+					copiedHAnimationClimaxClips[i] = copiedTuple;
+				}
+			}
 			
 			var template = new Template
 			{
@@ -390,6 +428,10 @@ public class {Type} : {GetTemplateClass(this)}
 				AnimationClipContainers = copiedClipContainers,
 				AnimationFadeDuration = AnimationFadeDuration,
 
+				HAnimationArousalMultiplier = HAnimationArousalMultiplier,
+				HAnimationIdleClips = copiedHAnimationIdleClips,
+				HAnimationClimaxClips = copiedHAnimationClimaxClips,
+				
 				// Base Mesh
 				Avatar = Avatar,
 				SupportedGendersFlags = SupportedGendersFlags,

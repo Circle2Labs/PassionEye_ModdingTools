@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Animation.Enums;
+using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Animation.Structs;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
@@ -15,11 +15,12 @@ using UnityEditor;
 using UnityEngine;
 using Code.Frameworks.Character.Structs;
 using Code.Frameworks.ClippingFix.Enums;
+using Code.Frameworks.InteractionSystem.Interactions.Base.H.Enums;
 using Tuple = Code.Tools.Tuple;
 
 namespace Code.Editor.ModEngine
 {
-	public partial class ModCreator 
+    public partial class ModCreator 
 	{
 		[SerializeField]
 		public bool[] BasicFolds = new bool[4];
@@ -394,6 +395,73 @@ namespace Code.Editor.ModEngine
 				
 				template.AnimationClipContainers ??= Array.Empty<SClipContainer>();
 				template.AnimationClipContainers = verticalList(template.AnimationClipContainers, GetLocalizedString("MODCREATOR_BASIC_CONTAINERS"));
+				
+				if (template.AnimationUsageFlags.HasFlag(EAnimationUsageFlags.HScene))
+				{
+					GUILayout.Space(5);
+					
+					template.HAnimationType = (EHAnimationType)EditorGUILayout.EnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_HTYPE")}*", template.HAnimationType);
+					template.HAnimationSupportedClimaxTypes = (ESupportedClimaxTypesFlags)EditorGUILayout.EnumFlagsField($"{GetLocalizedString("MODCREATOR_BASIC_HSUPPORTEDCLIMAX")}*", template.HAnimationSupportedClimaxTypes);
+					
+					GUILayout.Space(5);
+					
+					template.HAnimationArouseActive = EditorGUILayout.Toggle($"{GetLocalizedString("MODCREATOR_BASIC_HAROUSEACTIVE")}*", template.HAnimationArouseActive);
+					template.HAnimationArousePassive = EditorGUILayout.Toggle($"{GetLocalizedString("MODCREATOR_BASIC_HAROUSEPASSIVE")}*", template.HAnimationArousePassive);
+					
+					GUILayout.Space(5);
+					
+					template.HAnimationArousalMultiplier = EditorGUILayout.FloatField($"{GetLocalizedString("MODCREATOR_BASIC_HAROUSALMULT")}*", template.HAnimationArousalMultiplier);
+					template.HAnimationVerticalCameraOffset = EditorGUILayout.FloatField($"{GetLocalizedString("MODCREATOR_BASIC_HVERTCAMOFFSET")}*", template.HAnimationVerticalCameraOffset);
+					
+					GUILayout.Space(5);
+
+					if (template.HAnimationIdleClips == null || template.HAnimationIdleClips.Length != template.AnimationClipContainers.Length)
+						Array.Resize(ref template.HAnimationIdleClips, template.AnimationClipContainers.Length);
+					
+					template.HAnimationIdleClips = verticalList(template.HAnimationIdleClips, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS_HIDLE")}*", true);
+
+					GUILayout.Space(5);
+					
+					if (template.HAnimationNonClimaxClips == null || template.HAnimationNonClimaxClips.Length != template.AnimationClipContainers.Length)
+						Array.Resize(ref template.HAnimationNonClimaxClips, template.AnimationClipContainers.Length);
+					
+					template.HAnimationNonClimaxClips = verticalList(template.HAnimationNonClimaxClips, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS_HNONCLIMAX")}", true);
+
+					GUILayout.Space(5);
+					
+					var climaxTypes = new List<EClimaxType>();
+					
+					foreach (Enum supportedClimaxType in Enum.GetValues(typeof(ESupportedClimaxTypesFlags)))
+					{
+						if (!template.HAnimationSupportedClimaxTypes.HasFlag(supportedClimaxType))
+							continue;
+
+						var typeInt = Convert.ToInt32(supportedClimaxType);
+						
+						// None is always set, skip it
+						if (typeInt == 0)
+							continue;
+					
+						climaxTypes.Add((EClimaxType)typeInt);
+					}
+
+					if (template.HAnimationClimaxClips == null || template.HAnimationClimaxClips.Length != climaxTypes.Count)
+						Array.Resize(ref template.HAnimationClimaxClips, climaxTypes.Count);
+
+					for (var i = 0; i < climaxTypes.Count; i++)
+					{
+						var tuple = template.HAnimationClimaxClips[i];
+						
+						if (tuple.Item2 == null || tuple.Item2.Length != template.AnimationClipContainers.Length)
+							Array.Resize(ref tuple.Item2, template.AnimationClipContainers.Length);
+						
+						var climaxType = climaxTypes[i];
+						
+						tuple.Item1 = climaxType;
+						tuple.Item2 = verticalList(tuple.Item2, $"{GetLocalizedString($"MODCREATOR_BASIC_CLIPS_HCLIMAX_{((EClimaxType)i).ToString().ToUpper()}")}*");
+						template.HAnimationClimaxClips[i] = tuple;
+					}
+				}
 				
 				GUILayout.Space(10);
 			}

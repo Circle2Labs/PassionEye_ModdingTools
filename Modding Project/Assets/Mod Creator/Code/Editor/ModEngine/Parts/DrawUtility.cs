@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Assets.Code.Frameworks.Animation.Enums;
 using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation.Structs;
@@ -592,17 +591,13 @@ namespace Code.Editor.ModEngine
 
 				if (container.ClipContainerType == EClipContainerType.Single)
 				{
-					if (container.Clips.Length == 0)
-						container.Clips = new AnimationClip[1];
-					else if (container.Clips.Length > 1)
-						container.Clips = new[] { container.Clips[0] };
+					if (container.Clips.Length == 0 || container.Clips.Length > 1)
+						Array.Resize(ref container.Clips, 1);
 				}
 				else
 				{
-					if (container.Clips.Length == 0)
-						container.Clips = new AnimationClip[2];
-					else if (container.Clips.Length < 2)
-						container.Clips = new[] { container.Clips[0], null };
+					if (container.Clips.Length == 0 || container.Clips.Length < 2)
+						Array.Resize(ref container.Clips, 2);
 				}
 				
 				if (container.Clips.Length > 1)
@@ -612,12 +607,12 @@ namespace Code.Editor.ModEngine
 					container.Thresholds ??= Array.Empty<float>();
 
 					if (container.Thresholds.Length != container.Clips.Length)
-						container.Thresholds = new float[container.Clips.Length];
+						Array.Resize(ref container.Thresholds, container.Clips.Length);
 
 					container.Positions ??= Array.Empty<Vector2>();
 
 					if (container.Positions.Length != container.Clips.Length)
-						container.Positions = new Vector2[container.Clips.Length];
+						Array.Resize(ref container.Positions, container.Clips.Length);
 
 					if (container.ClipContainerType == EClipContainerType.Linear)
 					{
@@ -771,24 +766,55 @@ namespace Code.Editor.ModEngine
 			return array;
 		}
 		
-		private AnimationClip[] verticalList(AnimationClip[] array, string labelTitle)
+		private SClimaxAnimation[] verticalList(SClimaxAnimation[] array, string labelTitle, bool nonClimax = false)
+		{
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+			GUILayout.EndHorizontal();
+			
+			var prefix = nonClimax ? "NON" : "";
+			var postfix = nonClimax ? "" : "*";
+
+			for (var i = 0; i < array.Length; i++)
+			{
+				var element = array[i];
+				
+				element.Transition = (AnimationClip)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_CLIPS_HTRANSITION"), element.Transition, typeof(AnimationClip), false);
+				element.Climax = (AnimationClip)EditorGUILayout.ObjectField($"{GetLocalizedString($"MODCREATOR_BASIC_CLIPS_H{prefix}CLIMAX")}{postfix}", element.Climax, typeof(AnimationClip), false);
+				element.Idle = (AnimationClip)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_CLIPS_HIDLE"), element.Idle, typeof(AnimationClip), false);
+				
+				array[i] = element;
+				
+				GUILayout.Space(5);
+			}
+
+			return array;
+		}
+		
+		private AnimationClip[] verticalList(AnimationClip[] array, string labelTitle, bool modifyOnly = false)
 		{
 			GUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
 
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
-				array = array.Append(null).ToArray();
-			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
-				array = Array.Empty<AnimationClip>();
+			if (!modifyOnly)
+			{
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+					array = array.Append(null).ToArray();
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+					array = Array.Empty<AnimationClip>();
+			}
 			GUILayout.EndHorizontal();
 			
 			for (var i = 0; i < array.Length; i++)
 			{
 				GUILayout.BeginHorizontal();
 				array[i] = (AnimationClip)EditorGUILayout.ObjectField("", array[i], typeof(AnimationClip), false);
-				
-				if (GUILayout.Button("-", GUILayout.Width(25)))
-					array = array.Where((_, k) => i != k).ToArray();
+
+				if (!modifyOnly)
+				{
+					if (GUILayout.Button("-", GUILayout.Width(25)))
+						array = array.Where((_, k) => i != k).ToArray();
+				}
 				
 				GUILayout.EndHorizontal();
 			}

@@ -1,42 +1,41 @@
-using Assets.Code.Frameworks.Animation.Enums;
-using System;
 using Code.Frameworks.Animation.Enums;
+using System;
 using UnityEngine;
 
 namespace Code.Frameworks.Animation.Structs
 {
-    [Serializable]
+	[Serializable]
 	public struct SClipContainer
 	{
-        public EClipUsageFlags ClipUsageFlags;
+		public EClipUsageFlags ClipUsageFlags;
 
-        public EClipContainerType ClipContainerType;
+		public EClipContainerType ClipContainerType;
         
-        #region OneDimension
+		#region OneDimension
 
-        [SerializeField]
+		[SerializeField]
 		public string ParameterName;
 
-        [SerializeField]
-        public float ParameterInitialValue;
+		[SerializeField]
+		public float ParameterInitialValue;
 
-        [SerializeField]
+		[SerializeField]
 		public float[] Thresholds;
 
-        #endregion
+		#endregion
 
-        #region TwoDimensions
+		#region TwoDimensions
 
-        [SerializeField]
-        public string ParameterXName;
+		[SerializeField]
+		public string ParameterXName;
 
-        [SerializeField]
-        public string ParameterYName;
+		[SerializeField]
+		public string ParameterYName;
 
-        [SerializeField]
-        public Vector2 ParameterXYInitialValue;
+		[SerializeField]
+		public Vector2 ParameterXYInitialValue;
 
-        [SerializeField]
+		[SerializeField]
 		public Vector2[] Positions;
 
 		#endregion

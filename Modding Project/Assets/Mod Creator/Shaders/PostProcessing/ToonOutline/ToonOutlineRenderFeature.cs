@@ -17,37 +17,50 @@ namespace Code.Frameworks.Outline
         private Shader blurBlendShader;
         private Material toonOutlineMat;
         private Material blurBlendMat;
+        private GraphicsFormat cameraColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
         
         //rthandles
         RTHandleSystem rtHandleSystem;
         RTHandle outlineRT, blurredOutlineRT;
         
         int width, height;
-        
+
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            if(width != renderingData.cameraData.camera.pixelWidth || height != renderingData.cameraData.camera.pixelHeight)
+            if(renderingData.cameraData.cameraType == CameraType.Game)
             {
-                width = renderingData.cameraData.camera.pixelWidth;
-                height = renderingData.cameraData.camera.pixelHeight;
-                rtHandleSystem.ResetReferenceSize(width, height);
+                if(width != renderingData.cameraData.camera.pixelWidth || height != renderingData.cameraData.camera.pixelHeight)
+                {
+                    width = renderingData.cameraData.camera.pixelWidth;
+                    height = renderingData.cameraData.camera.pixelHeight;
+                    rtHandleSystem.ResetReferenceSize(width, height);
+                }
+                    
+                toonOutlinePass.ConfigureInput(ScriptableRenderPassInput.Color |
+                                               ScriptableRenderPassInput.Depth |
+                                               ScriptableRenderPassInput.Normal);
+                
+                renderer.EnqueuePass(toonOutlinePass);
+                
             }
-            
-            toonOutlinePass.ConfigureInput(ScriptableRenderPassInput.Color |
-                                           ScriptableRenderPassInput.Depth |
-                                           ScriptableRenderPassInput.Normal);
-            renderer.EnqueuePass(toonOutlinePass);
+        }
+        
+        public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) {
+            if(renderingData.cameraData.cameraType == CameraType.Game)
+                cameraColorFormat = renderingData.cameraData.renderer.cameraColorTargetHandle.rt.graphicsFormat;
+            base.SetupRenderPasses(renderer, in renderingData);
         }
 
         public override void Create()
         {
+            
             //create materials only if they aren't already istantiated
             if (toonOutlineMat == null)
             {
                 toonOutlineMat = CoreUtils.CreateEngineMaterial(toonOutlineShader);
                 blurBlendMat = CoreUtils.CreateEngineMaterial(blurBlendShader);
             }
-
+            
             //initialize rthandlesystem and rthandles
             if (rtHandleSystem == null)
             {
@@ -59,7 +72,7 @@ namespace Code.Frameworks.Outline
                 //instantiate rthandles
                 outlineRT = rtHandleSystem.Alloc(
                     scaleFactor: Vector2.one,
-                    colorFormat: GraphicsFormat.R8G8B8A8_SRGB,
+                    colorFormat: cameraColorFormat,
                     enableRandomWrite: true,
                     useMipMap: true,
                     msaaSamples: MSAASamples.None,
@@ -68,7 +81,7 @@ namespace Code.Frameworks.Outline
 
                 blurredOutlineRT = rtHandleSystem.Alloc(
                     scaleFactor: Vector2.one,
-                    colorFormat: GraphicsFormat.R8G8B8A8_SRGB,
+                    colorFormat: cameraColorFormat,
                     enableRandomWrite: true,
                     useMipMap: false,
                     msaaSamples: MSAASamples.None,
@@ -142,9 +155,10 @@ namespace Code.Frameworks.Outline
                 context.ExecuteCommandBuffer(cmd);
                 context.Submit();
 
-                cmd.Clear();
+                CommandBufferPool.Release(cmd);
                 
-                CommandBuffer cmd2 = CommandBufferPool.Get("Toon Outline Blur/Blend Pass");
+                CommandBuffer cmd2 = CommandBufferPool.Get("Toon Outline Pass/Blur Blend Pass");
+                cmd2.Clear();
                 
                 cmd2.SetRenderTarget(blurredOutlineRT, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 cmd2.ClearRenderTarget(true, true, Color.clear);
@@ -162,8 +176,7 @@ namespace Code.Frameworks.Outline
                 context.ExecuteCommandBuffer(cmd2);
                 context.Submit();
 
-                cmd.Dispose();
-                cmd2.Dispose();
+                CommandBufferPool.Release(cmd2);
             }
         }
 
