@@ -1,10 +1,6 @@
 Shader "Toon/Face"
 {
     Properties {
-        _LightSmooth("Light Smoothing", Range(0.0001,1)) = 0.3
-        _LightMin("Light Min", Range(0,0.999)) = 0.25
-        _MidPoint("Mid Point", Range(0,1)) = 0.25
-        
         [Toggle]_EnableCameraLight("Enable Camera Light", Float) = 1
         _CameraLightColor("Camera Light Color", Color) = (1,1,1,1)
         _CameraLightSmooth("Camera Light Smoothing", Range(0.0001,1)) = 0.3
@@ -30,12 +26,6 @@ Shader "Toon/Face"
         // SDF face map
         _FaceShadowTex("Face Shadow Texture", 2D) = "white" {}
         [PowerSlider(2)]_FaceShadowSmooth("Face Shadow Smoothing", Range(0, .25)) = 0.1
-        
-        // hue shift
-        _ShiftAmount("Shift Amount", Range(0,1)) = 0.1
-        _kelvinTemp("Kelvin temperature", Range(0, 1)) = .5
-        _DayNightRamp("Day Night Ramp", 2D) = "white" {}
-        _DNTintStr("Day Night Tint Strength", Range(0, 1)) = 1
         
         // Face vectors
         _FaceForward("Face Forward", Vector) = (0, 0, 0, 0)

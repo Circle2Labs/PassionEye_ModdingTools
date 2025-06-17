@@ -4,11 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Assets.Code.Frameworks.Animation.Enums;
+using Code.Frameworks.Animation.Enums;
 using Code.Components;
 using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Animation;
-using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation.Interfaces;
 using Code.Frameworks.Character.CharacterObjects;
 using Code.Frameworks.Character.Enums;
@@ -39,7 +38,7 @@ using Vector2 = UnityEngine.Vector2;
 
 namespace Code.Editor.ModEngine
 {
-	public partial class ModCreator 
+    public partial class ModCreator 
 	{
 		[SerializeField]
 		public bool DebugMode;
@@ -725,13 +724,23 @@ namespace Code.Editor.ModEngine
 					Debug.Log($"Deleting existing file {file}");
 					File.Delete(file);
 				}
+
+				var partialPath = file + ".partial";
+				
+				if (File.Exists(partialPath))
+					File.Delete(partialPath);
 				
 				try
 				{
-					if (ServiceProvider.Obtain<IModWriter>().WriteMod(file, mod))
+					if (ServiceProvider.Obtain<IModWriter>().WriteMod(partialPath, mod))
+					{
+						File.Move(partialPath, file);
 						Debug.Log("Saved mod " + file);
+					}
 					else
+					{
 						Debug.LogError("Failed saving mod " + file);
+					}
 				}
 				catch (Exception e)
 				{
@@ -946,7 +955,31 @@ namespace Code.Editor.ModEngine
 					for (var k = existing.Length - 1; k >= 0; k--)
 						DestroyImmediate((Component)existing[k]);
 
-					var animation = gameObject.AddComponent<BaseAnimation>();
+					BaseAnimation animation;
+					
+					if (template.AnimationUsageFlags.HasFlag(EAnimationUsageFlags.HScene))
+					{
+						var hAnimation = gameObject.AddComponent<HAnimation>();
+						hAnimation.Type = template.HAnimationType;
+						hAnimation.SupportedClimaxTypes = template.HAnimationSupportedClimaxTypes;
+						hAnimation.ArouseActive = template.HAnimationArouseActive;
+						hAnimation.ArousePassive = template.HAnimationArousePassive;
+						hAnimation.ArousalMultiplier = template.HAnimationArousalMultiplier;
+						hAnimation.CameraPositionOffset = template.HAnimationCameraPositionOffset;
+						hAnimation.CameraAnglesOffset = template.HAnimationCameraAnglesOffset;
+						hAnimation.CameraDistance = template.HAnimationCameraDistance;
+						hAnimation.RaycastDown = template.HAnimationRaycastDown;
+						hAnimation.IdleClips = template.HAnimationIdleClips;
+						hAnimation.NonClimaxClips = template.HAnimationNonClimaxClips;
+						hAnimation.ClimaxClips = template.HAnimationClimaxClips;
+						
+						animation = hAnimation;
+					}
+					else
+					{
+						animation = gameObject.AddComponent<BaseAnimation>();
+					}
+					
 					animation.Name = template.Name;
 					animation.Description = template.Description;
 					animation.IsNSFW = template.IsNSFW;
@@ -1182,6 +1215,33 @@ namespace Code.Editor.ModEngine
 										{
 											pass = false;
 											Debug.LogError($"Invalid clips found in {anim.name} container {k} in scene {template.Name}");
+										}
+									}
+								}
+
+								if (anim is HAnimation hAnimation)
+								{
+									for (var k = 0; k < hAnimation.IdleClips.Length; k++)
+									{
+										if (hAnimation.IdleClips[k] != null)
+											continue;
+
+										pass = false;
+										Debug.LogWarning($"Idle clip is not set in {hAnimation.Name} index {k} in scene {template.Name}");
+									}
+									
+									for (var k = 0; k < hAnimation.ClimaxClips.Length; k++)
+									{
+										var climaxType = hAnimation.ClimaxClips[k].Item1;
+										
+										var climaxAnimations = hAnimation.ClimaxClips[k].Item2;
+										for (var l = 0; l < climaxAnimations.Length; l++)
+										{
+											if (climaxAnimations[l].Climax != null)
+												continue;
+
+											pass = false;
+											Debug.LogWarning($"Climax clip is not set for type {climaxType} in {hAnimation.Name} index {l} in scene {template.Name}");
 										}
 									}
 								}
@@ -1460,7 +1520,29 @@ namespace Code.Editor.ModEngine
 						if (template.Avatar == null)
 						{
 							pass = false;
-							Debug.LogError($"Avatar is invalid for {template.Name}");
+							Debug.LogError($"Avatar is not set for {template.Name}");
+						}
+						else
+						{
+							var avatarValid = false;
+							
+							try
+							{
+								var builtAvatar = AvatarBuilder.BuildHumanAvatar(gameObject, template.Avatar.humanDescription);
+								
+								if (template.Avatar.isValid && template.Avatar.isHuman && builtAvatar.isValid && builtAvatar.isHuman)
+									avatarValid = true;
+							}
+							catch (Exception e)
+							{
+								Debug.LogError($"Failed building avatar for {template.Name}, {e}");
+							}
+
+							if (!avatarValid)
+							{
+								pass = false;
+								Debug.LogError($"Avatar is invalid for {template.Name}. Make sure it is set to Humanoid and all bones are set up correctly");
+							}
 						}
 						
 						if (template.TextureMaterialMap == null || template.TextureMaterialMap.Count < 2)
@@ -1589,6 +1671,33 @@ namespace Code.Editor.ModEngine
 								}
 							}
 						}
+						
+						if (animation is HAnimation hAnimation)
+						{
+							for (var k = 0; k < hAnimation.IdleClips.Length; k++)
+							{
+								if (hAnimation.IdleClips[k] != null)
+									continue;
+
+								pass = false;
+								Debug.LogWarning($"Idle clip is not set in {hAnimation.Name} index {k} in {template.Name}");
+							}
+									
+							for (var k = 0; k < hAnimation.ClimaxClips.Length; k++)
+							{
+								var climaxType = hAnimation.ClimaxClips[k].Item1;
+										
+								var climaxAnimations = hAnimation.ClimaxClips[k].Item2;
+								for (var l = 0; l < climaxAnimations.Length; l++)
+								{
+									if (climaxAnimations[l].Climax != null)
+										continue;
+
+									pass = false;
+									Debug.LogWarning($"Climax clip is not set for type {climaxType} in {hAnimation.Name} index {l} in {template.Name}");
+								}
+							}
+						}
 					}
 
 					var anySkinnedRenderers = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
@@ -1614,6 +1723,13 @@ namespace Code.Editor.ModEngine
 								Debug.LogError($"Armature for {template.Name} was not found. Skinned meshes must have an armature at the root of the object, with the name of \"Armature\"");
 							}
 						}
+					}
+
+					var anyAnimators = gameObject.GetComponentsInChildren<Animator>();
+					if (anyAnimators != null && anyAnimators.Length != 0)
+					{
+						pass = false;
+						Debug.LogError($"Object {template.Name} contains an Animator component. It is created on runtime when needed and should not be saved into the mod. Remove the Animator component to resolve this error");
 					}
 				}
 				else
@@ -1722,7 +1838,10 @@ namespace Code.Editor.ModEngine
 				if (template.TemplateType == ETemplateType.ModdedScene && Prefabs[i] != null)
 				{
 					if (template.ModdedSceneUsageFlags == 0)
-						Debug.LogWarning($"Modded Scene usage is empty for {template.Name}");
+					{
+						pass = false;
+						Debug.LogError($"Modded Scene Usage is empty for {template.Name}");
+					}
 
 					var path = AssetDatabase.GetAssetOrScenePath((SceneAsset)Prefabs[i]);
 					var currentScene = SceneManager.GetActiveScene();

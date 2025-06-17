@@ -29,6 +29,16 @@ Texture2D _NormalMap;
 SamplerState sampler_NormalMap;
 float4 _NormalMap_ST;
 float _NormalStrength;
+
+// Clothing layer
+float _ClothingLayer;
+float _ClothingLayersSeparation;
+
+// ALPHA Values
+float _UseAlphaForTransparency;
+float _AlphaClip;
+float _Cutoff;
+float _Surface;
 CBUFFER_END
 
 #pragma vertex vert
@@ -56,13 +66,20 @@ v2f vert(v IN)
     OUT.lmuv       = IN.lmuv;
     OUT.rtuv       = IN.rtuv;
 
+    //push position of vertex towards camera normal plane based on clothing layer
+    float linearZ  = Linear01Depth(OUT.position.z, _ZBufferParams);
+    OUT.position.z += _ClothingLayersSeparation * _ClothingLayer * linearZ;
+    
+    float3 viewDir = GetWorldSpaceViewDir(OUT.positionWS);
+    OUT.positionWS += normalize(viewDir) * _ClothingLayer * _ClothingLayersSeparation;
+
     return OUT;
 }
 
 #define RED_HUE 0
 #define BLUE_HUE 240
 
-float4 frag(v2f IN) : SV_Target
+float4 frag(v2f IN, float facing : VFACE) : SV_Target
 {    
     #ifdef LOD_FADE_CROSSFADE
         LODFadeCrossFade(IN.position);
@@ -82,6 +99,11 @@ float4 frag(v2f IN) : SV_Target
                                          _NormalStrength));
     float3 normalWS = NormalMapToWorld(normalSample, IN.normal, IN.tangent);
 
+    if (facing < 0)
+    {
+        normalWS = -normalWS;
+    }
+    
     float4 color = _TintColor * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(IN.uv, _MainTex));
 
     //---------------------------------------
@@ -132,6 +154,18 @@ float4 frag(v2f IN) : SV_Target
         }
     #endif
 
+    // ---------------------------------------
+    // ALPHA
+    // ---------------------------------------
+    float alpha = color.a;
+
+    if(_AlphaClip)
+    {
+        clip(alpha - _Cutoff);
+        alpha = SharpenAlpha(alpha, _Cutoff);
+    }
+    
+    alpha = OutputAlpha(alpha, _Surface);
     
     // ---------------------------------------
     //Color hue shifting based on light/shadow
@@ -143,6 +177,9 @@ float4 frag(v2f IN) : SV_Target
 
     colLighting = lerp(colLighting, colLighting * lerp(shadowTint, lightTint, lighting), _DNTintStr);
 
-    return color * (colLighting + float4(ambientLight, 1) + float4(addLightFinal, 1));
+    float4 finalColor = color * (colLighting + float4(ambientLight, 1) + float4(addLightFinal, 1));
+    finalColor.a = alpha;
+
+    return finalColor;
 }
 #endif

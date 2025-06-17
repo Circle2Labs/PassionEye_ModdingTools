@@ -36,6 +36,13 @@ float4 _RimLightColor;
 float _RimLightAmount;
 float _RimLightPower;
 
+// Clothing layer
+float _ClothingLayer;
+float _ClothingLayersSeparation;
+
+// ALPHA Values
+float _UseAlphaForTransparency;
+float _AlphaClip;
 float _Cutoff;
 float _Surface;
 CBUFFER_END
@@ -65,22 +72,26 @@ v2f vert(v IN)
     OUT.lmuv       = IN.lmuv;
     OUT.rtuv       = IN.rtuv;
 
+    //push position of vertex towards camera normal plane based on clothing layer
+    float linearZ  = Linear01Depth(OUT.position.z, _ZBufferParams);
+    OUT.position.z += _ClothingLayersSeparation * _ClothingLayer * linearZ;
+    
+    float3 viewDir = GetWorldSpaceViewDir(OUT.positionWS);
+    OUT.positionWS += normalize(viewDir) * _ClothingLayer * _ClothingLayersSeparation;
+
     return OUT;
 }
 
 #define RED_HUE 0
 #define BLUE_HUE 240
 
-float4 frag(v2f IN) : SV_Target
+float4 frag(v2f IN, float facing : VFACE) : SV_Target
 {
     #ifdef LOD_FADE_CROSSFADE
         LODFadeCrossFade(IN.position);
     #endif
 
     float4 albedoSample = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(IN.uv, _MainTex));
-
-    // Alpha Clipping
-    float alpha = CalculateAlpha(albedoSample.a, _Cutoff, _Surface); 
 
     half4 shadowMask = SAMPLE_SHADOWMASK(geomData.shadowCoord);
 
@@ -95,6 +106,12 @@ float4 frag(v2f IN) : SV_Target
                                          UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, TRANSFORM_TEX(IN.uv, _NormalMap))),
                                          _NormalStrength));
     float3 normalWS = NormalMapToWorld(normalSample, IN.normal, IN.tangent);
+
+    // if we're on a backface, flip the normal
+    if (facing < 0)
+    {
+        normalWS = -normalWS;
+    }
 
     float4 color = _TintColor * albedoSample;
 
@@ -140,6 +157,18 @@ float4 frag(v2f IN) : SV_Target
         }
     #endif
 
+    // ---------------------------------------
+    // ALPHA
+    // ---------------------------------------
+    float alpha = color.a;
+
+    if(_AlphaClip)
+    {
+        clip(alpha - _Cutoff);
+        alpha = SharpenAlpha(alpha, _Cutoff);
+    }
+    
+    alpha = OutputAlpha(alpha, _Surface);
     
     // ---------------------------------------
     //Color hue shifting based on light/shadow

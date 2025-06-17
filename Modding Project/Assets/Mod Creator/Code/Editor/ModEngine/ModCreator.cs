@@ -61,7 +61,8 @@ namespace Code.Editor.ModEngine
 		public const bool IsVerbose = false;
 #endif
 
-		public const string Version = "v0.1.9.0";
+		public const string Version = "v0.1.10.0";
+		public const string EditorVersion = "2022.3.53f1";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};
@@ -86,6 +87,21 @@ namespace Code.Editor.ModEngine
 		
 		public void OnGUI()
 		{
+			if (Application.unityVersion != EditorVersion)
+			{
+				EditorGUILayout.LabelField("Unsupported Unity Editor Version", EditorStyles.boldLabel);
+
+				GUILayout.Space(8);
+				
+				EditorGUILayout.LabelField($"This version of Mod Creator expects Unity {EditorVersion}");
+				EditorGUILayout.LabelField($"However the current version is Unity {Application.unityVersion}");
+
+				GUILayout.Space(8);
+				
+				EditorGUILayout.LabelField("Please upgrade your project to the correct Unity version");
+				return;
+			}
+			
 			if (CurrentTemplate != -1 && Templates.Count > CurrentTemplate)
 			{
 				CurrentTab = GUILayout.Toolbar(CurrentTab, Templates[CurrentTemplate].Advanced
