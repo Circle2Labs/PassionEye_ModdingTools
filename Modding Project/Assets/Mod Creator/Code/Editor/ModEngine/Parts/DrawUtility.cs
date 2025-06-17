@@ -791,6 +791,37 @@ namespace Code.Editor.ModEngine
 			return array;
 		}
 		
+		private bool[] verticalList(bool[] array, string labelTitle, bool modifyOnly = false)
+		{
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+
+			if (!modifyOnly)
+			{
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+					array = array.Append(false).ToArray();
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+					array = Array.Empty<bool>();
+			}
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < array.Length; i++)
+			{
+				GUILayout.BeginHorizontal();
+				array[i] = EditorGUILayout.ToggleLeft($"{GetLocalizedString("MODCREATOR_BASIC_CONTAINER")} {i}", array[i]);
+
+				if (!modifyOnly)
+				{
+					if (GUILayout.Button("-", GUILayout.Width(25)))
+						array = array.Where((_, k) => i != k).ToArray();
+				}
+				
+				GUILayout.EndHorizontal();
+			}
+
+			return array;
+		}
+		
 		private AnimationClip[] verticalList(AnimationClip[] array, string labelTitle, bool modifyOnly = false)
 		{
 			GUILayout.BeginHorizontal();

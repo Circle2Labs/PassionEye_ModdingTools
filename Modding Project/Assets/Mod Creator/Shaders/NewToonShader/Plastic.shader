@@ -1,10 +1,6 @@
 Shader "Toon/Plastic"
 {
     Properties {
-        _LightSmooth("Light Smoothing", Range(0.0001,1)) = 0.3
-        _LightMin("Light Min", Range(0,0.999)) = 0.25
-        _MidPoint("Mid Point", Range(0,1)) = 0.25
-        
         // Main color
         _TintColor("Main Color", Color) = (1,1,1,1)
         _MainTex("Base Color", 2D) = "white" {}
@@ -23,13 +19,11 @@ Shader "Toon/Plastic"
         _RimLightAmount("Rim Light Amount", Range(0.0, 1)) = 1.0
         _RimLightPower("Rim Light Power", Range(0, 30)) = 5
         
-        // hue shift
-        _ShiftAmount("Shift Amount", Range(0,1)) = 0.1
-        _kelvinTemp("Kelvin temperature", Range(0, 1)) = .5
-        _DayNightRamp("Day Night Ramp", 2D) = "white" {}
-        _DNTintStr("Day Night Tint Strength", Range(0, 1)) = 1
-        
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        
+        // Clothing layers
+        _ClothingLayersSeparation ("Clothing Layers Separation", Range(0, 0.01)) = 0.003
+        _ClothingLayer ("Clothing Layer", float) = 0
         
         // Blending state
         [HideInInspector]_Surface("__surface", Float) = 0.0

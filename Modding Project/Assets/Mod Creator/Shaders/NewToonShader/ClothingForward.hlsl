@@ -86,7 +86,7 @@ v2f vert(v IN)
 #define RED_HUE 0
 #define BLUE_HUE 240
 
-float4 frag(v2f IN) : SV_Target
+float4 frag(v2f IN, float facing : VFACE) : SV_Target
 {    
     #ifdef LOD_FADE_CROSSFADE
         LODFadeCrossFade(IN.position);
@@ -111,6 +111,11 @@ float4 frag(v2f IN) : SV_Target
     float3 fullNrm = normalize(float3(normalSample.rg + fiberNormal.rg, normalSample.b * fiberNormal.b));
     float3 normalWS = NormalMapToWorld(fullNrm, IN.normal, IN.tangent);
 
+    if (facing < 0)
+    {
+        normalWS = -normalWS;
+    }
+    
     float4 color = _TintColor *
         SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(IN.uv, _MainTex)) *
         SAMPLE_TEXTURE2D(_ClothFiberMap, sampler_ClothFiberMap, TRANSFORM_TEX(IN.uv, _ClothFiberMap));

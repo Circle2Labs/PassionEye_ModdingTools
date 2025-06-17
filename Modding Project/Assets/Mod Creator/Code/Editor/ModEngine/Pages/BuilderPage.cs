@@ -965,7 +965,10 @@ namespace Code.Editor.ModEngine
 						hAnimation.ArouseActive = template.HAnimationArouseActive;
 						hAnimation.ArousePassive = template.HAnimationArousePassive;
 						hAnimation.ArousalMultiplier = template.HAnimationArousalMultiplier;
-						hAnimation.VerticalCameraOffset = template.HAnimationVerticalCameraOffset;
+						hAnimation.CameraPositionOffset = template.HAnimationCameraPositionOffset;
+						hAnimation.CameraAnglesOffset = template.HAnimationCameraAnglesOffset;
+						hAnimation.CameraDistance = template.HAnimationCameraDistance;
+						hAnimation.RaycastDown = template.HAnimationRaycastDown;
 						hAnimation.IdleClips = template.HAnimationIdleClips;
 						hAnimation.NonClimaxClips = template.HAnimationNonClimaxClips;
 						hAnimation.ClimaxClips = template.HAnimationClimaxClips;

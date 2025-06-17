@@ -411,8 +411,20 @@ namespace Code.Editor.ModEngine
 					GUILayout.Space(5);
 					
 					template.HAnimationArousalMultiplier = EditorGUILayout.FloatField($"{GetLocalizedString("MODCREATOR_BASIC_HAROUSALMULT")}*", template.HAnimationArousalMultiplier);
-					template.HAnimationVerticalCameraOffset = EditorGUILayout.FloatField($"{GetLocalizedString("MODCREATOR_BASIC_HVERTCAMOFFSET")}*", template.HAnimationVerticalCameraOffset);
 					
+					GUILayout.Space(5);
+					
+					template.HAnimationCameraPositionOffset = EditorGUILayout.Vector3Field(GetLocalizedString("MODCREATOR_BASIC_HCAMERAPOSITIONOFFSET"), template.HAnimationCameraPositionOffset);
+					template.HAnimationCameraAnglesOffset = EditorGUILayout.Vector3Field(GetLocalizedString("MODCREATOR_BASIC_HCAMERAANGLESOFFSET"), template.HAnimationCameraAnglesOffset);
+					template.HAnimationCameraDistance = EditorGUILayout.FloatField(GetLocalizedString("MODCREATOR_BASIC_HCAMERADISTANCE"), template.HAnimationCameraDistance);
+
+					GUILayout.Space(5);
+
+					if (template.HAnimationRaycastDown == null || template.HAnimationRaycastDown.Length != template.AnimationClipContainers.Length)
+						Array.Resize(ref template.HAnimationRaycastDown, template.AnimationClipContainers.Length);
+					
+					template.HAnimationRaycastDown = verticalList(template.HAnimationRaycastDown, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS_HRAYCASTDOWN")}*", true);
+
 					GUILayout.Space(5);
 
 					if (template.HAnimationIdleClips == null || template.HAnimationIdleClips.Length != template.AnimationClipContainers.Length)

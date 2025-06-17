@@ -1,10 +1,6 @@
 ﻿Shader "Toon/Clothing"
 {
     Properties {
-        _LightSmooth("Light Smoothing", Range(0.0001,1)) = 0.3
-        _LightMin("Light Min", Range(0,0.999)) = 0.25
-        _MidPoint("Mid Point", Range(0,1)) = 0.25
-        
         [Toggle]_EnableCameraLight("Enable Camera Light", Float) = 1
         _CameraLightColor("Camera Light Color", Color) = (1,1,1,1)
         _CameraLightSmooth("Camera Light Smoothing", Range(0.0001,1)) = 0.3
@@ -24,12 +20,6 @@
         _Sheen("Sheen", Range(0, 1)) = 0.25
         [PowerSlider(500)] _SheenPower("Sheen Power", Range(1, 1000)) = 1
         _SheenColor("Sheen Color", Color) = (1,1,1,1)
-        
-        // hue shift
-        _ShiftAmount("Shift Amount", Range(0,1)) = 0.1
-        _kelvinTemp("Kelvin temperature", Range(0, 1)) = .5
-        _DayNightRamp("Day Night Ramp", 2D) = "white" {}
-        _DNTintStr("Day Night Tint Strength", Range(0, 1)) = 1
         
         // Clothing layers
         _ClothingLayersSeparation ("Clothing Layers Separation", Range(0, 0.01)) = 0.003

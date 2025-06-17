@@ -6,7 +6,7 @@ using Tuple = Code.Tools.Tuple;
 
 namespace Code.Frameworks.Animation
 {
-	public class HAnimation : BaseAnimation
+    public class HAnimation : BaseAnimation
 	{
 		/// <summary>
 		/// Type of this H animation
@@ -41,11 +41,22 @@ namespace Code.Frameworks.Animation
 		public float ArousalMultiplier { get; set; }
 		
 		/// <summary>
-		/// Offset the default vertical position of the camera
-		/// Standing poses and lying down poses might have different defaults
+		/// Position offset from the HLocation applied to the camera when this animation is switched into
 		/// </summary>
 		[field: SerializeField]
-		public float VerticalCameraOffset { get; set; }
+		public Vector3 CameraPositionOffset { get; set; }
+
+		/// <summary>
+		/// Angles offset from the HLocation applied to the camera when this animation is switched into
+		/// </summary>
+		[field: SerializeField]
+		public Vector3 CameraAnglesOffset { get; set; }
+		
+		/// <summary>
+		/// Distance from the HLocation with offsets applied to the camera when this animation is switched into
+		/// </summary>
+		[field: SerializeField]
+		public float CameraDistance { get; set; }
 		
 		/// <summary>
 		/// Idle animations per-container
@@ -74,13 +85,20 @@ namespace Code.Frameworks.Animation
 		[field: SerializeField]
 		public Tuple.SerializableTuple<EClimaxType, SClimaxAnimation[]>[] ClimaxClips { get; set; }
 
-		/// <summary>
-		/// Returns climax animations for specified climax type
-		/// Array indexing matches clip container setup
-		/// eg:
-		/// if first container is male, the first index returned will be the climax animation for male
-		/// </summary>
-		public SClimaxAnimation[] GetClimaxClips(EClimaxType climaxType)
+        /// <summary>
+        /// In case an HLocation is not on the ground use that distance to the ground to
+		/// adjust the participants Y position for all animations
+        /// </summary>
+        [field: SerializeField]
+		public bool[] RaycastDown { get; set; }
+
+        /// <summary>
+        /// Returns climax animations for specified climax type
+        /// Array indexing matches clip container setup
+        /// eg:
+        /// if first container is male, the first index returned will be the climax animation for male
+        /// </summary>
+        public SClimaxAnimation[] GetClimaxClips(EClimaxType climaxType)
 		{
 			if (ClimaxClips == null)
 				return null;

@@ -14,6 +14,8 @@ namespace Code.Components
         public void Open();
         public void Close();
         public void Toggle();
+        public void SetValue(float amount);
+        public float GetValue();
     }
 
     public class DoorController : MonoBehaviour, IDoorController
@@ -22,10 +24,7 @@ namespace Code.Components
         public EDoorType DoorType { get; set; }
 
         [field: SerializeField]
-        public float SwingDistance { get; set; }
-
-        [field: SerializeField]
-        public float SlideDistance { get; set; }
+        public float Distance { get; set; }
 
         [field: SerializeField]
         public AnimationCurve DoorCurve { get; set; }
@@ -52,6 +51,16 @@ namespace Code.Components
         public void Toggle()
         {
 
+        }
+
+        public void SetValue(float amount)
+        {
+            
+        }
+
+        public float GetValue()
+        {
+            return 0f;
         }
     }
 }

@@ -213,7 +213,12 @@ public class {Type} : {GetTemplateClass(this)}
 		public bool HAnimationArousePassive = true;
 		
 		public float HAnimationArousalMultiplier = 1f;
-		public float HAnimationVerticalCameraOffset = 1f;
+		
+		public Vector3 HAnimationCameraPositionOffset = Vector3.zero;
+		public Vector3 HAnimationCameraAnglesOffset = Vector3.zero;
+		public float HAnimationCameraDistance = 1f;
+
+		public bool[] HAnimationRaycastDown = Array.Empty<bool>();
 		
 		public AnimationClip[] HAnimationIdleClips = Array.Empty<AnimationClip>();
 		public SClimaxAnimation[] HAnimationNonClimaxClips = Array.Empty<SClimaxAnimation>();

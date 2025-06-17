@@ -1,10 +1,6 @@
 Shader "Toon/Base"
 {
     Properties {
-        _LightSmooth("Light Smoothing", Range(0.0001,1)) = 0.3
-        _LightMin("Light Min", Range(0,0.999)) = 0.25
-        _MidPoint("Mid Point", Range(0,1)) = 0.25
-        
         // Main color
         _TintColor("Main Color", Color) = (1,1,1,1)
         [MainTexture]_MainTex("Base Color", 2D) = "white" {}
@@ -12,12 +8,6 @@ Shader "Toon/Base"
         // Normal map
         _NormalMap("Normal Map", 2D) = "bump" {}
         _NormalStrength("Normal Strength", Range(0, 1)) = 1
-        
-        // hue shift
-        _ShiftAmount("Shift Amount", Range(0,1)) = 0.1
-        _kelvinTemp("Kelvin temperature", Range(0, 1)) = .5
-        _DayNightRamp("Day Night Ramp", 2D) = "white" {}
-        _DNTintStr("Day Night Tint Strength", Range(0, 1)) = 1
         
         // Blending state
         [HideInInspector]_Surface("__surface", Float) = 0.0

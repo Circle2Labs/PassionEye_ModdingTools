@@ -56,8 +56,24 @@ namespace Code.Editor.CustomEditors
 					GUILayout.Space(5);
 					
 					hAnimation.ArousalMultiplier = EditorGUILayout.FloatField("Arousal Multiplier", hAnimation.ArousalMultiplier);
-					hAnimation.VerticalCameraOffset = EditorGUILayout.FloatField("Vertical Camera Offset", hAnimation.VerticalCameraOffset);
 					
+					GUILayout.Space(5);
+
+					hAnimation.CameraPositionOffset = EditorGUILayout.Vector3Field("Camera Position Offset", hAnimation.CameraPositionOffset);
+					hAnimation.CameraAnglesOffset = EditorGUILayout.Vector3Field("Camera Angles Offset", hAnimation.CameraAnglesOffset);
+					hAnimation.CameraDistance = EditorGUILayout.FloatField("Camera Distance", hAnimation.CameraDistance);
+					
+					GUILayout.Space(5);
+					
+					if (hAnimation.RaycastDown == null || hAnimation.RaycastDown.Length != hAnimation.ClipContainers.Length)
+					{
+						var raycastDown = hAnimation.RaycastDown;
+						Array.Resize(ref raycastDown, hAnimation.ClipContainers.Length);
+						hAnimation.RaycastDown = raycastDown;
+					}
+					
+					hAnimation.RaycastDown = verticalList(hAnimation.RaycastDown, "Raycast Down", true);
+
 					GUILayout.Space(5);
 
 					if (hAnimation.IdleClips == null || hAnimation.IdleClips.Length != hAnimation.ClipContainers.Length)
@@ -179,6 +195,37 @@ namespace Code.Editor.CustomEditors
 			{
 				GUILayout.BeginHorizontal();
 				array[i] = (AnimationClip)EditorGUILayout.ObjectField("", array[i], typeof(AnimationClip), false);
+				
+				if (!modifyOnly)
+				{
+					if (GUILayout.Button("-", GUILayout.Width(25)))
+						array = array.Where((_, k) => i != k).ToArray();
+				}
+				
+				GUILayout.EndHorizontal();
+			}
+
+			return array;
+		}
+		
+		private bool[] verticalList(bool[] array, string labelTitle, bool modifyOnly = false)
+		{
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+
+			if (!modifyOnly)
+			{
+				if (GUILayout.Button("Add", GUILayout.Width(50)))
+					array = array.Append(false).ToArray();
+				if (GUILayout.Button("Clear", GUILayout.Width(50)))
+					array = Array.Empty<bool>();
+			}
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < array.Length; i++)
+			{
+				GUILayout.BeginHorizontal();
+				array[i] = EditorGUILayout.ToggleLeft($"Container {i}", array[i]);
 				
 				if (!modifyOnly)
 				{

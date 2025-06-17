@@ -120,6 +120,10 @@ Shader "Toon/EyeShader"
         _MovementX("Horizontal Movement", Range(-0.7, 0.55)) = 0.0
         _MovementY("Vertical Movement", Range(-0.4, 0.57)) = 0.0
         
+        _LightSmooth("Light Smoothing", Range(0.0001,1)) = 0.1
+        _LightMin("Light Min", Range(0,0.999)) = 0.25
+        _MidPoint("Mid Point", Range(0,1)) = 0.25
+        
         [HideInInspector] _ZWrite("__zwrite", Float) = 1.0
         [HideInInspector] _Cull("Cull", Float) = 2
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
