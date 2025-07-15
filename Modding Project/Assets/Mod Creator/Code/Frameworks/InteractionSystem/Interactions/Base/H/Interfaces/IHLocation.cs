@@ -8,6 +8,5 @@ namespace Code.Frameworks.InteractionSystem.Interactions.Base.H.Interfaces
     {
         public string Name { get; set; }
         public ELocationType Type { get; set; }
-        public Image Icon { get; set; }
     }
 }

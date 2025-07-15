@@ -1,4 +1,5 @@
 using Code.Frameworks.InteractionSystem.Database.Enums;
+using Code.Frameworks.InteractionSystem.Interactions.Base.H.Locations;
 using Code.Frameworks.InteractionSystem.ScenePoints;
 using Code.Frameworks.InteractionSystem.ScenePoints.Base;
 using Code.Frameworks.InteractionSystem.ScenePoints.Interaction;
@@ -25,6 +26,9 @@ namespace Code.Editor
 		public static void CreateLightSwitch(MenuCommand cmd) => createInteractionScenePoint<LightSwitchScenePoint>(cmd, EInteractionIdentifier.LightSwitch, false);
 
         #endregion
+
+        [MenuItem("GameObject/ScenePoint/HLocation Point", false)]
+        public static void CreateHLocation(MenuCommand cmd) => createHLocationPoint(cmd);
 
         private static void createScenePoint<T>(MenuCommand menuCommand) where T : MonoBehaviour, IScenePoint
         {
@@ -72,6 +76,21 @@ namespace Code.Editor
 	            Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
 	            Selection.activeObject = go;
             }
+        }
+        
+        private static void createHLocationPoint(MenuCommand menuCommand)
+        {
+	        var go = new GameObject("HLocation Point");
+	        go.AddComponent<HLocation>();
+	        go.AddComponent<BoxCollider>().isTrigger = true;
+
+	        GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
+	        
+	        // for some reason the above method resets the layer
+	        go.layer = LayerMask.NameToLayer("HLocation");
+
+	        Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+	        Selection.activeObject = go;
         }
     }
 }
