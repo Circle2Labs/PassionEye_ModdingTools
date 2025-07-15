@@ -22,12 +22,8 @@ CBUFFER_END
 
 CBUFFER_START (UnityPerMaterial)
 float4 _TintColor;
-Texture2D _MainTex;
-SamplerState sampler_MainTex;
-float4 _MainTex_ST;
-Texture2D _NormalMap;
-SamplerState sampler_NormalMap;
-float4 _NormalMap_ST;
+CBufTexture(_MainTex);
+CBufTexture(_NormalMap);
 float _NormalStrength;
 
 float _MetallicStrength;
@@ -49,18 +45,15 @@ CBUFFER_END
 #pragma vertex vert
 #pragma fragment frag
 
-struct v
-{
+struct v {
     RG_VertIn;
 };
 
-struct v2f
-{
+struct v2f {
     RG_FragIn;
 };
 
-v2f vert(v IN)
-{
+v2f vert(v IN) {
     v2f OUT;
 
     OUT.position   = TransformObjectToHClip(IN.vertex);
@@ -107,32 +100,26 @@ float3 CalculateReflections(float3 viewDir, float3 normal, float roughness){
 
 }
 
-float4 frag(v2f IN, float facing : VFACE) : SV_Target
-{    
+float4 frag(v2f IN, float facing : VFACE) : SV_Target {    
     #ifdef LOD_FADE_CROSSFADE
         LODFadeCrossFade(IN.position);
     #endif
-
-    half4 shadowMask = SAMPLE_SHADOWMASK(geomData.shadowCoord);
-
+    
     float4 shadowCoord = 0;
     #ifdef _MAIN_LIGHT_SHADOWS_SCREEN
         shadowCoord = ComputeScreenPos(TransformWorldToHClip(IN.positionWS));
     #else
         shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     #endif
+    half4 shadowMask = SAMPLE_SHADOWMASK(shadowCoord);
 
-    float3 normalSample = normalize(lerp(float3(0, 0, 1),
-                                         UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, TRANSFORM_TEX(IN.uv, _NormalMap))),
-                                         _NormalStrength));
+    float3 normalSample = UnpackNormal(RG_TEX_SAMPLE(_NormalMap, IN.uv));
+    normalSample = normalize(lerp(float3(0, 0, 1), normalSample, _NormalStrength));
     float3 normalWS = NormalMapToWorld(normalSample, IN.normal, IN.tangent);
-
-    if (facing < 0)
-    {
-        normalWS = -normalWS;
-    }
+    if (facing < 0) normalWS = -normalWS;
     
-    float4 color = _TintColor * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(IN.uv, _MainTex));
+    float4 color = _TintColor * RG_TEX_SAMPLE(_MainTex, IN.uv);
+    float alpha = CalculateAlpha(color.a, _AlphaClip, _Cutoff, _Surface);
 
     //---------------------------------------
     // Additional lights
@@ -168,13 +155,12 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
     float lighting = 1;
     float4 colLighting;
     Light mainLight = GetMainLight(shadowCoord, IN.positionWS, shadowMask);
-    if (mainLight.color.r != 0 || mainLight.color.g != 0 || mainLight.color.b != 0)
-    {
+    if (mainLight.color.r != 0 || mainLight.color.g != 0 || mainLight.color.b != 0) {
         //Attenuate shadows using the same formula as the half lambert 
-        float3 shadows         = LinearToGamma22(mainLight.shadowAttenuation * mainLight.distanceAttenuation);
-        shadows                = saturate(max(shadows, _LightMin));
+        float3 shadows = mainLight.shadowAttenuation * mainLight.distanceAttenuation;
+        shadows = saturate(max(shadows, _LightMin));
     
-        shadows = max(_LightMin, max(IndirectLighting(normalWS, IN.lmuv), shadows));
+        shadows = max(_LightMin, max(IndirectLighting(normalWS, float4(IN.lmuv, IN.rtuv)), shadows));
     
         float halfNdotL = max(_LightMin, HalfLambert(normalWS, mainLight.direction));
 
@@ -186,7 +172,7 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
         lighting = max(_LightMin, smoothstep(midpoint - _LightSmooth, midpoint + _LightSmooth, lighting));
         colLighting = float4(lighting * mainLight.color, 1);
     } else {
-        lighting = max(_LightMin, smoothstep(_MidPoint - _LightSmooth, _MidPoint + _LightSmooth, IndirectLighting(normalWS, IN.lmuv)));
+        lighting = max(_LightMin, smoothstep(_MidPoint - _LightSmooth, _MidPoint + _LightSmooth, IndirectLighting(normalWS, float4(IN.lmuv, IN.rtuv))));
         colLighting = lighting;
     }
 
@@ -203,32 +189,17 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
 
     float3 reflection = CalculateReflections(viewDir, normalWS, _MetallicRoughness);
     reflection = lerp(float3(1,1,1), reflection, _MetallicReflection);
-    float3 reflectionColor = metallicColor * reflection;
+    float3 reflectionColor = metallicColor * reflection * mainLight.color;
     
     //we also want to fade the metallic based on NdotL
     float3 metallicFinal = reflectionColor * (lighting + addLighting);
 
     // ---------------------------------------
-    // ALPHA
-    // ---------------------------------------
-    float alpha = color.a;
-
-    if(_AlphaClip)
-    {
-        clip(alpha - _Cutoff);
-        alpha = SharpenAlpha(alpha, _Cutoff);
-    }
-    
-    alpha = OutputAlpha(alpha, _Surface);
-    
-    // ---------------------------------------
     //Color hue shifting based on light/shadow
     // ---------------------------------------
 
-    float4 lightTint, shadowTint;
-    lightTint = SAMPLE_TEXTURE2D(_DayNightRamp, sampler_DayNightRamp, TRANSFORM_TEX(float2(_kelvinTemp, 0.75), _DayNightRamp));
-    shadowTint = SAMPLE_TEXTURE2D(_DayNightRamp, sampler_DayNightRamp, TRANSFORM_TEX(float2(_kelvinTemp, 0.25), _DayNightRamp));
-
+    float4 lightTint = RG_TEX_SAMPLE(_DayNightRamp, float2(_kelvinTemp, 0.75));
+    float4 shadowTint = RG_TEX_SAMPLE(_DayNightRamp, float2(_kelvinTemp, 0.25));
     colLighting = lerp(colLighting, colLighting * lerp(shadowTint, lightTint, lighting), _DNTintStr);
 
     float4 finalColor = color * (colLighting + float4(ambientLight, 1) + float4(addLightFinal, 1)) + float4(metallicFinal, 1);

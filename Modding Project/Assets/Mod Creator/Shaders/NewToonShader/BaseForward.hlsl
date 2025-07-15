@@ -2,7 +2,6 @@
 #define BASE_FORWARD
 
 #include_with_pragmas "./CommonInclude.hlsl"
-#include "./CommonInclude.hlsl"
 
 GLOBAL_CBUFFER_START(ToonGlobalBuffer, b0)
 // light smoothing
@@ -14,20 +13,14 @@ float _MidPoint;
 // hue shifting
 float _ShiftAmount;
 float _kelvinTemp; //0-20000
-Texture2D _DayNightRamp;
-SamplerState sampler_DayNightRamp;
-float4 _DayNightRamp_ST;
+CBufTexture(_DayNightRamp);
 float _DNTintStr;
 CBUFFER_END
 
 CBUFFER_START (UnityPerMaterial)
 float4 _TintColor;
-Texture2D _MainTex;
-SamplerState sampler_MainTex;
-float4 _MainTex_ST;
-Texture2D _NormalMap;
-SamplerState sampler_NormalMap;
-float4 _NormalMap_ST;
+CBufTexture(_MainTex);
+CBufTexture(_NormalMap);
 float _NormalStrength;
 
 // Clothing layer
@@ -44,18 +37,15 @@ CBUFFER_END
 #pragma vertex vert
 #pragma fragment frag
 
-struct v
-{
+struct v {
     RG_VertIn;
 };
 
-struct v2f
-{
+struct v2f {
     RG_FragIn;
 };
 
-v2f vert(v IN)
-{
+v2f vert(v IN) {
     v2f OUT;
 
     OUT.position   = TransformObjectToHClip(IN.vertex);
@@ -79,33 +69,33 @@ v2f vert(v IN)
 #define RED_HUE 0
 #define BLUE_HUE 240
 
-float4 frag(v2f IN, float facing : VFACE) : SV_Target
-{    
+float4 frag(v2f IN, float facing : VFACE) : SV_Target {
+    //LOD
     #ifdef LOD_FADE_CROSSFADE
         LODFadeCrossFade(IN.position);
     #endif
 
-    half4 shadowMask = SAMPLE_SHADOWMASK(geomData.shadowCoord);
+    //ColorMap
+    float4 color = _TintColor * RG_TEX_SAMPLE(_MainTex, IN.uv);
 
+    // Alpha
+    float alpha = CalculateAlpha(color.a, _AlphaClip, _Cutoff, _Surface);
+
+    //ShadowMask
     float4 shadowCoord = 0;
     #ifdef _MAIN_LIGHT_SHADOWS_SCREEN
         shadowCoord = ComputeScreenPos(TransformWorldToHClip(IN.positionWS));
     #else
         shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     #endif
+    half4 shadowMask = SAMPLE_SHADOWMASK(shadowCoord);
 
-    float3 normalSample = normalize(lerp(float3(0, 0, 1),
-                                         UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, TRANSFORM_TEX(IN.uv, _NormalMap))),
-                                         _NormalStrength));
+    //Normal Map
+    float3 normalSample = UnpackNormal(RG_TEX_SAMPLE(_NormalMap,IN.uv));
+    normalSample = normalize(lerp(float3(0, 0, 1), normalSample, _NormalStrength));
     float3 normalWS = NormalMapToWorld(normalSample, IN.normal, IN.tangent);
-
-    if (facing < 0)
-    {
-        normalWS = -normalWS;
-    }
+    if (facing < 0) normalWS = -normalWS;
     
-    float4 color = _TintColor * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(IN.uv, _MainTex));
-
     //---------------------------------------
     // Main Lighting
     //---------------------------------------
@@ -114,10 +104,10 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
     //TODO: add this to somewhere
     half3 ambientLight = _GlossyEnvironmentColor.rgb;
     float lighting = 1;
-    float4 colLighting;
+    float4 colLighting = float4(0, 0, 0, 1);
     Light mainLight = GetMainLight(shadowCoord, IN.positionWS, shadowMask);
-    if (mainLight.color.r != 0 || mainLight.color.g != 0 || mainLight.color.b != 0)
-    {
+    #ifdef _CHARACTER_LIGHTING //customized lighting for characters, prioritizes main light
+    if (mainLight.color.r != 0 || mainLight.color.g != 0 || mainLight.color.b != 0) {
         //Attenuate shadows using the same formula as the half lambert 
         float3 shadows         = LinearToGamma22(mainLight.shadowAttenuation * mainLight.distanceAttenuation);
         shadows                = saturate(max(shadows, _LightMin));
@@ -138,6 +128,17 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
         colLighting = lighting;
     }
     //IDEA: have only lighting colored by kelvin then multiplied with surf color
+    #else //normal lighting, GI friendly
+        float halfNdotL = max(_LightMin, HalfLambert(normalWS, mainLight.direction));
+        half realtimeShadows = max(_LightMin, MainLightRealtimeShadow(shadowCoord));
+        half rtShadowFade = GetMainLightShadowFade(IN.positionWS);
+    
+        float3 indLighting = IndirectLighting(normalWS, float4(IN.lmuv, IN.rtuv));
+    
+        colLighting = float4((halfNdotL * mainLight.distanceAttenuation * mainLight.color), alpha);
+        colLighting *= color;
+        colLighting += float4(indLighting, 0);
+    #endif
 
     //---------------------------------------
     // Additional lights
@@ -153,30 +154,14 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
             addLightFinal += HandleAdditionalLight(light.color, light.direction, light.shadowAttenuation, light.distanceAttenuation, normalWS, _LightMin);
         }
     #endif
-
-    // ---------------------------------------
-    // ALPHA
-    // ---------------------------------------
-    float alpha = color.a;
-
-    if(_AlphaClip)
-    {
-        clip(alpha - _Cutoff);
-        alpha = SharpenAlpha(alpha, _Cutoff);
-    }
-    
-    alpha = OutputAlpha(alpha, _Surface);
     
     // ---------------------------------------
     //Color hue shifting based on light/shadow
     // ---------------------------------------
-
-    float4 lightTint, shadowTint;
-    lightTint = SAMPLE_TEXTURE2D(_DayNightRamp, sampler_DayNightRamp, TRANSFORM_TEX(float2(_kelvinTemp, 0.75), _DayNightRamp));
-    shadowTint = SAMPLE_TEXTURE2D(_DayNightRamp, sampler_DayNightRamp, TRANSFORM_TEX(float2(_kelvinTemp, 0.25), _DayNightRamp));
+    float4 lightTint = RG_TEX_SAMPLE(_DayNightRamp, float2(_kelvinTemp, 0.75));
+    float4 shadowTint = RG_TEX_SAMPLE(_DayNightRamp, float2(_kelvinTemp, 0.25));
 
     colLighting = lerp(colLighting, colLighting * lerp(shadowTint, lightTint, lighting), _DNTintStr);
-
     float4 finalColor = color * (colLighting + float4(ambientLight, 1) + float4(addLightFinal, 1));
     finalColor.a = alpha;
 

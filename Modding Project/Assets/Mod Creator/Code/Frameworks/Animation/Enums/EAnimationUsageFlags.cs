@@ -12,6 +12,7 @@ namespace Code.Frameworks.Animation.Enums
 		Interaction = 8,
 		Object = 16,
 		Flat = 32,
-		Seated = 64
+		Seated = 64,
+		Wall = 128
 	}
 }

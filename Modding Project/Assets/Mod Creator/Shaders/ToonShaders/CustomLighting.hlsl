@@ -30,8 +30,8 @@ float3 vertex : POSITION;   \
 float3 normal : NORMAL;     \
 float4 tangent : TANGENT;   \
 float2 uv : TEXCOORD0;      \
-float4 lmuv : TEXCOORD1;    \
-float4 rtuv : TEXCOORD2
+float2 lmuv : TEXCOORD1;    \
+float2 rtuv : TEXCOORD2
 
 //Standard Fragment Input params macro
 #define RG_FragIn               \
@@ -40,8 +40,8 @@ float3 positionWS : TEXCOORD3;  \
 float3 normal : NORMAL;         \
 float4 tangent : TANGENT;       \
 float2 uv : TEXCOORD0;          \
-float4 lmuv : TEXCOORD1;        \
-float4 rtuv : TEXCOORD2
+float2 lmuv : TEXCOORD1;        \
+float2 rtuv : TEXCOORD2
 
 //Setup all the data and return calculated lighting
 #define PE_LIGHTING(uv, posWS, nrm, tng, lmuv) \
@@ -252,17 +252,26 @@ void ShadeAdditionalLights(FaceData faceData, GeometryData geomData, DiffuseData
     #endif
 }
 
+/**
+ * 
+ * @param normal Normals in world space
+ * @param lightmapUV XY = baked lightmap UVs, ZW = realtime lightmap UVs
+ * @return indirect lighting color
+ */
 half3 IndirectLighting(float3 normal, float4 lightmapUV) {
+    float2 bakedUVs = lightmapUV.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+    float2 realtimeUVs = lightmapUV.zw * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    
     float3 sh;
     OUTPUT_SH(normal, sh);
     #if defined(LIGHTMAP_ON) && defined(DYNAMICLIGHTMAP_ON)
-    return SAMPLE_GI(lightmapUV.xy, lightmapUV.zw, sh, normal);
-    #elif defined(DYNAMICLIGHTMAP_ON)
-    return SAMPLE_GI(lightmapUV.xy, lightmapUV.zw, sh, normal);
+    return SAMPLE_GI(bakedUVs, realtimeUVs, sh, normal);
     #elif defined(LIGHTMAP_ON)
-    return SAMPLE_GI(lightmapUV.xy, sh, normal);
+    return SAMPLE_GI(bakedUVs, 0, normal);
+    #elif defined(DYNAMICLIGHTMAP_ON)
+    return SAMPLE_GI(0, lightmapUV.zw, sh, normal);
     #else //probes
-    return SAMPLE_GI(lightmapUV.xyz, sh, normal);
+    return SAMPLE_GI(0, sh, normal);
     #endif
 }
 

@@ -2,7 +2,6 @@
 #define BASE_FORWARD
 
 #include_with_pragmas "./CommonInclude.hlsl"
-#include "./CommonInclude.hlsl"
 
 GLOBAL_CBUFFER_START(ToonGlobalBuffer, b0)
 // light smoothing
@@ -50,18 +49,15 @@ CBUFFER_END
 #pragma vertex vert
 #pragma fragment frag
 
-struct v
-{
+struct v {
     RG_VertIn;
 };
 
-struct v2f
-{
+struct v2f {
     RG_FragIn;
 };
 
-v2f vert(v IN)
-{
+v2f vert(v IN) {
     v2f OUT;
 
     OUT.position   = TransformObjectToHClip(IN.vertex);
@@ -78,21 +74,19 @@ v2f vert(v IN)
     
     float3 viewDir = GetWorldSpaceViewDir(OUT.positionWS);
     OUT.positionWS += normalize(viewDir) * _ClothingLayer * _ClothingLayersSeparation;
-
-
     return OUT;
 }
 
 #define RED_HUE 0
 #define BLUE_HUE 240
 
-float4 frag(v2f IN, float facing : VFACE) : SV_Target
-{    
+float4 frag(v2f IN, float facing : VFACE) : SV_Target {
+    float4 color = _TintColor * RG_TEX_SAMPLE(_MainTex, IN.uv) * RG_TEX_SAMPLE(_ClothFiberMap, IN.uv);
+    float alpha = CalculateAlpha(color.a, _AlphaClip, _Cutoff, _Surface);
+    
     #ifdef LOD_FADE_CROSSFADE
         LODFadeCrossFade(IN.position);
     #endif
-
-    half4 shadowMask = SAMPLE_SHADOWMASK(geomData.shadowCoord);
 
     float4 shadowCoord = 0;
     #ifdef _MAIN_LIGHT_SHADOWS_SCREEN
@@ -100,25 +94,17 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
     #else
         shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     #endif
+    half4 shadowMask = SAMPLE_SHADOWMASK(shadowCoord);
 
-    float3 normalSample = normalize(
-        lerp(float3(0, 0, 1),
-        UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, TRANSFORM_TEX(IN.uv, _NormalMap))), _NormalStrength));
-    float3 fiberNormal = normalize(
-        lerp(float3(0, 0, 1),
-        UnpackNormal(SAMPLE_TEXTURE2D(_ClothFiberNormalMap, sampler_ClothFiberNormalMap, TRANSFORM_TEX(IN.uv, _ClothFiberNormalMap))), _FiberStrenght));
+    float3 normalSample = UnpackNormal(RG_TEX_SAMPLE(_NormalMap,IN.uv));
+    normalSample = normalize(lerp(float3(0, 0, 1), normalSample, _NormalStrength));
+    float3 fiberNormal = UnpackNormal(RG_TEX_SAMPLE(_ClothFiberNormalMap, IN.uv));
+    fiberNormal = normalize(lerp(float3(0, 0, 1), fiberNormal, _FiberStrenght));
 
     float3 fullNrm = normalize(float3(normalSample.rg + fiberNormal.rg, normalSample.b * fiberNormal.b));
     float3 normalWS = NormalMapToWorld(fullNrm, IN.normal, IN.tangent);
-
-    if (facing < 0)
-    {
-        normalWS = -normalWS;
-    }
+    if (facing < 0) normalWS = -normalWS;
     
-    float4 color = _TintColor *
-        SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(IN.uv, _MainTex)) *
-        SAMPLE_TEXTURE2D(_ClothFiberMap, sampler_ClothFiberMap, TRANSFORM_TEX(IN.uv, _ClothFiberMap));
 
     //---------------------------------------
     // Main Lighting
@@ -138,9 +124,9 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
         float3 cameraLightDir = -normalize(GetViewForwardDir());
         float3 shadows         = 1;
         shadows                = saturate(max(shadows, _LightMin));
-        shadows = max(_LightMin, max(IndirectLighting(normalWS, IN.lmuv), shadows));
+        shadows = max(_LightMin, max(IndirectLighting(normalWS, float4(IN.lmuv, IN.rtuv)), shadows));
     
-        float halfNdotL = max(_LightMin, HalfLambert(normalWS, cameraLightDir) *  mainLight.shadowAttenuation);
+        float halfNdotL = max(_LightMin, HalfLambert(normalWS, cameraLightDir));
         lighting = min(shadows, halfNdotL);
     
         //Stylization
@@ -160,7 +146,7 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
             float3 shadows         = LinearToGamma22(mainLight.shadowAttenuation * mainLight.distanceAttenuation);
             shadows                = saturate(max(shadows, _LightMin));
     
-            shadows = max(_LightMin, max(IndirectLighting(normalWS, IN.lmuv), shadows));
+            shadows = max(_LightMin, max(IndirectLighting(normalWS, float4(IN.lmuv, IN.rtuv)), shadows));
     
             float halfNdotL = max(_LightMin, HalfLambert(normalWS, mainLight.direction));
 
@@ -174,10 +160,9 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
             specular = Specularity(mainLight.direction, GetWorldSpaceViewDir(IN.positionWS),
                 normalWS, _SheenPower, _Sheen, _SheenColor);
         } else {
-            lighting = max(_LightMin, smoothstep(_MidPoint - _LightSmooth, _MidPoint + _LightSmooth, IndirectLighting(normalWS, IN.lmuv)));
+            lighting = max(_LightMin, smoothstep(_MidPoint - _LightSmooth, _MidPoint + _LightSmooth, IndirectLighting(normalWS, float4(IN.lmuv, IN.rtuv))));
             colLighting = lighting;
         }
-        
     }
     
     //IDEA: have only lighting colored by kelvin then multiplied with surf color
@@ -204,19 +189,6 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
             addLightFinal += addLightLighting * light.color;
         }
     #endif
-
-    // ---------------------------------------
-    // ALPHA
-    // ---------------------------------------
-    float alpha = color.a;
-
-    if(_AlphaClip)
-    {
-        clip(alpha - _Cutoff);
-        alpha = SharpenAlpha(alpha, _Cutoff);
-    }
-    
-    alpha = OutputAlpha(alpha, _Surface);
     
     // ---------------------------------------
     //Color hue shifting based on light/shadow

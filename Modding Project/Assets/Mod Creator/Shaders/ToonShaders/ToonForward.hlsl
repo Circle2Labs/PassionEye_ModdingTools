@@ -47,10 +47,11 @@ v2f vert(v IN) {
 }
 
 float4 frag(v2f IN) : SV_Target {
-    #ifdef LOD_FADE_CROSSFADE
-        LODFadeCrossFade(IN.position);
-    #endif
+#ifdef LOD_FADE_CROSSFADE
+    LODFadeCrossFade(IN.position);
+#endif
 
-    return float4(PE_LIGHTING(IN.uv, IN.positionWS, IN.normal, IN.tangent, IN.lmuv), CalculateAlpha(IN.uv));
+    float4 giuv = float4(IN.lmuv.xy, IN.rtuv.xy);
+    return float4(PE_LIGHTING(IN.uv, IN.positionWS, IN.normal, IN.tangent, giuv), CalculateAlpha(IN.uv));
 }
 #endif

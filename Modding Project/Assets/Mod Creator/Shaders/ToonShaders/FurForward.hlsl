@@ -22,8 +22,8 @@ struct v2g {
     float3 normal : NORMAL;
     float4 tangent : TANGENT;
     float2 uv : TEXCOORD0;
-    float4 lmuv : TEXCOORD1;
-    float4 rtuv : TEXCOORD2;
+    float2 lmuv : TEXCOORD1;
+    float2 rtuv : TEXCOORD2;
 };
 
 struct g2f {
@@ -78,7 +78,7 @@ float4 frag(g2f IN): SV_Target {
         alpha = CalculateAlpha(IN.uv);
         layerAttenuation = IN.layerDepth;
     }
-    
-    return float4(PE_LIGHTING(IN.uv, IN.positionWS, IN.normal, IN.tangent, IN.lmuv) * layerAttenuation, alpha);
+    float4 giuv = float4(IN.lmuv.xy, IN.rtuv.xy);
+    return float4(PE_LIGHTING(IN.uv, IN.positionWS, IN.normal, IN.tangent, giuv) * layerAttenuation, alpha);
 }
 #endif
