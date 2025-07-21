@@ -38,14 +38,14 @@ namespace Code.Frameworks.InteractionSystem.Interactions.Base.H.Locations
                     Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
                     break;
                 case ELocationType.Seated:
-                    Gizmos.DrawWireCube(new Vector3(0f, 0f, -0.35f), new Vector3(1f, 0f, 1f));
-                    Gizmos.DrawWireCube(new Vector3(0f, -0.25f, 0.15f), new Vector3(1f, -0.5f, 0f));
-                    Gizmos.DrawWireCube(new Vector3(0f, -0.5f, 0.65f), new Vector3(1f, 0f, 1f));
+                    Gizmos.DrawWireCube(new Vector3(0f, 0f, -0.5f), new Vector3(1f, 0f, 1f));
+                    Gizmos.DrawWireCube(new Vector3(0f, -0.25f, 0f), new Vector3(1f, -0.5f, 0f));
+                    Gizmos.DrawWireCube(new Vector3(0f, -0.5f, 0.5f), new Vector3(1f, 0f, 1f));
+                    offset = new Vector3(0f, 0f, -0.15f);
                     break;
                 case ELocationType.Wall:
                     Gizmos.DrawWireCube(new Vector3(0f, 1f, 0f), new Vector3(1f, 2f, 0f));
                     Gizmos.DrawWireCube(new Vector3(0f, 0f, -0.5f), new Vector3(1f, 0f, 1f));
-
                     offset = new Vector3(0f, 0f, -0.15f);
                     break;
             }
