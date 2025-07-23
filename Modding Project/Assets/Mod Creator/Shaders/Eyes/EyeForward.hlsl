@@ -349,14 +349,13 @@ float4 GetEyeShading(float3 positionWS, float3 normalWS, float4 lmuv)
     LODFadeCrossFade(IN.position);
     #endif
 
-    half4 shadowMask = SAMPLE_SHADOWMASK(geomData.shadowCoord);
-
     float4 shadowCoord = 0;
     #ifdef _MAIN_LIGHT_SHADOWS_SCREEN
-        shadowCoord = ComputeScreenPos(TransformWorldToHClip(IN.positionWS));
+    shadowCoord = ComputeScreenPos(TransformWorldToHClip(IN.positionWS));
     #else
-        shadowCoord = TransformWorldToShadowCoord(positionWS);
+    shadowCoord = TransformWorldToShadowCoord(positionWS);
     #endif
+    half4 shadowMask = SAMPLE_SHADOWMASK(shadowCoord);
 
     float4 color = float4(1, 1, 1, 1);
 

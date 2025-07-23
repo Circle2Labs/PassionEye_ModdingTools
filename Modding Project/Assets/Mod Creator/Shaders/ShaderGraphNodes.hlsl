@@ -278,6 +278,7 @@ void PELighting_float(float lightSmooth, bool isFace, bool isSdf, float2 sdfSamp
     roughData.roughness = roughness;
     roughData.fresnelAmt = fresnelAmount;
 
-    color = PELighting(faceData, geomData, diffData, specData, metalData, roughData);
+    HairData hairData;
+    color = PELighting(faceData, geomData, diffData, specData, metalData, roughData, hairData);
 }
 #endif

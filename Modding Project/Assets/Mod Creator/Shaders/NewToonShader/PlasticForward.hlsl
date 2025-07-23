@@ -93,18 +93,17 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
 
     float4 albedoSample = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(IN.uv, _MainTex));
 
-    half4 shadowMask = SAMPLE_SHADOWMASK(geomData.shadowCoord);
-
     float4 shadowCoord = 0;
     #ifdef _MAIN_LIGHT_SHADOWS_SCREEN
         shadowCoord = ComputeScreenPos(TransformWorldToHClip(IN.positionWS));
     #else
         shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     #endif
+    
+    half4 shadowMask = SAMPLE_SHADOWMASK(shadowCoord);
 
-    float3 normalSample = normalize(lerp(float3(0, 0, 1),
-                                         UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, TRANSFORM_TEX(IN.uv, _NormalMap))),
-                                         _NormalStrength));
+    float3 normalSample = UnpackNormal(RG_TEX_SAMPLE(_NormalMap, IN.uv));
+    normalSample = normalize(lerp(float3(0, 0, 1), normalSample, _NormalStrength));
     float3 normalWS = NormalMapToWorld(normalSample, IN.normal, IN.tangent);
 
     // if we're on a backface, flip the normal
@@ -153,7 +152,7 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
             Light light = GetAdditionalLight(i, IN.positionWS, shadowMask);
             addLightFinal += HandleAdditionalLight(light.color, light.direction, light.shadowAttenuation, light.distanceAttenuation, normalWS, _LightMin);
             addSpecFinal += Specularity(light.direction, GetWorldSpaceNormalizeViewDir(IN.positionWS), normalWS,
-                                        _SpecularPower, _SpecularAmount, _SpecularColor.rgb) * pow(light.shadowAttenuation, 6);
+                                        _SpecularPower, _SpecularAmount, _SpecularColor.rgb * light.color) * pow(light.shadowAttenuation, 6);
         }
     #endif
 
@@ -184,7 +183,7 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target
     // ---------------------------------------
 
     float3 spec = Specularity(mainLight.direction, GetWorldSpaceNormalizeViewDir(IN.positionWS), normalWS,
-                          _SpecularPower, _SpecularAmount, _SpecularColor.rgb) * pow(lighting, 6);
+                          _SpecularPower, _SpecularAmount, _SpecularColor.rgb * mainLight.color) * pow(lighting, 6);
 
     // ---------------------------------------
     // Rim Light

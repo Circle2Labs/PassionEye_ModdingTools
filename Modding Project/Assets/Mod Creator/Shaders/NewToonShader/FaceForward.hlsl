@@ -49,18 +49,15 @@ CBUFFER_END
 #pragma vertex vert
 #pragma fragment frag
 
-struct v
-{
+struct v {
     RG_VertIn;
 };
 
-struct v2f
-{
+struct v2f {
     RG_FragIn;
 };
 
-v2f vert(v IN)
-{
+v2f vert(v IN) {
     v2f OUT;
 
     OUT.position   = TransformObjectToHClip(IN.vertex);
@@ -74,8 +71,7 @@ v2f vert(v IN)
     return OUT;
 }
 
-Gradient GetSkinGradient()
-{
+Gradient GetSkinGradient() {
     float secondBandSize = 0.1;
 
     float3 SSSRampShadow = _SSSShadowColor.rgb;
@@ -108,8 +104,7 @@ Gradient GetSkinGradient()
     return gradient;
 }
 
-float4 Unity_SampleGradient_float(Gradient gradient, float Time)
-{
+float4 Unity_SampleGradient_float(Gradient gradient, float Time) {
     float3 color = gradient.colors[0].rgb;
     [unroll]
     for (int c = 1; c < 8; c++)
@@ -127,28 +122,25 @@ float4 Unity_SampleGradient_float(Gradient gradient, float Time)
 #define RED_HUE 0
 #define BLUE_HUE 240
 
-float4 frag(v2f IN) : SV_Target
-{    
+float4 frag(v2f IN) : SV_Target {    
     #ifdef LOD_FADE_CROSSFADE
         LODFadeCrossFade(IN.position);
     #endif
 
-    half4 shadowMask = SAMPLE_SHADOWMASK(geomData.shadowCoord);
-
     float4 shadowCoord = 0;
     #ifdef _MAIN_LIGHT_SHADOWS_SCREEN
-        shadowCoord = ComputeScreenPos(TransformWorldToHClip(IN.positionWS));
+    shadowCoord = ComputeScreenPos(TransformWorldToHClip(IN.positionWS));
     #else
-        shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
+    shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     #endif
+    half4 shadowMask = SAMPLE_SHADOWMASK(shadowCoord);
 
     
-    float3 normalSample = normalize(lerp(float3(0, 0, 1),
-                                         UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, TRANSFORM_TEX(IN.uv, _NormalMap))),
-                                         _NormalStrength));
+    float3 normalSample = UnpackNormal(RG_TEX_SAMPLE(_NormalMap, IN.uv));
+    normalSample = normalize(lerp(float3(0, 0, 1), normalSample, _NormalStrength));
     float3 normalWS = NormalMapToWorld(normalSample, IN.normal, IN.tangent);
     
-    float4 color = _TintColor * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(IN.uv, _MainTex));
+    float4 color = _TintColor * RG_TEX_SAMPLE(_MainTex, IN.uv);
 
     // fake camera light
     float3 cameraLightDir = -normalize(GetViewForwardDir());
@@ -164,7 +156,7 @@ float4 frag(v2f IN) : SV_Target
     float RdotL = dot(_FaceRight.xz, cameraLightDir.xz) * isUpRight;
     
     float2 faceShadowSdfUv = RdotL > 0 ? float2(1 - IN.uv.x, IN.uv.y) : IN.uv;
-    float faceShadowSdf = SAMPLE_TEXTURE2D(_FaceShadowTex, sampler_FaceShadowTex, faceShadowSdfUv).r;
+    float faceShadowSdf = RG_TEX_SAMPLE(_FaceShadowTex, faceShadowSdfUv).r;
     
     float normalizedFdotL = -0.5 * FdotL + 0.5;
     normalizedFdotL %= 1;
@@ -226,8 +218,8 @@ float4 frag(v2f IN) : SV_Target
 
 
     float4 lightTint, shadowTint;
-    lightTint = SAMPLE_TEXTURE2D(_DayNightRamp, sampler_DayNightRamp, TRANSFORM_TEX(float2(_kelvinTemp, 0.75), _DayNightRamp));
-    shadowTint = SAMPLE_TEXTURE2D(_DayNightRamp, sampler_DayNightRamp, TRANSFORM_TEX(float2(_kelvinTemp, 0.25), _DayNightRamp));
+    lightTint = RG_TEX_SAMPLE(_DayNightRamp,float2(_kelvinTemp, 0.75));
+    shadowTint = RG_TEX_SAMPLE(_DayNightRamp,float2(_kelvinTemp, 0.25));
 
     colLighting = lerp(colLighting, colLighting * lerp(shadowTint, lightTint, lighting), _DNTintStr);
 

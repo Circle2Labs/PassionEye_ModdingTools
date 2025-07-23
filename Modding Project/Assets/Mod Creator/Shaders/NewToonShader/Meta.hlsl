@@ -76,7 +76,7 @@ half4 RailMetaLit(Varyings input) : SV_Target {
     
     MetaInput metaInput = (MetaInput)0;
     metaInput.Albedo = _TintColor.rgb * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).rgb;
-    metaInput.Emission = half3(10,10,1);
+    metaInput.Emission = half3(0,0,0);
 
     return UniversalFragmentMeta(input, metaInput);
 }
