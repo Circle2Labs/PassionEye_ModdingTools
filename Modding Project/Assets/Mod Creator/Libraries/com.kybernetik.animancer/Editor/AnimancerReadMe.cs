@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value.
 
@@ -50,8 +50,10 @@ namespace Animancer.Editor
         /// <item>[27] = v8.0.0: 2024-08-17.</item>
         /// <item>[28] = v8.0.1: 2024-09-08.</item>
         /// <item>[29] = v8.0.2: 2024-11-02.</item>
+        /// <item>[30] = v8.1.0: 2025-02-26.</item>
+        /// <item>[31] = v8.1.1: 2025-05-26.</item>
         /// </list></example>
-        public override int ReleaseNumber => 29;
+        public override int ReleaseNumber => 31;
 
         /// <inheritdoc/>
         public override string VersionName => Strings.DocsURLs.VersionName;
@@ -174,8 +176,9 @@ namespace Animancer.Editor
 
             var message = $"{assembly.GetName().Name}.dll was compiled for {actualAssemblyTarget}" +
                 $" but the correct target for this version of Unity would be {ExpectedAssemblyTarget}+." +
-                $"\n\nYou should download the appropriate version using the Package Manager" +
-                $" or from {Strings.DocsURLs.DownloadLite}" +
+                $"\n\nYou should use the Package Manager to Remove this version then" +
+                $" Re-Download and Re-Import the appropriate version." +
+                $" It can also be downloded from {Strings.DocsURLs.DownloadLite}" +
                 $"\n\nOr you could ignore this warning which may prevent some features from working properly." +
                 $" This option will log a message which you can use to find and delete the script showing this warning.";
 

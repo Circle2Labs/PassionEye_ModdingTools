@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 using System;
 using Unity.Collections;
@@ -48,7 +48,7 @@ namespace Animancer
                 TryGetComponent(out _Animancer);
 
             Layers = WeightedMaskLayerList.Create(_Animancer.Animator);
-            _Animancer.InitializePlayable(Layers.Graph);
+            _Animancer.InitializeGraph(Layers.Graph);
 
             Indices = Definition.CalculateIndices(Layers);
 

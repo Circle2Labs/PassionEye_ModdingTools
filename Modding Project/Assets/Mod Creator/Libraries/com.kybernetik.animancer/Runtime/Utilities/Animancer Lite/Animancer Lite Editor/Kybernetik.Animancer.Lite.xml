@@ -614,6 +614,9 @@
             This is the final <see cref="T:UnityEngine.Playables.Playable"/> connected to the output of the <see cref="P:Animancer.AnimancerGraph.PlayableGraph"/>.
             </remarks>
         </member>
+        <member name="P:Animancer.AnimancerGraph.Output">
+            <summary>The <see cref="T:UnityEngine.Playables.PlayableOutput"/> connected to this <see cref="T:Animancer.AnimancerGraph"/>.</summary>
+        </member>
         <member name="P:Animancer.AnimancerGraph.Layer">
             <inheritdoc/>
         </member>
@@ -715,6 +718,12 @@
             <see cref="T:UnityEngine.Playables.PlayableGraph"/>.
             </summary>
         </member>
+        <member name="M:Animancer.AnimancerGraph.Initialize(Animancer.IAnimancerComponent,System.Boolean)">
+            <summary>
+            Initializes this graph and plays it on the on the
+            <see cref="P:Animancer.IAnimancerComponent.Animator"/> if `createOutput` is true.
+            </summary>
+        </member>
         <member name="M:Animancer.AnimancerGraph.CreateGraph">
             <summary>
             Creates a new empty <see cref="T:UnityEngine.Playables.PlayableGraph"/>
@@ -732,18 +741,6 @@
         </member>
         <member name="M:Animancer.AnimancerGraph.ToString">
             <summary>[Editor-Only] Returns "Component Name (Animancer)".</summary>
-        </member>
-        <member name="P:Animancer.AnimancerGraph.Output">
-            <summary>The <see cref="T:UnityEngine.Playables.PlayableOutput"/> connected to this <see cref="T:Animancer.AnimancerGraph"/>.</summary>
-        </member>
-        <member name="M:Animancer.AnimancerGraph.CreateOutput(Animancer.IAnimancerComponent)">
-            <summary>
-            Plays this graph on the <see cref="P:Animancer.IAnimancerComponent.Animator"/>
-            and sets the <see cref="P:Animancer.AnimancerGraph.Component"/>.
-            </summary>
-        </member>
-        <member name="M:Animancer.AnimancerGraph.CreateOutput(UnityEngine.Animator,Animancer.IAnimancerComponent)">
-            <summary>Plays this playable on the specified `animator` and sets the <see cref="P:Animancer.AnimancerGraph.Component"/>.</summary>
         </member>
         <member name="M:Animancer.AnimancerGraph.InsertOutputPlayable(UnityEngine.Playables.Playable)">
             <summary>[Pro-Only]
@@ -884,15 +881,16 @@
         </member>
         <member name="M:Animancer.AnimancerGraph.UnpauseGraph">
             <summary>
-            Resumes playing the <see cref="T:UnityEngine.Playables.PlayableGraph"/> if <see cref="M:Animancer.AnimancerGraph.PauseGraph"/> was called previously.
+            Resumes playing the <see cref="T:UnityEngine.Playables.PlayableGraph"/>.
             </summary>
         </member>
         <member name="M:Animancer.AnimancerGraph.PauseGraph">
             <summary>
             Freezes the <see cref="T:UnityEngine.Playables.PlayableGraph"/> at its current state.
-            <para></para>
-            If you call this method, you are responsible for calling <see cref="M:Animancer.AnimancerGraph.UnpauseGraph"/> to resume playing.
             </summary>
+            <remarks>
+            If you call this method, you are responsible for calling <see cref="M:Animancer.AnimancerGraph.UnpauseGraph"/> to resume playing.
+            </remarks>
         </member>
         <member name="M:Animancer.AnimancerGraph.Evaluate">
             <summary>
@@ -949,21 +947,29 @@
             </remarks>
         </member>
         <member name="M:Animancer.AnimancerGraph.CancelPreUpdate(Animancer.IUpdatable)">
-            <summary>Removes the `updatable` from the list of objects that need to be updated before the playables.</summary>
+            <summary>
+            Removes the `updatable` from the list of objects
+            that need to be updated before the playables.
+            </summary>
             <remarks>
             This method is safe to call at any time, even during an update.
             <para></para>
-            The last element is swapped into the place of the one being removed so that the rest of them don't need to
-            be moved down one place to fill the gap. This is more efficient, but means that the update order can change.
+            The last element is swapped into the place of the one being removed
+            so that the rest of them don't need to be moved down one place to fill the gap.
+            This is more efficient, but means that the update order can change.
             </remarks>
         </member>
         <member name="M:Animancer.AnimancerGraph.CancelPostUpdate(Animancer.IUpdatable)">
-            <summary>Removes the `updatable` from the list of objects that need to be updated after the playebles.</summary>
+            <summary>
+            Removes the `updatable` from the list of objects
+            that need to be updated after the playebles.
+            </summary>
             <remarks>
             This method is safe to call at any time, even during an update.
             <para></para>
-            The last element is swapped into the place of the one being removed so that the rest of them don't need to
-            be moved down one place to fill the gap. This is more efficient, but means that the update order can change.
+            The last element is swapped into the place of the one being removed
+            so that the rest of them don't need to be moved down one place to fill the gap.
+            This is more efficient, but means that the update order can change.
             </remarks>
         </member>
         <member name="P:Animancer.AnimancerGraph.Current">
@@ -982,7 +988,8 @@
             <remarks>
             After each update, this property will be left at its most recent value.
             <para></para>
-            <see cref="P:Animancer.AnimancerState.Time"/> uses this value to determine whether it has accessed the playable's time
+            <see cref="P:Animancer.AnimancerState.Time"/> uses this value to determine
+            whether it has accessed the playable's time
             since it was last updated in order to cache its value.
             </remarks>
         </member>
@@ -994,7 +1001,7 @@
         </member>
         <member name="P:Animancer.AnimancerGraph.InactiveInitializationStackTrace">
             <summary>[Editor-Only] [Internal]
-            A stack trace captured in <see cref="M:Animancer.AnimancerGraph.CreateOutput(UnityEngine.Animator,Animancer.IAnimancerComponent)"/>
+            A stack trace captured in <see cref="M:Animancer.AnimancerGraph.Initialize(Animancer.IAnimancerComponent,System.Boolean)"/>
             if the <see cref="P:UnityEngine.GameObject.activeInHierarchy"/> is false.
             </summary>
             <remarks>
@@ -1877,9 +1884,7 @@
             <remarks>Returns false if the `motion` is null or an unsupported type.</remarks>
         </member>
         <member name="M:Animancer.AnimancerUtilities.IsValid(Animancer.ITransitionDetailed)">
-            <summary>
-            Is the `transition` not null and <see cref="P:Animancer.ITransitionDetailed.IsValid"/>?
-            </summary>
+            <summary>Is the `transition` not null and <see cref="P:Animancer.ITransitionDetailed.IsValid"/>?</summary>
         </member>
         <member name="M:Animancer.AnimancerUtilities.IsValid(Animancer.ITransition)">
             <summary>Returns the <see cref="P:Animancer.ITransitionDetailed.IsValid"/> with support for <see cref="T:Animancer.IWrapper"/>.</summary>
@@ -1917,7 +1922,8 @@
         </member>
         <member name="T:Animancer.AnimancerEvent">
             <summary>
-            A <see cref="F:Animancer.AnimancerEvent.callback"/> delegate paired with a <see cref="F:Animancer.AnimancerEvent.normalizedTime"/> to determine when to invoke it.
+            A <see cref="F:Animancer.AnimancerEvent.callback"/> delegate
+            paired with a <see cref="F:Animancer.AnimancerEvent.normalizedTime"/> which determines when to invoke it.
             </summary>
             <remarks>
             <strong>Documentation:</strong>
@@ -2808,11 +2814,6 @@
             Serializable data which can be used to construct an <see cref="T:Animancer.AnimancerEvent.Sequence"/> using
             <see cref="T:Animancer.StringAssetInternal"/>s and <see cref="T:Animancer.IInvokable"/>s.
             </summary>
-            <remarks>
-            <strong>Documentation:</strong>
-            <see href="https://kybernetik.com.au/animancer/docs/manual/events/animancer/serialization">
-            Serialized Events</see>
-            </remarks>
             https://kybernetik.com.au/animancer/api/Animancer/Serializable
         </member>
         <member name="P:Animancer.AnimancerEvent.Sequence.Serializable.NormalizedTimes">
@@ -2846,6 +2847,9 @@
             <summary>[Editor-Only] [Internal]
             The name of the array field which stores the serialized <see cref="P:Animancer.AnimancerEvent.Sequence.Serializable.Names"/>.
             </summary>
+        </member>
+        <member name="F:Animancer.AnimancerEvent.Sequence.Serializable.NestedObjectDrawers">
+            <summary>[Editor-Only] Disable Inspector Gadgets Nested Object Drawers.</summary>
         </member>
         <member name="P:Animancer.AnimancerEvent.Sequence.Serializable.InitializedEvents">
             <summary>Returns the <see cref="P:Animancer.AnimancerEvent.Sequence.Serializable.Events"/> or <c>null</c> if it wasn't yet initialized.</summary>
@@ -3138,6 +3142,9 @@
                 events.OnEnd = OnAnimationEnded;
             }
             </code>
+            If multiple different owners need to take turns reusing the same state, 
+            use <see cref="M:Animancer.AnimancerState.Events(Animancer.AnimancerEvent.Sequence@)"/> instead.
+            <para></para>
             If you only need to initialize the End Event, 
             consider using <see cref="M:Animancer.AnimancerState.Events(System.Object)"/> instead.
             </remarks>
@@ -3172,8 +3179,55 @@
             AnimancerState state = animancerComponent.Play(animation);
             state.Events(this).OnEnd ??= OnAnimationEnded;
             </code>
+            If multiple different owners need to take turns reusing the same state, 
+            use <see cref="M:Animancer.AnimancerState.Events(Animancer.AnimancerEvent.Sequence@)"/> instead.
+            <para></para>
             If you need to initialize more than just the End Event, 
-            consider using <see cref="M:Animancer.AnimancerState.Events(System.Object,Animancer.AnimancerEvent.Sequence@)"/> instead.
+            use <see cref="M:Animancer.AnimancerState.Events(System.Object,Animancer.AnimancerEvent.Sequence@)"/> instead.
+            </remarks>
+        </member>
+        <member name="M:Animancer.AnimancerState.Events(Animancer.AnimancerEvent.Sequence@)">
+            <summary>
+            If the `events` are <c>null</c>, this method assigns a <c>new</c> <see cref="T:Animancer.AnimancerEvent.Sequence"/>
+            and returns <c>true</c> to indicate that the caller should now initialize their event callbacks.
+            Otherwise, this method simply assigns the provided `events` to this state and returns <c>false</c>.
+            </summary>
+            
+            <remarks>
+            If this state already had events, the <c>new</c> <see cref="T:Animancer.AnimancerEvent.Sequence"/>
+            will be a copy of those events for the caller to own.
+            <para></para>
+            This method allows multiple callers to safely take turns using the same state
+            as long as they each call this method to assign their own events.
+            <para></para>
+            Also calls <see cref="M:Animancer.AnimancerState.AssertOwnership(System.Object)"/>.
+            <para></para>
+            <strong>Documentation:</strong>
+            <see href="https://kybernetik.com.au/animancer/docs/manual/events/animancer">
+            Animancer Events</see>
+            <para></para>
+            <strong>Example:</strong>
+            <code>
+            public static readonly StringReference EventName = "Event Name";
+            
+            private AnimancerEvent.Sequence _Events;// Don't new() this.
+            
+            ...
+            
+            AnimancerState state = animancerComponent.Play(animation);
+            
+            // The first time this is called it will assign a new event sequence
+            // to the _Events and return true so you can initialize it.
+            
+            // After that, it will just re-assign the _Events to the state.
+            // and return false so you don't need to re-initialize the events.
+            
+            if (state.Events(ref _Events))
+            {
+                _Events.SetCallback(EventName, OnAnimationEvent);
+                _Events.OnEnd = OnAnimationEnded;
+            }
+            </code>
             </remarks>
         </member>
         <member name="M:Animancer.AnimancerState.CopyEvents(Animancer.AnimancerState,Animancer.CloneContext)">
@@ -3620,8 +3674,9 @@
         <member name="M:Animancer.AnimancerState.Destroy">
             <summary>Destroys the <see cref="T:UnityEngine.Playables.Playable"/> and cleans up this state.</summary>
             <remarks>
-            This method is NOT called automatically, so when implementing a custom state type you must use
-            <see cref="P:Animancer.AnimancerGraph.Disposables"/> if you need to guarantee that things will get cleaned up.
+            This method is NOT called automatically when the whole <see cref="T:Animancer.AnimancerGraph"/> is destroyed,
+            so if you need to guarantee that things will get cleaned up you must use
+            <see cref="P:Animancer.AnimancerGraph.Disposables"/>.
             </remarks>
         </member>
         <member name="M:Animancer.AnimancerState.Clone(Animancer.CloneContext)">
@@ -4029,14 +4084,14 @@
             </remarks>
         </member>
         <member name="P:Animancer.AnimancerLayer.CommandCount">
-            <summary>
-            The number of times the <see cref="P:Animancer.AnimancerLayer.CurrentState"/> has changed. By storing this value and later comparing
-            the stored value to the current value, you can determine whether the state has been changed since then,
-            even it has changed back to the same state.
-            </summary>
+            <summary>The number of times the <see cref="P:Animancer.AnimancerLayer.CurrentState"/> has changed.</summary>
+            <remarks>
+            By storing this value and later comparing the stored value to the current value,
+            you can determine whether the state has been changed since then, even it has changed back to the same state.
+            </remarks>
         </member>
         <member name="M:Animancer.AnimancerLayer.IncrementCommandCount">
-            <summary>[Editor-Only] [Internal] Increases the <see cref="P:Animancer.AnimancerLayer.CommandCount"/> by 1.</summary>
+            <summary>Increases the <see cref="P:Animancer.AnimancerLayer.CommandCount"/> by 1.</summary>
         </member>
         <member name="P:Animancer.AnimancerLayer.IsAdditive">
             <summary>[Pro-Only]
@@ -4195,6 +4250,7 @@
         </member>
         <member name="M:Animancer.AnimancerLayer.GetOrCreateState(Animancer.AnimancerState)">
             <summary>Returns the `state` if it's a child of this layer. Otherwise makes a clone of it.</summary>
+            <remarks>The clone starts with 0 weight, no fade, and no events.</remarks>
         </member>
         <member name="P:Animancer.AnimancerLayer.WeightlessThreshold">
             <summary>
@@ -4930,7 +4986,10 @@
             <inheritdoc/>
         </member>
         <member name="P:Animancer.PlayableAssetState.Length">
-            <summary>The <see cref="P:UnityEngine.Playables.PlayableAsset.duration"/>.</summary>
+            <summary>The <see cref="P:UnityEngine.Playables.PlayableAsset.duration"/> (cached on initialization).</summary>
+        </member>
+        <member name="P:Animancer.PlayableAssetState.Speed">
+            <inheritdoc/>
         </member>
         <member name="M:Animancer.PlayableAssetState.GetEventDispatchInfo(System.Single@,System.Single@,System.Boolean@)">
             <inheritdoc/>
@@ -5658,6 +5717,34 @@
         <member name="M:Animancer.CollectionPool`2.AssertEmpty(`1)">
             <summary>[Assert-Conditional] Asserts that the `collection` is empty.</summary>
         </member>
+        <member name="T:Animancer.DictionaryPool">
+            <summary>Convenience methods for accessing <see cref="T:Animancer.DictionaryPool`2"/>.</summary>
+            https://kybernetik.com.au/animancer/api/Animancer/DictionaryPool
+        </member>
+        <member name="M:Animancer.DictionaryPool.Acquire``2">
+            <summary>Returns a spare <see cref="T:System.Collections.Generic.Dictionary`2"/> if there are any, or creates a new one.</summary>
+            <remarks>Remember to <see cref="M:Animancer.DictionaryPool.Release``2(System.Collections.Generic.Dictionary{``0,``1})"/> it when you are done.</remarks>
+        </member>
+        <member name="M:Animancer.DictionaryPool.Acquire``2(System.Collections.Generic.Dictionary{``0,``1}@)">
+            <summary>Returns a spare <see cref="T:System.Collections.Generic.Dictionary`2"/> if there are any, or creates a new one.</summary>
+            <remarks>Remember to <see cref="M:Animancer.DictionaryPool.Release``2(System.Collections.Generic.Dictionary{``0,``1})"/> it when you are done.</remarks>
+        </member>
+        <member name="M:Animancer.DictionaryPool.Release``2(System.Collections.Generic.Dictionary{``0,``1})">
+            <summary>Clears the `dictionary` and adds it to the list of spares so it can be reused.</summary>
+        </member>
+        <member name="M:Animancer.DictionaryPool.Release``2(System.Collections.Generic.Dictionary{``0,``1}@)">
+            <summary>Clears the `dictionary`, adds it to the list of spares so it can be reused, and sets it to <c>null</c>.</summary>
+        </member>
+        <member name="T:Animancer.DictionaryPool`2">
+            <summary>An <see cref="T:Animancer.ObjectPool`1"/> for <see cref="T:System.Collections.Generic.Dictionary`2"/>.</summary>
+            https://kybernetik.com.au/animancer/api/Animancer/DictionaryPool_2
+        </member>
+        <member name="F:Animancer.DictionaryPool`2.Instance">
+            <summary>Singleton.</summary>
+        </member>
+        <member name="M:Animancer.DictionaryPool`2.New">
+            <inheritdoc/>
+        </member>
         <member name="T:Animancer.ListPool">
             <summary>Convenience methods for accessing <see cref="T:Animancer.ListPool`1"/>.</summary>
             https://kybernetik.com.au/animancer/api/Animancer/ListPool
@@ -6225,53 +6312,6 @@
         <member name="M:Animancer.StringAssetInternal.CompareTo(Animancer.StringAssetInternal)">
             <summary>Compares the <see cref="F:Animancer.StringReference.String"/>s.</summary>
         </member>
-        <member name="M:Animancer.StringAssetInternal.Equals(Animancer.StringAssetInternal)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> equal to the `other`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.Equals(Animancer.StringReference)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> equal to the `other`?</summary>
-            <remarks>Uses <see cref="M:System.Object.ReferenceEquals(System.Object,System.Object)"/>.</remarks>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.Equals(System.String)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> equal to the `value`?</summary>
-            <remarks>Checks regular string equality because the `value` might not be interned.</remarks>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.Equals(System.Object)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> equal to the `other`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Equality(Animancer.StringAssetInternal,Animancer.StringAssetInternal)">
-            <summary>Are the <see cref="P:Animancer.StringAssetInternal.Name"/>s equal?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Inequality(Animancer.StringAssetInternal,Animancer.StringAssetInternal)">
-            <summary>Are the <see cref="P:Animancer.StringAssetInternal.Name"/>s not equal?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Equality(Animancer.StringAssetInternal,Animancer.StringReference)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> equal to `b`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Inequality(Animancer.StringAssetInternal,Animancer.StringReference)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> not equal to `b`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Equality(Animancer.StringReference,Animancer.StringAssetInternal)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> equal to `a`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Inequality(Animancer.StringReference,Animancer.StringAssetInternal)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> not equal to `a`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Equality(Animancer.StringAssetInternal,System.String)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> equal to `b`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Inequality(Animancer.StringAssetInternal,System.String)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> not equal to `b`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Equality(System.String,Animancer.StringAssetInternal)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> equal to `a`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.op_Inequality(System.String,Animancer.StringAssetInternal)">
-            <summary>Is the <see cref="P:Animancer.StringAssetInternal.Name"/> not equal to `a`?</summary>
-        </member>
-        <member name="M:Animancer.StringAssetInternal.GetHashCode">
-            <summary>Returns the hash code of the <see cref="P:Animancer.StringAssetInternal.Name"/>.</summary>
-        </member>
         <member name="M:Animancer.StringAssetInternal.ToString">
             <summary>Returns the <see cref="P:Animancer.StringAssetInternal.Name"/>.</summary>
         </member>
@@ -6492,22 +6532,105 @@
         </member>
         <member name="T:Animancer.Editor.ITransitionGUI">
             <summary>[Editor-Only] An object that can draw custom GUI elements relating to transitions.</summary>
+            <remarks>
+            Implement this in a custom transition type to give it custom GUI elements.
+            <para></para>
+            <strong>Example:</strong><code>
+            using Animancer;
+            using UnityEngine;
+            
+            // AttackTransition.cs contains your custom transition type.
+            public partial class AttackTransition : ClipTransition
+            {
+                [SerializeField] private Bounds _HitBox;
+                [SerializeField] private float _HitStartTime;
+                [SerializeField] private float _HitEndTime;
+            
+                // Damage, Knockback, etc.
+            }
+            
+            // AttackTransition.Drawer.cs contains the custom GUI for it.
+            #if UNITY_EDITOR
+                
+            using Animancer.Editor;
+            using UnityEditor;
+            using UnityEngine;
+            
+            public partial class AttackTransition : ITransitionGUI
+            {
+                // See each method for an example.
+                public void OnPreviewSceneGUI(TransitionPreviewDetails details) { }
+                public void OnTimelineBackgroundGUI() { }
+                public void OnTimelineForegroundGUI() { }
+            }
+            
+            #endif
+            </code></remarks>
             https://kybernetik.com.au/animancer/api/Animancer.Editor/ITransitionGUI
         </member>
         <member name="M:Animancer.Editor.ITransitionGUI.OnPreviewSceneGUI(Animancer.Editor.TransitionPreviewDetails)">
             <summary>Called while drawing the GUI for the <see cref="T:Animancer.Editor.Previews.TransitionPreviewWindow"/> scene.</summary>
+            <remarks>
+            <strong>Example:</strong><code>
+            // For the AttackTransition example from ITransitionGUI.
+            // Draw the hit box as a wireframe cube.
+            public void OnPreviewSceneGUI(TransitionPreviewDetails details)
+            {
+                Color color = Handles.color;
+                Handles.color = new(0.5f, 1, 0.5f);
+                
+                Transform transform = details.Transform;
+                
+                Handles.DrawWireCube(
+                    transform.TransformPoint(_HitBox.center),
+                    _HitBox.size);
+                
+                Handles.color = color;
+            }
+            </code></remarks>
         </member>
         <member name="M:Animancer.Editor.ITransitionGUI.OnTimelineBackgroundGUI">
             <summary>
             Called while drawing the background GUI for the <see cref="T:Animancer.Editor.TimelineGUI"/> for the
             <see cref="P:Animancer.IHasEvents.Events"/>.
             </summary>
+            <remarks>
+            <strong>Example:</strong><code>
+            // For the AttackTransition example from ITransitionGUI.
+            // Draw the hit time as a highlighted area.
+            public void OnTimelineBackgroundGUI()
+            {
+                if (Event.current.type != EventType.Repaint)
+                    return;
+            
+                Color previousColor = GUI.color;
+                TimelineGUI timelineGUI = TimelineGUI.Current;
+            
+                float start = timelineGUI.SecondsToPixels(_HitStartTime);
+                float end = timelineGUI.SecondsToPixels(_HitEndTime);
+                Rect area = new Rect(
+                    start,
+                    0,
+                    end - start,
+                    timelineGUI.Area.height - timelineGUI.TickHeight);
+            
+                Color color = new Color(0.9f, 0.4f, 0.25f, 0.5f);
+            
+                EditorGUI.DrawRect(area, color);
+            
+                GUI.color = previousColor;
+            }
+            </code></remarks>
         </member>
         <member name="M:Animancer.Editor.ITransitionGUI.OnTimelineForegroundGUI">
             <summary>
             Called while drawing the foreground GUI for the <see cref="T:Animancer.Editor.TimelineGUI"/> for the
             <see cref="P:Animancer.IHasEvents.Events"/>.
             </summary>
+            <remarks>
+            This method can be used similarly to the <see cref="M:Animancer.Editor.ITransitionGUI.OnTimelineBackgroundGUI"/> example,
+            except that it draws in front of everything else.
+            </remarks>
         </member>
         <member name="T:Animancer.Editor.TransitionPreviewDetails">
             <summary>[Editor-Only] Details about the current preview used by <see cref="M:Animancer.Editor.ITransitionGUI.OnPreviewSceneGUI(Animancer.Editor.TransitionPreviewDetails)"/>.</summary>
@@ -8718,7 +8841,7 @@
         <member name="M:Animancer.Editor.SerializableEventSequenceDrawer.DoAddRemoveEventButtonGUI(UnityEngine.Rect,Animancer.Editor.SerializableEventSequenceDrawer.Context)">
             <summary>Draws a button to add a new event or remove the selected one.</summary>
         </member>
-        <member name="M:Animancer.Editor.SerializableEventSequenceDrawer.AddEvent(Animancer.Editor.SerializableEventSequenceDrawer.Context,System.Single)">
+        <member name="M:Animancer.Editor.SerializableEventSequenceDrawer.AddEvent(Animancer.Editor.SerializableEventSequenceDrawer.Context,System.Single,Animancer.StringAssetInternal)">
             <summary>Adds an event to the sequence represented by the given `context`.</summary>
         </member>
         <member name="M:Animancer.Editor.SerializableEventSequenceDrawer.RemoveEvent(Animancer.Editor.SerializableEventSequenceDrawer.Context,System.Int32)">
@@ -9551,6 +9674,13 @@
             Previews</see>
             </remarks>
         </member>
+        <member name="F:Animancer.Editor.Previews.TransitionPreviewWindow.Animations.DummyCallback">
+            <summary>Does nothing.</summary>
+            <remarks>
+            Doesn't trigger <see cref="F:Animancer.OptionalWarning.UselessEvent"/>
+            (unlike <see cref="F:Animancer.AnimancerEvent.DummyCallback"/>).
+            </remarks>
+        </member>
         <member name="P:Animancer.Editor.Previews.TransitionPreviewWindow.Icon">
             <summary>The icon image used by this window.</summary>
         </member>
@@ -9638,9 +9768,6 @@
         </member>
         <member name="P:Animancer.Editor.Previews.TransitionPreviewWindow.Scene.PreviewSceneRoot">
             <summary>The root object in the preview scene.</summary>
-        </member>
-        <member name="P:Animancer.Editor.Previews.TransitionPreviewWindow.Scene.InstanceRoot">
-            <summary>The root of the model in the preview scene. A child of the <see cref="P:Animancer.Editor.Previews.TransitionPreviewWindow.Scene.PreviewSceneRoot"/>.</summary>
         </member>
         <member name="P:Animancer.Editor.Previews.TransitionPreviewWindow.Scene.EnvironmentInstance">
             <summary>
@@ -10611,6 +10738,9 @@
             <see cref="M:UnityEditor.SerializedProperty.DeleteArrayElementAtIndex(System.Int32)"/> will only reset it, so this method will
             call it again if necessary to ensure that it actually gets removed.
             </remarks>
+        </member>
+        <member name="M:Animancer.Editor.Serialization.GetDescriptionOfProperties(UnityEditor.SerializedObject)">
+            <summary>Returns a description of the properties in the specified `serializedObject`.</summary>
         </member>
         <member name="M:Animancer.Editor.Serialization.GetAccessor(UnityEditor.SerializedProperty)">
             <summary>
@@ -12536,21 +12666,18 @@
             If you don't intend to blend between them, you can just disable this warning.
             </remarks>
         </member>
-        <member name="F:Animancer.OptionalWarning.NativeControllerHybrid">
+        <member name="F:Animancer.OptionalWarning.NativeControllerState">
             <summary>
-            An <see cref="P:UnityEngine.Animator.runtimeAnimatorController"/> is assigned while also using a
-            <see cref="!:HybridAnimancerComponent"/>.
+            An <see cref="P:UnityEngine.Animator.runtimeAnimatorController"/> is being used at the same time as a
+            <see cref="T:Animancer.ControllerState"/> or <see cref="!:HybridAnimancerComponent"/>.
             </summary>
             
             <remarks>
-            Either assign the <see cref="P:UnityEngine.Animator.runtimeAnimatorController"/> to use it as a Native Animator
-            Controller or assign the <see cref="!:HybridAnimancerComponent.Controller"/> to use it as a Hybrid Animator
-            Controller. The differences are explained on the
-            <see href="https://kybernetik.com.au/animancer/docs/manual/animator-controllers">Animator Controllers</see>
-            page.
-            <para></para>
             It is possible to use both, but it usually only happens when misunderstanding how the system works.
-            If you do want both, just disable this warning.
+            The differences are explained on the
+            <see href="https://kybernetik.com.au/animancer/docs/manual/animator-controllers">
+            Animator Controllers</see> page.
+            If you do want both systems, just disable this warning.
             </remarks>
         </member>
         <member name="F:Animancer.OptionalWarning.EndEventInterrupt">
@@ -12584,9 +12711,7 @@
             <remarks>
             This most commonly happens when a Transition is shared by multiple characters and they
             all register their own callbacks to its events which leads to those events controlling
-            the wrong character. The
-            <see href="https://kybernetik.com.au/animancer/docs/manual/events/animancer/shared">Shared Events</see>
-            page explains various ways this issue can be avoided.
+            the wrong character.
             </remarks>
         </member>
         <member name="F:Animancer.OptionalWarning.UselessEvent">
@@ -12716,6 +12841,16 @@
             so that it can include the stack trace in the warning message for any nodes that end up being unused.
             </remarks>
         </member>
+        <member name="F:Animancer.OptionalWarning.MainObjectMismatch">
+            <summary>
+            An <see cref="P:Animancer.AnimancerState.MainObject"/> doesn't match the <see cref="!:Transition&lt;TState&gt;.MainObject"/>
+            of the transition being applied to it.
+            </summary>
+            <remarks>
+            If you set the <see cref="!:Transition&lt;TState&gt;.MainObject"/> of a transition, you should also call
+            <see cref="!:Transition&lt;TState&gt;.ReconcileMainObject"/> to create a new state for the new object.
+            </remarks>
+        </member>
         <member name="F:Animancer.OptionalWarning.PlayableAssetAnimatorBinding">
             <summary>
             <see cref="M:Animancer.PlayableAssetState.InitializeBindings"/> is trying to bind to the same <see cref="T:UnityEngine.Animator"/>
@@ -12746,8 +12881,8 @@
             </summary>
             
             <remarks>
-            This warning should be disabled if you only intend to use the animation in the
-            Unity Editor and not create it in a runtime build.
+            This warning should be disabled if you're loading animations from Asset Bundles or Addressables
+            or if you only intend to use the animation in the Unity Editor.
             </remarks>
         </member>
         <member name="F:Animancer.OptionalWarning.StringReference">
@@ -13443,10 +13578,6 @@
         <member name="P:Animancer.IHasEvents.SerializedEvents">
             <summary>Events which will be triggered as the animation plays.</summary>
         </member>
-        <member name="T:Animancer.ITransitionWithEvents">
-            <summary>A combination of <see cref="T:Animancer.ITransition"/> and <see cref="T:Animancer.IHasEvents"/>.</summary>
-            https://kybernetik.com.au/animancer/api/Animancer/ITransitionWithEvents
-        </member>
         <member name="T:Animancer.IHasKey">
             <summary>
             An object with a <see cref="P:Animancer.IHasKey.Key"/> which can be used in dictionaries and hash sets.
@@ -13579,6 +13710,9 @@
         </member>
         <member name="P:Animancer.ITransitionDetailed.IsValid">
             <summary>Can this transition create a valid <see cref="T:Animancer.AnimancerState"/>?</summary>
+            <remarks>
+            Use <see cref="M:Animancer.AnimancerUtilities.IsValid(Animancer.ITransitionDetailed)"/> to check for <c>null</c> as well.
+            </remarks>
         </member>
         <member name="P:Animancer.ITransitionDetailed.IsLooping">
             <summary>What will the value of <see cref="P:Animancer.AnimancerState.IsLooping"/> be for the created state?</summary>
@@ -13646,7 +13780,7 @@
         </member>
         <member name="P:Animancer.IUpdatable.UpdatableIndex">
             <summary>The index of this object in its <see cref="T:Animancer.IndexedList`2"/>.</summary>
-            <remarks>Should be initialized to -1 to indicate that this object is not yet in a list.</remarks>
+            <remarks>Must be initialized to -1 to indicate that this object is not yet in a list.</remarks>
         </member>
         <member name="M:Animancer.IUpdatable.Update">
             <summary>Updates this object.</summary>
@@ -13802,10 +13936,10 @@
             <inheritdoc/>
         </member>
         <member name="P:Animancer.LinearMixerState.MinThreshold">
-            <summary>The lowest threshold (which is for the first child because they must be sorted).</summary>
+            <summary>The lowest threshold (which is for the first child since they must be sorted).</summary>
         </member>
         <member name="P:Animancer.LinearMixerState.MaxThreshold">
-            <summary>The highest threshold (which is for the last child because they must be sorted).</summary>
+            <summary>The highest threshold (which is for the last child since they must be sorted).</summary>
         </member>
         <member name="P:Animancer.LinearMixerState.NormalizedParameter">
             <inheritdoc/>
@@ -14327,7 +14461,11 @@
             </summary>
         </member>
         <member name="P:Animancer.MixerState`1.NormalizedParameter">
-            <summary>The <see cref="P:Animancer.MixerState`1.Parameter"/> normalized into the range of 0 to 1 across all thresholds.</summary>
+            <summary>The <see cref="P:Animancer.MixerState`1.Parameter"/> normalized across all thresholds.</summary>
+            <remarks>
+            If the threshold range includes both negative and positive values, the normalized range is -1 to 1.
+            Otherwise, the normalized range is 0 to 1.
+            </remarks>
         </member>
         <member name="P:Animancer.MixerState`1.WeightsAreDirty">
             <summary>Should the weights of all child states be recalculated?</summary>
@@ -14481,7 +14619,7 @@
         <member name="M:Animancer.Vector2MixerState.CopyFrom(Animancer.Vector2MixerState,Animancer.CloneContext)">
             <inheritdoc/>
         </member>
-        <member name="M:Animancer.Vector2MixerState.GetThresholdBounds(UnityEngine.Vector2@,UnityEngine.Vector2@)">
+        <member name="M:Animancer.Vector2MixerState.GetThresholdBounds(UnityEngine.Vector2@,UnityEngine.Vector2@,System.Boolean@)">
             <summary>Gets the lowest and highest threshold values on each axis.</summary>
         </member>
         <member name="P:Animancer.Vector2MixerState.NormalizedParameter">
@@ -14790,7 +14928,7 @@
             <see cref="P:Animancer.AnimancerLayer.CurrentState"/> to the `key`.
             </summary>
         </member>
-        <member name="M:Animancer.TransitionLibraries.TransitionLibrary.GetAnimationClips(System.Collections.Generic.List{UnityEngine.AnimationClip})">
+        <member name="M:Animancer.TransitionLibraries.TransitionLibrary.GatherAnimationClips(System.Collections.Generic.ICollection{UnityEngine.AnimationClip})">
             <summary>[Pro-Only] Gathers all the animations in this library.</summary>
         </member>
         <member name="M:Animancer.TransitionLibraries.TransitionLibrary.Initialize(Animancer.TransitionLibraries.TransitionLibraryDefinition)">
@@ -14954,7 +15092,7 @@
             it only adds or replaces values.
             </remarks>
         </member>
-        <member name="M:Animancer.TransitionLibraries.TransitionLibraryAssetInternal.GetAnimationClips(System.Collections.Generic.List{UnityEngine.AnimationClip})">
+        <member name="M:Animancer.TransitionLibraries.TransitionLibraryAssetInternal.GatherAnimationClips(System.Collections.Generic.ICollection{UnityEngine.AnimationClip})">
             <summary>Gathers all the animations in the <see cref="P:Animancer.TransitionLibraries.TransitionLibraryAssetInternal.Definition"/> and <see cref="P:Animancer.TransitionLibraries.TransitionLibraryAssetInternal.Library"/>.</summary>
         </member>
         <member name="T:Animancer.TransitionLibraries.TransitionLibraryDefinition">
@@ -15062,7 +15200,7 @@
         <member name="M:Animancer.TransitionLibraries.TransitionLibraryDefinition.GetHashCode">
             <summary>Returns a hash code based on the values of this object's fields.</summary>
         </member>
-        <member name="M:Animancer.TransitionLibraries.TransitionLibraryDefinition.GetAnimationClips(System.Collections.Generic.List{UnityEngine.AnimationClip})">
+        <member name="M:Animancer.TransitionLibraries.TransitionLibraryDefinition.GatherAnimationClips(System.Collections.Generic.ICollection{UnityEngine.AnimationClip})">
             <summary>Gathers all the animations in this definition.</summary>
         </member>
         <member name="M:Animancer.TransitionLibraries.TransitionLibraryDefinition.CopyFrom(Animancer.TransitionLibraries.TransitionLibraryDefinition,Animancer.CloneContext)">
@@ -15221,6 +15359,15 @@
         <member name="P:Animancer.TransitionAssetBase.Speed">
             <inheritdoc/>
         </member>
+        <member name="F:Animancer.TransitionAssetBase.ObsoleteEventsMessage">
+            <summary>Explains why Transition Assets warn about accessing their events.</summary>
+        </member>
+        <member name="P:Animancer.TransitionAssetBase.Events">
+            <inheritdoc/>
+        </member>
+        <member name="P:Animancer.TransitionAssetBase.SerializedEvents">
+            <inheritdoc/>
+        </member>
         <member name="M:Animancer.TransitionAssetBase.GetAnimationClips(System.Collections.Generic.List{UnityEngine.AnimationClip})">
             <summary>[<see cref="T:UnityEngine.IAnimationClipSource"/>]
             Calls <see cref="M:Animancer.AnimancerUtilities.GatherFromSource(System.Collections.Generic.ICollection{UnityEngine.AnimationClip},System.Object)"/>.
@@ -15238,10 +15385,22 @@
             </remarks>
             https://kybernetik.com.au/animancer/api/Animancer/TryCreateTransitionAttribute
         </member>
+        <member name="P:Animancer.TryCreateTransitionAttribute.ObjectType">
+            <summary>The base type of object which the attributed method can handle.</summary>
+        </member>
+        <member name="M:Animancer.TryCreateTransitionAttribute.#ctor(System.Type)">
+            <summary>Creates a new <see cref="T:Animancer.TryCreateTransitionAttribute"/>.</summary>
+        </member>
         <member name="M:Animancer.TryCreateTransitionAttribute.InitializeMethods">
             <summary>[Editor-Only] Ensures that all methods with this attribute have been gathered.</summary>
         </member>
-        <member name="M:Animancer.TryCreateTransitionAttribute.TryCreateTransitionAsset(UnityEngine.Object)">
+        <member name="M:Animancer.TryCreateTransitionAttribute.CanCreateAndSave(UnityEngine.Object)">
+            <summary>[Editor-Only] Validates that the `mainAsset` is actually an asset.</summary>
+        </member>
+        <member name="M:Animancer.TryCreateTransitionAttribute.CanCreate(System.Type)">
+            <summary>[Editor-Only] Validates that the `mainAsset` is actually an asset.</summary>
+        </member>
+        <member name="M:Animancer.TryCreateTransitionAttribute.TryCreateTransitionAsset(UnityEngine.Object,System.Boolean)">
             <summary>[Editor-Only] Tries to create an asset containing an appropriate transition for the `target`.</summary>
         </member>
         <member name="T:System.Index">

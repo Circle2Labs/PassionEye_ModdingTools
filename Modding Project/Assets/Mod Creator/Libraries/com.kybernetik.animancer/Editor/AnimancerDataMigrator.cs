@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #if UNITY_EDITOR
 
@@ -24,7 +24,7 @@ namespace Animancer.Editor
 
         /// <summary>The directory where any newly created files will be saved.</summary>
         public const string
-            MigratedDataDirectory = "Animancer Migrated Data";
+            MigratedDataDirectory = "Assets/Animancer Migrated Data";
 
         /************************************************************************************************************************/
         #region Entry Point
@@ -256,7 +256,7 @@ namespace Animancer.Editor
         /// </summary>
         private static void MigrateEvents(ref string text)
         {
-            const string Prefix = "_" + nameof(ITransitionWithEvents.Events) + ":";
+            const string Prefix = "_" + nameof(IHasEvents.Events) + ":";
 
             var index = 0;
             while ((index = text.IndexOf(Prefix, index)) >= 0)
@@ -353,8 +353,10 @@ namespace Animancer.Editor
 
         private static void MigrateEventName(ref string text, int start, string name, out int end)
         {
-            GetOrCreateStringAsset(name, out var path, out var guid);
+            StringAsset.FindOrCreate(name, MigratedDataDirectory, out var path);
+
             var fileID = GetFileID(path);
+            var guid = AssetDatabase.AssetPathToGUID(path);
 
             end = start + name.Length;
 
@@ -365,37 +367,6 @@ namespace Animancer.Editor
             end = start + newReference.Length;
 
             text = $"{before}{newReference}{after}";
-        }
-
-        /************************************************************************************************************************/
-
-        private static StringAsset GetOrCreateStringAsset(StringReference name, out string path, out string guid)
-        {
-            var filter = $"{name} t:{nameof(StringAsset)}";
-            var guids = AssetDatabase.FindAssets(filter);
-
-            for (int i = 0; i < guids.Length; i++)
-            {
-                guid = guids[i];
-                path = AssetDatabase.GUIDToAssetPath(guid);
-                var asset = AssetDatabase.LoadAssetAtPath<StringAsset>(path);
-                if (asset != null && asset.Name == name)
-                    return asset;
-            }
-
-            var key = ScriptableObject.CreateInstance<StringAsset>();
-            key.name = name;
-
-            AssetDatabase.CreateFolder("Assets", MigratedDataDirectory);
-
-            path = Path.Combine("Assets", MigratedDataDirectory, name + ".asset");
-            AssetDatabase.CreateAsset(key, path);
-
-            guid = AssetDatabase.AssetPathToGUID(path);
-
-            Debug.Log($"Created {nameof(StringAsset)} for event name: {name}", key);
-
-            return key;
         }
 
         /************************************************************************************************************************/

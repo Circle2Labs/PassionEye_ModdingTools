@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace Animancer
     /// <remarks>
     /// <para></para>
     /// <strong>Documentation:</strong>
-    /// <see href="https://kybernetik.com.au/animancer/docs/manual/blending/mixers/smoothing">
+    /// <see href="https://kybernetik.com.au/animancer/docs/manual/parameters#smoothing">
     /// Smoothing</see>
     /// <para></para>
     /// <strong>Example:</strong>

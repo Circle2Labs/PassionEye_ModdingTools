@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 using Animancer.Units;
 using System;
@@ -22,7 +22,6 @@ namespace Animancer
         IPolymorphic,
         ITransition<TState>,
         ITransitionDetailed,
-        ITransitionWithEvents,
         ICopyable<Transition<TState>>,
         ICloneable<Transition<TState>>
         where TState : AnimancerState
@@ -195,6 +194,26 @@ namespace Animancer
         /// <inheritdoc/>
         public virtual void Apply(AnimancerState state)
         {
+#if UNITY_ASSERTIONS
+            if (state.MainObject != MainObject)
+            {
+                OptionalWarning.MainObjectMismatch.Log(
+                    $"A state.{nameof(MainObject)} doesn't match the transition.{nameof(MainObject)} being applied to it." +
+                    $" transition.{nameof(ReconcileMainObject)} must be called for every state created by the transition" +
+                    $" after its {nameof(MainObject)} is changed." +
+                    $" This includes {nameof(ClipTransition)}.{nameof(ClipTransition.Clip)}," +
+#pragma warning disable CS0618 // Type or member is obsolete.
+                    $" {nameof(ControllerTransition)}.{nameof(ControllerTransition.Controller)}, and" +
+                    $" {nameof(PlayableAssetTransition)}.{nameof(PlayableAssetTransition.Asset)}" +
+#pragma warning restore CS0618
+                    $"\n• State: {state}" +
+                    $"\n• State.{nameof(MainObject)}: {state.MainObject}" +
+                    $"\n• Transition.{nameof(MainObject)}: {MainObject}" +
+                    $"\n• Component: {state.Graph?.Component}",
+                    state.Graph?.Component);
+            }
+#endif
+
             if (_State != state)
             {
                 _State = null;
@@ -240,6 +259,75 @@ namespace Animancer
             return name is null
                 ? type :
                 $"{name} ({type})";
+        }
+
+        /************************************************************************************************************************/
+
+        /// <summary>
+        /// If a state exists with its <see cref="AnimancerState.MainObject"/> not matching the
+        /// <see cref="MainObject"/>, this method returns a new state for the correct object.
+        /// </summary>
+        /// <remarks>
+        /// This method only applies to the state registered with the <see cref="Key"/> so
+        /// if this transition is played on multiple different characters or used to create
+        /// multiple states for the same character, this method must be called for each state.
+        /// </remarks>
+        public AnimancerState ReconcileMainObject(AnimancerGraph animancer)
+            => animancer.States.TryGet(this, out var state)
+            ? ReconcileMainObject(state)
+            : null;
+
+        /************************************************************************************************************************/
+
+        /// <summary>
+        /// If the <see cref="AnimancerState.MainObject"/> doesn't match the <see cref="MainObject"/>,
+        /// this method returns a new state for the correct object.
+        /// </summary>
+        /// <remarks>
+        /// If this transition is played on multiple different characters or used to create
+        /// multiple states for the same character, this method must be called for each state.
+        /// </remarks>
+        public AnimancerState ReconcileMainObject(AnimancerState state)
+        {
+            var newMainObject = MainObject;
+            if (newMainObject == null)
+                return state;
+
+            var oldMainObject = state.MainObject;
+            if (oldMainObject == newMainObject)
+                return state;
+
+#if UNITY_ASSERTIONS
+            if (oldMainObject == null)
+                Debug.LogError(
+                    $"{state} had no {nameof(state.MainObject)} to change from.",
+                    state.Graph?.Component as Object);
+            if (newMainObject == null)
+                Debug.LogError(
+                    $"{this} has no {nameof(MainObject)} to change to.",
+                    state.Graph?.Component as Object);
+#endif
+
+            // Change the old state's key to its object so we can get it back later.
+            state.Key = oldMainObject;
+
+            // If there was already a state for the new object, give it the correct key.
+            if (state.Graph.States.TryGet(newMainObject, out var existingState))
+            {
+                existingState.Key = Key;
+                state = existingState;
+            }
+            else// Otherwise, create a state for the new object.
+            {
+                var layer = state.Layer;
+                state = CreateState();
+                state.Key = Key;
+                state.SetParent(layer);
+            }
+
+            _State = null;
+            BaseState = state;
+            return state;
         }
 
         /************************************************************************************************************************/
