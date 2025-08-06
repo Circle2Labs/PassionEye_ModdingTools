@@ -61,8 +61,8 @@ namespace Code.Editor.ModEngine
 		public const bool IsVerbose = false;
 #endif
 
-		public const string Version = "v0.1.11.0";
-		public const string EditorVersion = "2022.3.53f1";
+		public const string Version = "v0.1.11.1";
+		public const string EditorVersion = "6000.0.54f1";
 		
 		[SerializeField]
 		public Manifest Manifest = new () {Name = "", Author = "", Version = "1.0.0"};

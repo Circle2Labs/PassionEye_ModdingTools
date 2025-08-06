@@ -27,7 +27,7 @@ namespace Code.Frameworks.Outline
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            if(renderingData.cameraData.cameraType is CameraType.Game or CameraType.SceneView)
+            if(renderingData.cameraData.cameraType == CameraType.Game)
             {
                 if(width != renderingData.cameraData.camera.pixelWidth || height != renderingData.cameraData.camera.pixelHeight)
                 {
@@ -46,7 +46,7 @@ namespace Code.Frameworks.Outline
         }
         
         public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) {
-            if(renderingData.cameraData.cameraType is CameraType.Game or CameraType.SceneView)
+            if(renderingData.cameraData.cameraType == CameraType.Game)
                 cameraColorFormat = renderingData.cameraData.renderer.cameraColorTargetHandle.rt.graphicsFormat;
             base.SetupRenderPasses(renderer, in renderingData);
         }
@@ -100,7 +100,7 @@ namespace Code.Frameworks.Outline
         }
     }
     
-    class ToonOutlinePass : ScriptableRenderPass
+    sealed partial class ToonOutlinePass : ScriptableRenderPass
     {
         Material toonOutlineMat, blurBlendMat;
         RTHandle outlineRT, blurredOutlineRT;

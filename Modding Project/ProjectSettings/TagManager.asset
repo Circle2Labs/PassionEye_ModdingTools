@@ -23,7 +23,7 @@ TagManager:
   - 
   - 
   - CameraBlock
-  - 
+  - CameraBlockTransparent
   - 
   - Interaction
   - HLocation

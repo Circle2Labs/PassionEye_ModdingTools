@@ -138,7 +138,7 @@ Shader "Toon/EyeShader"
         Pass
         {
             HLSLPROGRAM
-            #include "EyeForward.hlsl"
+            #include_with_pragmas "EyeForward.hlsl"
             ENDHLSL
         }
 
@@ -197,4 +197,5 @@ Shader "Toon/EyeShader"
             ENDHLSL
         }
     }
+    Fallback "Hidden/Core/FallbackError"
 }
