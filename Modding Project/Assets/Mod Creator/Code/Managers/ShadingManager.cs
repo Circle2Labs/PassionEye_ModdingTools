@@ -132,7 +132,7 @@ namespace Code.Managers
         {
             // If the current one gets destroyed, make the parent one dirty so it applies again
 
-            var shadingManagers = FindObjectsOfType<ShadingManager>();
+            var shadingManagers = FindObjectsByType<ShadingManager>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             for (var i = 0; i < shadingManagers.Length; i++)
             {
                 var shadingManager = shadingManagers[i];

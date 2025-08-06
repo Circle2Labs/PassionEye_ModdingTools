@@ -3,7 +3,10 @@ guid: 3ab9c3ea0b8f9cb4a91c2301ae2e686e
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - toonOutlineShader: {fileID: -6465566751694194690, guid: 525834256c94ba042830539fd92cf5b0,
+      type: 3}
+  - blurBlendShader: {fileID: 4800000, guid: 9660a0ef97e95c848b39067ab988e010, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

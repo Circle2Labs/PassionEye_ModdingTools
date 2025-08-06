@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #if UNITY_EDITOR
 
@@ -11,17 +11,32 @@ using Object = UnityEngine.Object;
 
 namespace Animancer.Editor
 {
-    /// <summary>[Editor-Only] A custom Inspector for <see cref="DirectionalAnimationSet"/>s.</summary>
+    /// <summary>[Editor-Only] A custom Inspector for <see cref="DirectionalAnimationSet4"/>.</summary>
+    /// https://kybernetik.com.au/animancer/api/Animancer.Editor/DirectionalAnimationSet4Editor
+    [CustomEditor(typeof(DirectionalAnimationSet4), true)]
+    public class DirectionalAnimationSet4Editor : DirectionalAnimationSetEditor { }
+
+    /// <summary>[Editor-Only] A custom Inspector for <see cref="DirectionalAnimationSet8"/>.</summary>
+    /// https://kybernetik.com.au/animancer/api/Animancer.Editor/DirectionalAnimationSet8Editor
+    [CustomEditor(typeof(DirectionalAnimationSet8), true)]
+    public class DirectionalAnimationSet8Editor : DirectionalAnimationSetEditor { }
+
+    /// <summary>[Editor-Only]
+    /// A custom Inspector for 
+    /// <see cref="DirectionalAnimationSet4"/> and <see cref="DirectionalAnimationSet8"/>.
+    /// </summary>
     /// https://kybernetik.com.au/animancer/api/Animancer.Editor/DirectionalAnimationSetEditor
-    [CustomEditor(typeof(DirectionalAnimationSet), true), CanEditMultipleObjects]
+    [CanEditMultipleObjects]
     public class DirectionalAnimationSetEditor : ScriptableObjectEditor
     {
         /************************************************************************************************************************/
 
-        [MenuItem("CONTEXT/" + nameof(DirectionalAnimationSet) + "/Find Animations")]
+        [MenuItem("CONTEXT/" + nameof(DirectionalAnimationSet2) + "/Find Animations")]
+        [MenuItem("CONTEXT/" + nameof(DirectionalAnimationSet4) + "/Find Animations")]
+        [MenuItem("CONTEXT/" + nameof(DirectionalAnimationSet8) + "/Find Animations")]
         private static void FindSimilarAnimations(MenuCommand command)
         {
-            var set = (DirectionalAnimationSet)command.context;
+            var set = (DirectionalSet<AnimationClip>)command.context;
 
             var directory = AssetDatabase.GetAssetPath(set);
             directory = Path.GetDirectoryName(directory);
@@ -39,7 +54,7 @@ namespace Animancer.Editor
                     if (clip == null)
                         continue;
 
-                    set.SetClipByName(clip);
+                    set.SetByName(clip);
                 }
             }
         }
@@ -48,7 +63,7 @@ namespace Animancer.Editor
 
         [MenuItem(
             itemName: Strings.CreateMenuPrefix + "Directional Animation Set/From Selection",
-            priority = Strings.AssetMenuOrder + 5)]
+            priority = Strings.AssetMenuOrder + 7)]
         private static void CreateDirectionalAnimationSet()
         {
             var nameToAnimations = new Dictionary<string, List<AnimationClip>>();
@@ -61,7 +76,7 @@ namespace Animancer.Editor
                     continue;
 
                 var name = clip.name;
-                for (DirectionalAnimationSet.Direction direction = 0; direction < (DirectionalAnimationSet.Direction)4; direction++)
+                for (Direction4 direction = 0; direction < (Direction4)4; direction++)
                 {
                     name = name.Replace(direction.ToString(), "");
                 }
@@ -76,20 +91,21 @@ namespace Animancer.Editor
             }
 
             if (nameToAnimations.Count == 0)
-                throw new InvalidOperationException("No clips are selected");
+                throw new InvalidOperationException("No animation clips are selected");
 
             var sets = new List<Object>();
             foreach (var nameAndAnimations in nameToAnimations)
             {
-                var set = nameAndAnimations.Value.Count <= 4 ?
-                    CreateInstance<DirectionalAnimationSet>() :
-                    CreateInstance<DirectionalAnimationSet8>();
+                var count = nameAndAnimations.Value.Count;
+                DirectionalSet<AnimationClip> set = count <= 2
+                    ? CreateInstance<DirectionalAnimationSet2>()
+                    : count <= 4
+                    ? CreateInstance<DirectionalAnimationSet4>()
+                    : CreateInstance<DirectionalAnimationSet8>();
 
-                set.AllowSetClips();
+                set.AllowChanges();
                 for (int i = 0; i < nameAndAnimations.Value.Count; i++)
-                {
-                    set.SetClipByName(nameAndAnimations.Value[i]);
-                }
+                    set.SetByName(nameAndAnimations.Value[i]);
 
                 var path = AssetDatabase.GetAssetPath(nameAndAnimations.Value[0]);
                 path = $"{Path.GetDirectoryName(path)}/{nameAndAnimations.Key}.asset";
@@ -103,22 +119,24 @@ namespace Animancer.Editor
 
         /************************************************************************************************************************/
 
-        [MenuItem("CONTEXT/" + nameof(DirectionalAnimationSet) + "/Toggle Looping")]
+        [MenuItem("CONTEXT/" + nameof(DirectionalAnimationSet2) + "/Toggle Looping")]
+        [MenuItem("CONTEXT/" + nameof(DirectionalAnimationSet4) + "/Toggle Looping")]
+        [MenuItem("CONTEXT/" + nameof(DirectionalAnimationSet8) + "/Toggle Looping")]
         private static void ToggleLooping(MenuCommand command)
         {
-            var set = (DirectionalAnimationSet)command.context;
+            var set = (DirectionalSet<AnimationClip>)command.context;
 
-            var count = set.ClipCount;
+            var count = set.DirectionCount;
             for (int i = 0; i < count; i++)
             {
-                var clip = set.GetClip(i);
+                var clip = set.Get(i);
                 if (clip == null)
                     continue;
 
                 var isLooping = !clip.isLooping;
                 for (i = 0; i < count; i++)
                 {
-                    clip = set.GetClip(i);
+                    clip = set.Get(i);
                     if (clip == null)
                         continue;
 

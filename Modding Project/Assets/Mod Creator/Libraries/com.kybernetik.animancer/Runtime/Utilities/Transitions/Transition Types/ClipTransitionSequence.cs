@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #if ! UNITY_EDITOR
 #pragma warning disable CS0618 // Type or member is obsolete (for Animancer Events in Animancer Lite).
@@ -16,7 +16,6 @@ namespace Animancer
     /// 
     [Serializable]
     public class ClipTransitionSequence : ClipTransition,
-        ISerializationCallbackReceiver,
         ICopyable<ClipTransitionSequence>
     {
         /************************************************************************************************************************/
@@ -42,27 +41,24 @@ namespace Animancer
         }
 
         /// <summary>The last of the <see cref="Others"/> (or <c>this</c> if there are none).</summary>
-        public ClipTransition LastTransition => _Others.Length > 0 ? _Others[^1] : this;
+        public ClipTransition LastTransition
+            => _Others.Length > 0
+            ? _Others[^1]
+            : this;
 
         /************************************************************************************************************************/
 
         private Action _OnEnd;
 
-        /// <inheritdoc/>
-        void ISerializationCallbackReceiver.OnBeforeSerialize() { }
-
-        /// <inheritdoc/>
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-            => InitializeEndEventChain();
-
         /// <summary>Initializes the End Events of each of the <see cref="Others"/> to play the next one.</summary>
         public void InitializeEndEventChain()
         {
-            if (_Others.Length <= 0)
+            if (_Others == null ||
+                _Others.Length <= 0)
                 return;
 
-            _OnEnd = () => AnimancerEvent.Current.State.Layer.Play(_Others[0]);
-            Events.OnEnd = _OnEnd;
+            _OnEnd ??= () => AnimancerEvent.Current.State.Layer.Play(_Others[0]);
+            InitializeFirstEndEvent();
 
             // Assign each of the other end events, but this first one will be set by Apply.
 
@@ -70,11 +66,28 @@ namespace Animancer
             for (int i = 1; i < _Others.Length; i++)
             {
                 var next = _Others[i];
-                previous.Events.OnEnd = () => AnimancerEvent.Current.State.Layer.Play(next);
+                previous.Events.OnEnd += () => AnimancerEvent.Current.State.Layer.Play(next);
                 previous = next;
             }
+        }
 
-            previous.Events.OnEnd = null;
+        /************************************************************************************************************************/
+
+        /// <summary>
+        /// If an end event is assigned other than the one to play the next transition,
+        /// this method replaces it and move it to be the end event of the last transition instead.
+        /// </summary>
+        private void InitializeFirstEndEvent()
+        {
+            var onEnd = Events.OnEnd;
+            if (onEnd == _OnEnd ||
+                _Others == null ||
+                _Others.Length <= 0)
+                return;
+
+            Events.OnEnd = _OnEnd;
+            onEnd -= _OnEnd;
+            _Others[^1].Events.OnEnd += onEnd;
         }
 
         /************************************************************************************************************************/
@@ -82,18 +95,10 @@ namespace Animancer
         /// <inheritdoc/>
         public override ClipState CreateState()
         {
-            // If an end event is assigned other than the one to play the next transition,
-            // replace it and move it to be the end event of the last transition instead.
-            if (_Others.Length > 0)
-            {
-                var onEnd = Events.OnEnd;
-                if (onEnd != _OnEnd)
-                {
-                    Events.OnEnd = _OnEnd;
-                    onEnd -= _OnEnd;
-                    _Others[^1].Events.OnEnd = onEnd;
-                }
-            }
+            if (_OnEnd == null)
+                InitializeEndEventChain();
+            else if (_Others.Length > 0)
+                InitializeFirstEndEvent();
 
             return base.CreateState();
         }
@@ -255,25 +260,17 @@ namespace Animancer
             var clip = state.Clip;
             var onEnd = state.SharedEvents?.OnEnd;
             if (Clip == clip && _OnEnd == onEnd)
-            {
                 return true;
-            }
-            else
-            {
-                time += Clip.length;
-            }
+
+            time += Clip.length;
 
             for (int i = 0; i < _Others.Length; i++)
             {
                 var other = _Others[i];
                 if (other.Clip == clip && other.Events.OnEnd == onEnd)
-                {
                     return true;
-                }
-                else
-                {
-                    time += other.Length;
-                }
+
+                time += other.Length;
             }
 
             return false;

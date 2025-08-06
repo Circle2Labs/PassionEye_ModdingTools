@@ -2,6 +2,7 @@
 #pragma fragment frag
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #include "../SDF/Utils.hlsl"
 #include "../ToonShaders/CustomLighting.hlsl"
 #include "../NewToonShader/ShaderFunctions.hlsl"
@@ -343,15 +344,15 @@ float AddEyePart(float enable, float useTexture, float colorMode, Texture2D _tex
 
 // function for new lighting
 
-float4 GetEyeShading(float3 positionWS, float3 normalWS, float4 lmuv)
+float4 GetEyeShading(float3 positionWS, float3 normalWS, float4 positionHCS, float4 lmuv)
 {
     #ifdef LOD_FADE_CROSSFADE
-    LODFadeCrossFade(IN.position);
+    LODFadeCrossFade(positionHCS);
     #endif
 
     float4 shadowCoord = 0;
     #ifdef _MAIN_LIGHT_SHADOWS_SCREEN
-    shadowCoord = ComputeScreenPos(TransformWorldToHClip(IN.positionWS));
+    shadowCoord = ComputeScreenPos(TransformWorldToHClip(positionWS));
     #else
     shadowCoord = TransformWorldToShadowCoord(positionWS);
     #endif
@@ -609,7 +610,7 @@ float4 frag(Varyings IN) : SV_TARGET
     
     float3 normalWS = TransformObjectToWorldNormal(IN.normalOS);
 
-    float4 color = GetEyeShading(IN.positionWS, normalWS, IN.lmuv);
+    float4 color = GetEyeShading(IN.positionWS, normalWS, IN.positionHCS, IN.lmuv);
     
     float4 finalColor;
     

@@ -93,7 +93,7 @@ Shader "Toon/ToonShader" {
             Cull [_Cull]
                         
             HLSLPROGRAM
-            #include "ToonForward.hlsl"
+            #include_with_pragmas "ToonForward.hlsl"
             ENDHLSL
         }
         
@@ -126,7 +126,7 @@ Shader "Toon/ToonShader" {
             Cull[_Cull]
 
             HLSLPROGRAM
-            #include "ToonDepthOnly.hlsl"
+            #include_with_pragmas "ToonDepthOnly.hlsl"
             ENDHLSL
         }
         
@@ -143,7 +143,7 @@ Shader "Toon/ToonShader" {
             
             HLSLPROGRAM
             
-            #include "ToonDepthNormals.hlsl"
+            #include_with_pragmas "ToonDepthNormals.hlsl"
             
             ENDHLSL
         }

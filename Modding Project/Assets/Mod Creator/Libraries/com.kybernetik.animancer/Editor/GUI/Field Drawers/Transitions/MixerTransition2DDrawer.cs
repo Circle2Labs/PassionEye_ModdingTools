@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #if UNITY_EDITOR && UNITY_IMGUI
 
@@ -72,6 +72,7 @@ namespace Animancer.Editor
 
             AddPropertyModifierFunction(menu, "Initialize 4 Directions", Initialize4Directions);
             AddPropertyModifierFunction(menu, "Initialize 8 Directions", Initialize8Directions);
+            AddPropertyModifierFunction(menu, "Normalize", NormalizeThresholds);
         }
 
         /************************************************************************************************************************/
@@ -99,21 +100,53 @@ namespace Animancer.Editor
         {
             var oldSpeedCount = CurrentSpeeds.arraySize;
 
+            var diagonal = 1 / Mathf.Sqrt(2);
+
             CurrentAnimations.arraySize = CurrentThresholds.arraySize = CurrentSpeeds.arraySize = 9;
             CurrentThresholds.GetArrayElementAtIndex(0).vector2Value = default;
             CurrentThresholds.GetArrayElementAtIndex(1).vector2Value = Vector2.up;
-            CurrentThresholds.GetArrayElementAtIndex(2).vector2Value = new(1, 1);
+            CurrentThresholds.GetArrayElementAtIndex(2).vector2Value = new(diagonal, diagonal);
             CurrentThresholds.GetArrayElementAtIndex(3).vector2Value = Vector2.right;
-            CurrentThresholds.GetArrayElementAtIndex(4).vector2Value = new(1, -1);
+            CurrentThresholds.GetArrayElementAtIndex(4).vector2Value = new(diagonal, -diagonal);
             CurrentThresholds.GetArrayElementAtIndex(5).vector2Value = Vector2.down;
-            CurrentThresholds.GetArrayElementAtIndex(6).vector2Value = new(-1, -1);
+            CurrentThresholds.GetArrayElementAtIndex(6).vector2Value = new(-diagonal, -diagonal);
             CurrentThresholds.GetArrayElementAtIndex(7).vector2Value = Vector2.left;
-            CurrentThresholds.GetArrayElementAtIndex(8).vector2Value = new(-1, 1);
+            CurrentThresholds.GetArrayElementAtIndex(8).vector2Value = new(-diagonal, diagonal);
 
             InitializeSpeeds(oldSpeedCount);
 
             var type = property.FindPropertyRelative(MixerTransition2D.TypeField);
             type.enumValueIndex = (int)MixerTransition2D.MixerType.Directional;
+        }
+
+        /************************************************************************************************************************/
+
+        private void NormalizeThresholds(SerializedProperty property)
+        {
+            var thresholdCount = CurrentThresholds.arraySize;
+            if (thresholdCount == 0)
+                return;
+
+            var largestSquaredMagnitude = 0f;
+
+            for (int i = 0; i < thresholdCount; i++)
+            {
+                var threshold = CurrentThresholds.GetArrayElementAtIndex(i).vector2Value;
+                var squaredMagnitude = threshold.sqrMagnitude;
+                if (largestSquaredMagnitude < squaredMagnitude)
+                    largestSquaredMagnitude = squaredMagnitude;
+            }
+
+            if (largestSquaredMagnitude == 0f)
+                return;
+
+            var inverseSquaredMagnitude = 1 / Mathf.Sqrt(largestSquaredMagnitude);
+
+            for (int i = 0; i < thresholdCount; i++)
+            {
+                var threshold = CurrentThresholds.GetArrayElementAtIndex(i);
+                threshold.vector2Value *= inverseSquaredMagnitude;
+            }
         }
 
         /************************************************************************************************************************/

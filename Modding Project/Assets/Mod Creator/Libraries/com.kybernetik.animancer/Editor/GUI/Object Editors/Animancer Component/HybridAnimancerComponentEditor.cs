@@ -1,12 +1,9 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #if UNITY_EDITOR
 
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Animancer.Editor
 {
@@ -48,16 +45,15 @@ namespace Animancer.Editor
 
         private string GetAnimatorControllerWarning(bool hasAnimatorController, out MessageType messageType)
         {
+            messageType = MessageType.Warning;
+
             if (!hasAnimatorController)
             {
-                messageType = MessageType.Warning;
                 return
                     $"No Animator Controller is assigned to this component so" +
                     $" you should likely use a base {nameof(AnimancerComponent)} instead." +
                     $" Click here for more information.";
             }
-
-            messageType = MessageType.Info;
 
             if (Targets.Length > 0)
             {
@@ -67,7 +63,8 @@ namespace Animancer.Editor
                     return
                         $"A Native Animator Controller is assigned to the Animator component" +
                         $" and a Hybrid Animator Controller is also assigned to this component." +
-                        $" That's not necessarily a problem, but using both systems at the same time is very unusual." +
+                        $" That's not necessarily a problem, but using both systems at the same time is very unusual" +
+                        $" and likely a waste of performance if you don't need to play both Animator Controllers at once." +
                         $" Click here for more information.";
                 }
             }

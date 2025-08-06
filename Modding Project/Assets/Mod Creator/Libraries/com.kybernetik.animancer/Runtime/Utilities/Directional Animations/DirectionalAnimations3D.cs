@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 using UnityEngine;
 
@@ -22,7 +22,7 @@ namespace Animancer
 
     /// <summary>
     /// A component which manages a screen-facing billboard and plays animations from a
-    /// <see cref="DirectionalAnimationSet"/> to make it look like a <see cref="Sprite"/>
+    /// <see cref="DirectionalSet4{T}"/> to make it look like a <see cref="Sprite"/>
     /// based character is facing a particular direction in 3D space.
     /// </summary>
     /// 
@@ -96,15 +96,15 @@ namespace Animancer
         /************************************************************************************************************************/
 
         [SerializeField]
-        [Tooltip("The " + nameof(DirectionalAnimationSet) + " to play animations from" +
-            " (Forwards in 3D space corresponds to the Up animation)")]
-        private DirectionalAnimationSet _Animations;
+        [Tooltip("The " + nameof(DirectionalAnimationSet4) + " or " + nameof(DirectionalAnimationSet8) +
+            " to play animations from (Forwards in 3D space corresponds to the Up animation)")]
+        private DirectionalSet<AnimationClip> _Animations;
 
         /// <summary>[<see cref="SerializeField"/>]
         /// The animations to choose between based on the <see cref="Forward"/> direction.
         /// </summary>
         /// <remarks>Forwards in 3D space corresponds to the Up animation.</remarks>
-        public ref DirectionalAnimationSet Animations
+        public ref DirectionalSet<AnimationClip> Animations
             => ref _Animations;
 
         /************************************************************************************************************************/
@@ -346,7 +346,7 @@ namespace Animancer
         /// Sets the <see cref="Animations"/> and plays the appropriate animation
         /// based on the current rotation and <see cref="Forward"/> direction.
         /// </summary>
-        public void SetAnimations(DirectionalAnimationSet animations, TGroup group = default)
+        public void SetAnimations(DirectionalSet<AnimationClip> animations, TGroup group = default)
         {
             _Animations = animations;
             PlayCurrentAnimation(group);
@@ -390,7 +390,7 @@ namespace Animancer
             var localForward = _Transform.InverseTransformDirection(_Forward);
             var horizontalForward = new Vector2(localForward.x, localForward.z);
 
-            animation = _Animations.GetClip(horizontalForward);
+            animation = _Animations.Get(horizontalForward);
             return true;
         }
 

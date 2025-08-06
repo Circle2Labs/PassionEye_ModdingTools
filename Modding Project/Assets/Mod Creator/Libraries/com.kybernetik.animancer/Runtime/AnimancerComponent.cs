@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #if ! UNITY_EDITOR
 #pragma warning disable CS0618 // Type or member is obsolete (for TransitionLibraries in Animancer Lite).
@@ -67,7 +67,7 @@ namespace Animancer
                 if (IsGraphInitialized)
                 {
                     _Graph.DestroyOutput();
-                    _Graph.CreateOutput(value, this);
+                    _Graph.Initialize(this);
                 }
             }
         }
@@ -380,7 +380,7 @@ namespace Animancer
 
             AnimancerGraph.SetNextGraphName(name + " (Animancer)");
             _Graph = new(_Transitions?.Library);
-            _Graph.CreateOutput(_Animator, this);
+            _Graph.Initialize(this);
             OnInitializeGraph();
         }
 
@@ -391,7 +391,7 @@ namespace Animancer
         /// The <see cref="AnimancerGraph"/> is already initialized.
         /// You must call <see cref="AnimancerGraph.Destroy"/> before re-initializing it.
         /// </exception>
-        public void InitializePlayable(AnimancerGraph graph)
+        public void InitializeGraph(AnimancerGraph graph, bool createOutput = true)
         {
             if (IsGraphInitialized)
                 throw new InvalidOperationException(
@@ -404,7 +404,7 @@ namespace Animancer
 
             _Graph = graph;
             _Graph.Transitions = _Transitions?.Library;
-            _Graph.CreateOutput(_Animator, this);
+            _Graph.Initialize(this, createOutput);
             OnInitializeGraph();
         }
 
@@ -845,19 +845,27 @@ namespace Animancer
             GatherAnimationClips(set);
 
             clips.Clear();
-            clips.AddRange(set);
+
+            foreach (var clip in set)
+                if (clip != null)
+                    clips.Add(clip);
+
             SetPool.Release(set);
         }
 
         /************************************************************************************************************************/
 
         /// <summary>[<see cref="IAnimationClipCollection"/>]
-        /// Gathers all the animations in the <see cref="Graph"/>.
-        /// <para></para>
-        /// In the Unity Editor this method also gathers animations from other components on parent and child objects.
+        /// Gathers all the animations in the <see cref="Transitions"/> and <see cref="Graph"/>.
         /// </summary>
+        /// <remarks>
+        /// In the Unity Editor this method also gathers animations from other components on parent and child objects.
+        /// </remarks>
         public virtual void GatherAnimationClips(ICollection<AnimationClip> clips)
         {
+            if (_Transitions != null)
+                _Transitions.GatherAnimationClips(clips);
+
             if (IsGraphInitialized)
                 _Graph.GatherAnimationClips(clips);
 

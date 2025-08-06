@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #if ! UNITY_EDITOR
 #pragma warning disable CS0618 // Type or member is obsolete (for ControllerState in Animancer Lite).
@@ -106,14 +106,6 @@ namespace Animancer
 
             PlayController();
             base.OnEnable();
-
-#if UNITY_ASSERTIONS
-            if (Animator != null && Animator.runtimeAnimatorController != null)
-                OptionalWarning.NativeControllerHybrid.Log($"An Animator Controller is assigned to the" +
-                    $" {nameof(Animator)} component while also using a {nameof(HybridAnimancerComponent)}." +
-                    $" Most likely only one of them is being used so the other should be removed." +
-                    $" See the documentation for more information: {Strings.DocsURLs.AnimatorControllers}", this);
-#endif
         }
 
         /************************************************************************************************************************/

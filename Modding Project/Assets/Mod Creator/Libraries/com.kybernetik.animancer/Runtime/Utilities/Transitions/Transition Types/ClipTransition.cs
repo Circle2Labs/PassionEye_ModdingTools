@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #if ! UNITY_EDITOR
 #pragma warning disable CS0618 // Type or member is obsolete (for Animancer Events in Animancer Lite).
@@ -29,6 +29,11 @@ namespace Animancer
         private AnimationClip _Clip;
 
         /// <summary>[<see cref="SerializeField"/>] The animation to play.</summary>
+        /// <remarks>
+        /// If you set this property and this transition has been played on multiple characters,
+        /// you will need to call <see cref="Transition{T}.ReconcileMainObject(AnimancerGraph)"/>
+        /// for each of them to create new states for the newly assigned object.
+        /// </remarks>
         public AnimationClip Clip
         {
             get => _Clip;
@@ -36,6 +41,9 @@ namespace Animancer
             {
                 Validate.AssertAnimationClip(value, false, $"set {nameof(ClipTransition)}.{nameof(Clip)}");
                 _Clip = value;
+
+                if (BaseState != null)
+                    ReconcileMainObject(BaseState);
             }
         }
 
@@ -173,7 +181,7 @@ namespace Animancer
         /// Returns a new <see cref="ClipTransition"/>
         /// if the `target` is an <see cref="AnimationClip"/>.
         /// </summary>
-        [TryCreateTransition]
+        [TryCreateTransition(typeof(AnimationClip))]
         public static ITransitionDetailed TryCreateTransition(Object target)
             => target is not AnimationClip clip
             ? null
@@ -181,6 +189,20 @@ namespace Animancer
             {
                 Clip = clip,
             };
+
+        /************************************************************************************************************************/
+
+#if UNITY_EDITOR
+        /// <summary>[Editor-Only] Validates that the `command` is targeting an asset.</summary>
+        [UnityEditor.MenuItem("CONTEXT/" + nameof(AnimationClip) + "/Create Transition Asset", validate = true)]
+        private static bool ValidateCreateTransitionAsset(UnityEditor.MenuCommand command)
+            => TryCreateTransitionAttribute.CanCreateAndSave(command.context);
+
+        /// <summary>[Editor-Only] Tries to create an asset containing an appropriate transition for the `command`.</summary>
+        [UnityEditor.MenuItem("CONTEXT/" + nameof(AnimationClip) + "/Create Transition Asset")]
+        private static void CreateTransitionAsset(UnityEditor.MenuCommand command)
+            => TryCreateTransitionAttribute.TryCreateTransitionAsset(command.context, true);
+#endif
 
         /************************************************************************************************************************/
     }

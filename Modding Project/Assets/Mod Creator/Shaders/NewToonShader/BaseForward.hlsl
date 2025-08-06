@@ -135,7 +135,7 @@ float4 frag(v2f IN, float facing : VFACE) : SV_Target {
     
         float3 indLighting = IndirectLighting(normalWS, float4(IN.lmuv, IN.rtuv));
     
-        colLighting = float4((halfNdotL * mainLight.distanceAttenuation * mainLight.color), alpha);
+        colLighting = float4((halfNdotL * mainLight.distanceAttenuation * realtimeShadows * mainLight.color), alpha);
         colLighting *= color;
         colLighting += float4(indLighting, 0);
     #endif
