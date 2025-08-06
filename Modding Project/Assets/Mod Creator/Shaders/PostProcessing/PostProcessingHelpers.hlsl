@@ -1,8 +1,6 @@
 ﻿#ifndef POSTPROCESSINGHELPERS_HLSL
 #define POSTPROCESSINGHELPERS_HLSL
 
-SAMPLER(sampler_LinearClamp);
-
 float4 BoxBlur(Texture2D tex, float2 uv, float radiusFloat)
 {
     float2 uvIncrement = 1.0 / _ScreenSize.xy;

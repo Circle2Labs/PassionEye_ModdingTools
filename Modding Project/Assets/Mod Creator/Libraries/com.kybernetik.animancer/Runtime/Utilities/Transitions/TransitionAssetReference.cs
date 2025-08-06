@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 using System;
 using System.Collections.Generic;
@@ -102,6 +102,22 @@ namespace Animancer
                 : 1;
             set => _Asset.Speed = value;// No null check. Don't silently ignore commands.
         }
+
+        /************************************************************************************************************************/
+
+        /// <inheritdoc/>
+        [Obsolete(TransitionAssetBase.ObsoleteEventsMessage)]
+        public AnimancerEvent.Sequence Events
+            => _Asset != null
+            ? _Asset.Events
+            : null;
+
+        /// <inheritdoc/>
+        [Obsolete(TransitionAssetBase.ObsoleteEventsMessage)]
+        public ref AnimancerEvent.Sequence.Serializable SerializedEvents
+            => ref _Asset.SerializedEvents;
+
+        /************************************************************************************************************************/
 
         /// <inheritdoc/>
         public virtual AnimancerState CreateState()

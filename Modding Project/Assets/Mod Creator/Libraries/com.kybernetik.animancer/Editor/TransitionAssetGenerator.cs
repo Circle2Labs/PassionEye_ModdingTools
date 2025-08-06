@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 #if UNITY_EDITOR
 
@@ -72,7 +72,7 @@ namespace Animancer.Editor
 
                 GetDetailsFromState(
                     originalAsset as AnimatorState,
-                    asset.Transition as ITransitionDetailed);
+                    asset.Transition);
                 SaveTransition(originalAsset, asset);
                 return asset;
             }

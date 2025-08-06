@@ -8,50 +8,60 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: BaseGlass
-  m_Shader: {fileID: 4800000, guid: 444c859f9b741184dbbab549a81eb802, type: 3}
-  m_Parent: {fileID: 2100000, guid: 1474ac931c608196f96134ca351eb565, type: 2}
+  m_Shader: {fileID: -6465566751694194690, guid: c5ea16cd76086ce4585919aefe5c3263,
+    type: 3}
+  m_Parent: {fileID: -876546973899608171, guid: c5ea16cd76086ce4585919aefe5c3263,
+    type: 3}
   m_ModifiedSerializedProperties: 16
-  m_ValidKeywords:
-  - _SURFACE_TYPE_TRANSPARENT
+  m_ValidKeywords: []
   m_InvalidKeywords:
-  - _ALPHAPREMULTIPLY_ON
+  - _ALPHAMODULATE_ON
   - _ALPHASOURCE_VALUE
   - _AUTOSPECULARCOLOR_ON
   - _SHADOW2COLORAUTO_ON
+  - _SURFACE_TYPE_TRANSPARENT
   - _USE_ROUGHNESS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 3000
-  stringTagMap:
-    RenderType: Transparent
+  stringTagMap: {}
   disabledShaderPasses:
-  - DepthOnly
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _Amourphous: 4
     - _AutoSpecularColor: 0
-    - _Blend: 1
-    - _DstBlend: 10
-    - _DstBlendAlpha: 10
+    - _Blend: 3
+    - _DstBlend: 0
+    - _DstBlendAlpha: 1
     - _Fresnel: 0.085
     - _HasAlpha: 1
+    - _QueueControl: 1
     - _Roughness: 0
     - _ShadowSharpness: 0.18
+    - _Smoothness: 0.958
     - _SpecularAmount: 10
     - _SpecularPower: 500
-    - _SrcBlend: 1
+    - _SrcBlend: 2
+    - _SrcBlendAlpha: 0
     - _Surface: 1
+    - _Transmittance: 0.92
     - _Transparency: 0.307
     - _Use_Roughness: 1
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 0}
+    - _RefractionColor: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     - _SpecularColor: {r: 0.25787202, g: 0.27833894, b: 0.284, a: 1}
+    - _TintColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &5344794503680281858
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -64,4 +74,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 7
+  version: 10

@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2024 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +26,22 @@ namespace Animancer
         /// <summary>[<see cref="SerializeField"/>]
         /// The <see cref="ControllerState.Controller"/> that will be used for the created state.
         /// </summary>
-        public ref RuntimeAnimatorController Controller => ref _Controller;
+        /// <remarks>
+        /// If you set this property and this transition has been played on multiple characters,
+        /// you will need to call <see cref="Transition{T}.ReconcileMainObject(AnimancerGraph)"/>
+        /// for each of them to create new states for the newly assigned object.
+        /// </remarks>
+        public RuntimeAnimatorController Controller
+        {
+            get => _Controller;
+            set
+            {
+                _Controller = value;
+
+                if (BaseState != null)
+                    ReconcileMainObject(BaseState);
+            }
+        }
 
         /// <inheritdoc/>
         public override Object MainObject => _Controller;
@@ -222,7 +237,7 @@ namespace Animancer
         /// Returns a new <see cref="ControllerTransition"/>
         /// if the `target` is an <see cref="RuntimeAnimatorController"/>.
         /// </summary>
-        [TryCreateTransition]
+        [TryCreateTransition(typeof(RuntimeAnimatorController))]
         public static ITransitionDetailed TryCreateTransition(Object target)
             => target is not RuntimeAnimatorController controller
             ? null
@@ -230,6 +245,20 @@ namespace Animancer
             {
                 Controller = controller,
             };
+
+        /************************************************************************************************************************/
+
+#if UNITY_EDITOR
+        /// <summary>[Editor-Only] Validates that the `command` is targeting an asset.</summary>
+        [UnityEditor.MenuItem("CONTEXT/" + nameof(RuntimeAnimatorController) + "/Create Transition Asset", validate = true)]
+        private static bool ValidateCreateTransitionAsset(UnityEditor.MenuCommand command)
+            => TryCreateTransitionAttribute.CanCreateAndSave(command.context);
+
+        /// <summary>[Editor-Only] Tries to create an asset containing an appropriate transition for the `command`.</summary>
+        [UnityEditor.MenuItem("CONTEXT/" + nameof(RuntimeAnimatorController) + "/Create Transition Asset")]
+        private static void CreateTransitionAsset(UnityEditor.MenuCommand command)
+            => TryCreateTransitionAttribute.TryCreateTransitionAsset(command.context, true);
+#endif
 
         /************************************************************************************************************************/
     }

@@ -1,14 +1,15 @@
 Shader "Toon/Base"
 {
-    Properties {
+    Properties
+    {
         // Main color
         _TintColor("Main Color", Color) = (1,1,1,1)
         [MainTexture]_MainTex("Base Color", 2D) = "white" {}
-        
+
         // Normal map
         _NormalMap("Normal Map", 2D) = "bump" {}
         _NormalStrength("Normal Strength", Range(0, 1)) = 1
-        
+
         // Blending state
         [HideInInspector]_Surface("__surface", Float) = 0.0
         [HideInInspector]_Blend("__blend", Float) = 0.0
@@ -24,32 +25,39 @@ Shader "Toon/Base"
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0
     }
- SubShader {
-        Pass {
+    SubShader
+    {
+        Pass
+        {
             Name "BaseToon"
-            
-            Tags { 
-                "RenderPipeline"="UniversalPipeline"
+
+            Tags
+            {
+                "RenderPipeline" = "UniversalPipeline"
             }
-            
+
             ZTest [_ZTest]
             ZWrite [_ZWrite]
             Blend [_SrcBlend] [_DstBlend], [_SrcBlendAlpha] [_DstBlendAlpha]
             Cull [_Cull]
-                        
+
             HLSLPROGRAM
-            #include "BaseForward.hlsl"
+            #include_with_pragmas "BaseForward.hlsl"
             ENDHLSL
         }
         UsePass "Toon/ToonShader/ShadowCaster"
         UsePass "Toon/ToonShader/DepthOnly"
         UsePass "Toon/ToonShader/DepthNormals"
-        Pass {
+        Pass
+        {
             Name "META"
-            Tags {"LightMode"="Meta"}
+            Tags
+            {
+                "LightMode"="Meta"
+            }
             Cull Off
             HLSLPROGRAM
-            #include "Meta.hlsl"
+            #include_with_pragmas "Meta.hlsl"
             ENDHLSL
         }
     }
