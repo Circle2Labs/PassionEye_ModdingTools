@@ -154,6 +154,8 @@ public class {Type} : {GetTemplateClass(this)}
 		public Transform BodyRootBone;
 		public Transform HeadRootBone;
 		public Transform PrivatesRootBone;
+		public Transform MergedEyes;
+		public bool InvertMergedEyes;
 		public List<Transform> Eyes;
 		public List<Transform> Breasts;
 		public List<Transform> Buttocks;
@@ -455,6 +457,8 @@ public class {Type} : {GetTemplateClass(this)}
 				BodyRootBone = BodyRootBone,
 				HeadRootBone = HeadRootBone,
 				PrivatesRootBone = PrivatesRootBone,
+				MergedEyes = MergedEyes,
+				InvertMergedEyes = InvertMergedEyes,
 				Eyes = copiedEyes,
 				Breasts = copiedBreasts,
 				Buttocks = copiedButtocks,

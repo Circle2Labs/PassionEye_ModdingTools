@@ -82,6 +82,9 @@ namespace Code.Frameworks.Character.Interfaces
 		public Transform HeadRootBone { get; set; }
 		public Transform PrivatesRootBone { get; set; }
 		
+		public Transform MergedEyes { get; set; }
+		public bool InvertMergedEyes { get; set; }
+		
 		public Transform[] Eyes { get; set; }
 		public Transform[] Breasts { get; set; }
         public Transform[] Buttocks { get; set; }
