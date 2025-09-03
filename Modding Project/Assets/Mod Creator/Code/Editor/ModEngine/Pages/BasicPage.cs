@@ -346,10 +346,6 @@ namespace Code.Editor.ModEngine
 								template.EyeControl = baseMesh.EyeControl;
 								template.ExpressionControl = baseMesh.ExpressionControl;
 								template.PoseControl = baseMesh.PoseControl;
-
-								var magicaColliders = baseMesh.GetGameObject().GetComponentsInChildren<MagicaCloth2.ColliderComponent>(true);
-								for (var i = 0; i < magicaColliders.Length; i++)
-									Components.PhysicsColliderHolder.FromMagicaCollider(magicaColliders[i]);
 							}
 							else
 							{
