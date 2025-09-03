@@ -1563,7 +1563,21 @@ namespace Code.Editor.ModEngine
 								var builtAvatar = AvatarBuilder.BuildHumanAvatar(gameObject, gameObject.GetComponent<IBaseMesh>().AvatarData.ToHumanDescription());
 								
 								if (template.Avatar.isValid && template.Avatar.isHuman && builtAvatar.isValid && builtAvatar.isHuman)
-									avatarValid = true;
+								{
+									var leftEyeExists = false;
+									var rightEyeExists = false;
+
+									foreach (var bone in builtAvatar.humanDescription.human)
+									{
+										if (bone.humanName == "LeftEye")
+											leftEyeExists = true;
+										else if (bone.humanName == "RightEye")
+											rightEyeExists = true;
+									}
+									
+									if (leftEyeExists && rightEyeExists)
+										avatarValid = true;
+								}
 							}
 							catch (Exception e)
 							{
@@ -1573,7 +1587,7 @@ namespace Code.Editor.ModEngine
 							if (!avatarValid)
 							{
 								pass = false;
-								Debug.LogError($"Avatar is invalid for {template.Name}. Make sure it is set to Humanoid and all bones are set up correctly");
+								Debug.LogError($"Avatar is invalid for {template.Name}. Make sure it is set to Humanoid, all bones are set up correctly and the eyes have their respective bones");
 							}
 						}
 						
@@ -1593,7 +1607,7 @@ namespace Code.Editor.ModEngine
 							else
 							{
 								var mats = face.Item2.sharedMaterials;
-								if (mats.Length < face.Item3)
+								if (face.Item3 >= mats.Length || face.Item3 < 0)
 								{
 									pass = false;
 									Debug.LogError($"Face material index is invalid for {template.Name}");
@@ -1609,7 +1623,7 @@ namespace Code.Editor.ModEngine
 							else
 							{
 								var mats = body.Item2.sharedMaterials;
-								if (mats.Length < body.Item3)
+								if (body.Item3 >= mats.Length || body.Item3 < 0)
 								{
 									pass = false;
 									Debug.LogError($"Body material index is invalid for {template.Name}");
