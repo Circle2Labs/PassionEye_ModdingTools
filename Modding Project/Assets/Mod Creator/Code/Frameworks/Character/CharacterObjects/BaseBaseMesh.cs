@@ -136,6 +136,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public Transform PrivatesRootBone { get; set; }
 		
 		[field: SerializeField]
+		public Transform MergedEyes { get; set; }
+		[field: SerializeField]
+		public bool InvertMergedEyes { get; set; }
+		
+		[field: SerializeField]
 		public Transform[] Eyes { get; set; }
 		[field: SerializeField]
 		public Transform[] Breasts { get; set; }

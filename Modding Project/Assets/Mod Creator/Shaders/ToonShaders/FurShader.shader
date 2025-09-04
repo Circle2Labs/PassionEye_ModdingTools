@@ -79,7 +79,7 @@ Shader "Toon/FurShader" {
             Cull [_Cull]
             
             HLSLPROGRAM
-            #include "FurForward.hlsl"
+            #include_with_pragmas "FurForward.hlsl"
             ENDHLSL
         }
         
@@ -96,7 +96,7 @@ Shader "Toon/FurShader" {
             Cull[_Cull]
 
             HLSLPROGRAM
-            #include "ToonShadowCaster.hlsl"
+            #include_with_pragmas "ToonShadowCaster.hlsl"
             ENDHLSL
         }
         
@@ -112,7 +112,7 @@ Shader "Toon/FurShader" {
             Cull[_Cull]
 
             HLSLPROGRAM
-            #include "ToonDepthOnly.hlsl"
+            #include_with_pragmas "ToonDepthOnly.hlsl"
             ENDHLSL
         }
 
@@ -131,7 +131,7 @@ Shader "Toon/FurShader" {
             #pragma dynamic_branch _ _ALPHATEST_ON
             #pragma dynamic_branch _ LOD_FADE_CROSSFADE
 
-            #include "ToonDepthNormals.hlsl"
+            #include_with_pragmas "ToonDepthNormals.hlsl"
             
             ENDHLSL
         }

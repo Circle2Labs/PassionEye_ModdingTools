@@ -346,6 +346,8 @@ namespace Code.Editor.ModEngine
 									template.BodyRootBone = baseMesh.BodyRootBone;
 									template.HeadRootBone = baseMesh.HeadRootBone;
 									template.PrivatesRootBone = baseMesh.PrivatesRootBone;
+									template.MergedEyes = baseMesh.MergedEyes;
+									template.InvertMergedEyes = baseMesh.InvertMergedEyes;
 									template.Eyes = baseMesh.Eyes?.ToList();
 									template.Breasts = baseMesh.Breasts?.ToList();
 									template.Buttocks = baseMesh.Buttocks?.ToList();
@@ -876,6 +878,8 @@ namespace Code.Editor.ModEngine
 							baseMesh.BodyRootBone = template.BodyRootBone;
 							baseMesh.HeadRootBone = template.HeadRootBone;
 							baseMesh.PrivatesRootBone = template.PrivatesRootBone;
+							baseMesh.MergedEyes = template.MergedEyes;
+							baseMesh.InvertMergedEyes = template.InvertMergedEyes;
 							baseMesh.Eyes = template.Eyes.ToArray();
 							baseMesh.Breasts = template.Breasts.ToArray();
 							baseMesh.Buttocks = template.Buttocks.ToArray();
@@ -1422,28 +1426,56 @@ namespace Code.Editor.ModEngine
 								}
 							}
 						}
-						
-						if (template.Eyes == null || template.Eyes.Count == 0)
+
+						if (template.MergedEyes == null)
 						{
-							pass = false;
-							Debug.LogError($"No eyes set up for {template.Name}");
+							if (template.Eyes == null || template.Eyes.Count == 0)
+							{
+								pass = false;
+								Debug.LogError($"No eyes set up for {template.Name}");
+							}
+							else
+							{
+								for (var k = 0; k < template.Eyes.Count; k++)
+								{
+									var eye = template.Eyes[k];
+									if (eye != null)
+										continue;
+
+									pass = false;
+									Debug.LogError($"Eye {k} is invalid for {template.Name}");
+								}
+
+								if (template.Eyes.Count != 2)
+								{
+									pass = false;
+									Debug.LogError($"Only 2 eyes are currently supported for {template.Name}");
+								}
+							}
 						}
 						else
 						{
-							for (var k = 0; k < template.Eyes.Count; k++)
+							var rend = template.MergedEyes.GetComponent<SkinnedMeshRenderer>();
+							if (rend == null)
 							{
-								var eye = template.Eyes[k];
-								if (eye != null)
-									continue;
-
 								pass = false;
-								Debug.LogError($"Eye {k} is invalid for {template.Name}");
+								Debug.LogError($"Merged eyes does not have a renderer for {template.Name}");
 							}
-
-							if (template.Eyes.Count != 2)
+							else
 							{
-								pass = false;
-								Debug.LogError($"Only 2 eyes are currently supported for {template.Name}");
+								if (rend.sharedMesh == null)
+								{
+									pass = false;
+									Debug.LogError($"Merged eyes mesh is null for {template.Name}");
+								}
+								else
+								{
+									if (rend.sharedMesh.subMeshCount != 2)
+									{
+										pass = false;
+										Debug.LogError($"Only 2 eyes (merged eyes submeshes) are currently supported for {template.Name}");
+									}
+								}
 							}
 						}
 					
@@ -1528,10 +1560,24 @@ namespace Code.Editor.ModEngine
 							
 							try
 							{
-								var builtAvatar = AvatarBuilder.BuildHumanAvatar(gameObject, template.Avatar.humanDescription);
+								var builtAvatar = AvatarBuilder.BuildHumanAvatar(gameObject, gameObject.GetComponent<IBaseMesh>().AvatarData.ToHumanDescription());
 								
 								if (template.Avatar.isValid && template.Avatar.isHuman && builtAvatar.isValid && builtAvatar.isHuman)
-									avatarValid = true;
+								{
+									var leftEyeExists = false;
+									var rightEyeExists = false;
+
+									foreach (var bone in builtAvatar.humanDescription.human)
+									{
+										if (bone.humanName == "LeftEye")
+											leftEyeExists = true;
+										else if (bone.humanName == "RightEye")
+											rightEyeExists = true;
+									}
+									
+									if (leftEyeExists && rightEyeExists)
+										avatarValid = true;
+								}
 							}
 							catch (Exception e)
 							{
@@ -1541,7 +1587,7 @@ namespace Code.Editor.ModEngine
 							if (!avatarValid)
 							{
 								pass = false;
-								Debug.LogError($"Avatar is invalid for {template.Name}. Make sure it is set to Humanoid and all bones are set up correctly");
+								Debug.LogError($"Avatar is invalid for {template.Name}. Make sure it is set to Humanoid, all bones are set up correctly and the eyes have their respective bones");
 							}
 						}
 						
@@ -1561,7 +1607,7 @@ namespace Code.Editor.ModEngine
 							else
 							{
 								var mats = face.Item2.sharedMaterials;
-								if (mats.Length < face.Item3)
+								if (face.Item3 >= mats.Length || face.Item3 < 0)
 								{
 									pass = false;
 									Debug.LogError($"Face material index is invalid for {template.Name}");
@@ -1577,7 +1623,7 @@ namespace Code.Editor.ModEngine
 							else
 							{
 								var mats = body.Item2.sharedMaterials;
-								if (mats.Length < body.Item3)
+								if (body.Item3 >= mats.Length || body.Item3 < 0)
 								{
 									pass = false;
 									Debug.LogError($"Body material index is invalid for {template.Name}");

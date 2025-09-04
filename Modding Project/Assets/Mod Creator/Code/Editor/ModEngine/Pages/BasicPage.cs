@@ -245,6 +245,9 @@ namespace Code.Editor.ModEngine
 						template.Breasts ??= new List<Transform>();
 						template.Buttocks ??= new List<Transform>();
 						
+						template.MergedEyes = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_MERGEDEYES")}*", template.MergedEyes, typeof(Transform), true);
+						template.InvertMergedEyes = EditorGUILayout.ToggleLeft($"{GetLocalizedString("MODCREATOR_BASIC_INVERTMERGEDEYES")}", template.InvertMergedEyes);
+						
 						verticalList(template.Eyes, $"{GetLocalizedString("MODCREATOR_BASIC_EYES")}*");
 						verticalList(template.Breasts, GetLocalizedString("MODCREATOR_BASIC_BREASTS"));
 						verticalList(template.Buttocks, GetLocalizedString("MODCREATOR_BASIC_BUTTOCKS"));
@@ -335,6 +338,8 @@ namespace Code.Editor.ModEngine
 								template.BodyRootBone = baseMesh.BodyRootBone;
 								template.HeadRootBone = baseMesh.HeadRootBone;
 								template.PrivatesRootBone = baseMesh.PrivatesRootBone;
+								template.MergedEyes = baseMesh.MergedEyes;
+								template.InvertMergedEyes = baseMesh.InvertMergedEyes;
 								template.Eyes = baseMesh.Eyes.ToList();
 								template.Breasts = baseMesh.Breasts.ToList();
 								template.Buttocks = baseMesh.Buttocks.ToList();
@@ -502,7 +507,7 @@ namespace Code.Editor.ModEngine
 			
 			GUILayout.Space(10);
 			
-			template.Tags = verticalList(template.Tags, GetLocalizedString("MODCREATOR_BASIC_TAGS"));
+			template.Tags = verticalList(template.Tags, GetLocalizedString("MODCREATOR_BASIC_TAGS"), -1, true);
 			
 			GUILayout.Space(10);
 
@@ -605,7 +610,7 @@ namespace Code.Editor.ModEngine
 				for (var i = template.AccessoryParents.Count - 1; i >= 0; i--)
 				{
 					var tuple = template.AccessoryParents[i];
-					if (tuple.Item2.EndsWith(".C") || tuple.Item2 == "SFWCollider" || tuple.Item1 == template.FaceTransform || tuple.Item2 == "POV" || tuple.Item1 == null)
+					if (tuple.Item2.EndsWith(".C") || tuple.Item2 == "SFWCollider" || tuple.Item2.StartsWith("PHY_") || tuple.Item1 == template.FaceTransform || tuple.Item1 == template.POV || tuple.Item1 == null)
 					{
 						template.AccessoryParents.RemoveAt(i);
 						Debug.Log($"Removed {tuple.Item2}");

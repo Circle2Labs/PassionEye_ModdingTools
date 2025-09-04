@@ -42,6 +42,8 @@ namespace Code.Editor.ModEngine
 			}
 		}
 
+		private string[] stringArrayCopyBuffer = Array.Empty<string>();
+		
 		public Enum LocalizedEnumPopup(string label, Enum selected, string localizationRoot, params GUILayoutOption[] options)
 		{
 			var names = Enum.GetNames(selected.GetType());
@@ -670,10 +672,20 @@ namespace Code.Editor.ModEngine
 			return objField != null ? objField.name : "";
 		}
 		
-		private string[] verticalList(string[] array, string labelTitle, int maxLength = -1)
+		private string[] verticalList(string[] array, string labelTitle, int maxLength = -1, bool canCopy = false)
 		{
 			GUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+			if (canCopy && GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_COPY"), GUILayout.Width(50)))
+			{
+				stringArrayCopyBuffer = new string[array.Length];
+				Array.Copy(array, stringArrayCopyBuffer, array.Length);
+			}
+			if (canCopy && GUILayout.Button(GetLocalizedString("MODCREATOR_BASIC_PASTE"), GUILayout.Width(50)))
+			{
+				array = new string[stringArrayCopyBuffer.Length];
+				Array.Copy(stringArrayCopyBuffer, array, stringArrayCopyBuffer.Length);
+			}
 			GUI.enabled = maxLength == -1 || array.Length < maxLength;
 			var add = GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50));
 			GUI.enabled = true;
