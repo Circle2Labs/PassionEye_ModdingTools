@@ -12,6 +12,7 @@ namespace Code.Frameworks.Character.Enums
 		InnerIris,
 		Pupil,
 		Highlight,
-		Blush
+		Blush,
+		Nose
 	}
 }
