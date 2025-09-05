@@ -166,7 +166,7 @@ namespace Code.Editor.ModEngine
 							template.OverlayMode = EOverlayMode.FullTexture;
 							template.IsOverlay = true;
 						}
-						else if (template.TextureType is ETextureType.FaceOverlay or ETextureType.Lips or ETextureType.Blush)
+						else if (template.TextureType is ETextureType.FaceOverlay or ETextureType.Lips or ETextureType.Blush or ETextureType.Nose)
 						{
 							template.OverlayTarget = EOverlayTarget.Face;
 							template.OverlayMode = EOverlayMode.FullTexture;
