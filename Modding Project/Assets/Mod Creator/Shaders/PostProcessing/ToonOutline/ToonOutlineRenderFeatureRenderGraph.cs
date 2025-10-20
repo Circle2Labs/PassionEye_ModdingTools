@@ -11,30 +11,52 @@ namespace Code.Frameworks.Outline
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-
-            var cameraColor = resourceData.cameraColor;
-            if (!cameraColor.IsValid())
-            {
-                Debug.LogError("Camera color target is not valid. IdMap rendering will not work.");
-                return;
-            }
-            
-            var activeColorTexture = resourceData.activeColorTexture;
-            if (!activeColorTexture.IsValid())
-            {
-                Debug.LogError("Active color texture is not valid. IdMap rendering will not work.");
-                return;
-            }
-
             VolumeStack volumes = VolumeManager.instance.stack;
             ToonOutlinePostProcess toonOutlinePostProcess = volumes.GetComponent<ToonOutlinePostProcess>();
             if (toonOutlinePostProcess.IsActive())
             {
-                using (var builder =
-                       renderGraph.AddUnsafePass<ToonOutlinePassData>(passName, out var passData, profilingSampler))
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                
+                using (var builder = renderGraph.AddRasterRenderPass<CopyToonCameraColorPassData>(passName, out var passData))
                 {
+                    var cameraColor = resourceData.cameraColor;
+                    if (!cameraColor.IsValid())
+                    {
+                        Debug.LogError("Camera color target is not valid. IdMap rendering will not work.");
+                        return;
+                    }
+                    
+                    passData.sourceHandle = cameraColor;
+                    
+                    var descriptor = cameraData.cameraTargetDescriptor;
+                    descriptor.msaaSamples = 1;
+                    descriptor.depthBufferBits = 0;
+                    
+                    var destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "Copy Toon cameraColor", false);
+                    
+                    var copyFrame = frameData.Create<CopyToonCameraColorFrameData>();
+                    copyFrame.copyHandle = destination;
+              
+                    builder.UseTexture(passData.sourceHandle);
+                    builder.SetRenderAttachment(destination, 0);
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((CopyToonCameraColorPassData data, RasterGraphContext context) => Blitter.BlitTexture(context.cmd, data.sourceHandle, new Vector4(1, 1, 0, 0), 0, false));
+                }
+
+                using (var builder = renderGraph.AddUnsafePass<ToonOutlinePassData>(passName, out var passData, profilingSampler))
+                {
+                    var activeColorTexture = resourceData.activeColorTexture;
+                    if (!activeColorTexture.IsValid())
+                    {
+                        Debug.LogError("Active color texture is not valid. IdMap rendering will not work.");
+                        return;
+                    }
+
+                    var copyFrame = frameData.Get<CopyToonCameraColorFrameData>();
+                    var cameraColor = copyFrame.copyHandle;
+                    
                     builder.UseTexture(cameraColor, AccessFlags.Read);
                     builder.UseTexture(activeColorTexture, AccessFlags.ReadWrite);
 
@@ -95,6 +117,25 @@ namespace Code.Frameworks.Outline
         }
     }
 
+    // Outline uses the cameraColor texture which can be a MSAA texture. That makes it spam errors on windows/nvidia (?) and make the screen black when you change MSAA settings
+    // What my new pass does is copy the cameraColor texture into a non-MSAA texture and the outline pass then grabs it
+    // Ideally the correct fix is to make the outline shaders actually use MSAA instead of blurring because no one likes the blur that looks like 480p
+
+    internal class CopyToonCameraColorPassData
+    {
+        internal TextureHandle sourceHandle;
+    }
+    
+    internal class CopyToonCameraColorFrameData : ContextItem
+    {
+        internal TextureHandle copyHandle;
+        
+        public override void Reset()
+        {
+            copyHandle = TextureHandle.nullHandle;
+        }
+    }
+    
     internal class ToonOutlinePassData
     {
         internal Material toonOutlineMat;

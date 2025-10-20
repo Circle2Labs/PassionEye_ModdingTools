@@ -45,7 +45,24 @@ Shader "Toon/Base"
             #include_with_pragmas "BaseForward.hlsl"
             ENDHLSL
         }
-        UsePass "Toon/ToonShader/ShadowCaster"
+        Pass {
+            Name "ShadowCaster"
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
+            
+            ZWrite [_ZWrite]
+            ZTest LEqual
+            ColorMask 0
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #include_with_pragmas "../ToonShaders/ToonShadowCaster.hlsl"
+            ENDHLSL
+        }
+        // TODO: usepass for the shadowcaster creates a bunch of errors but the shader works fine. Copy the passes over manually
+        //UsePass "Toon/ToonShader/ShadowCaster"
         UsePass "Toon/ToonShader/DepthOnly"
         UsePass "Toon/ToonShader/DepthNormals"
         Pass

@@ -13,6 +13,11 @@ namespace Code.Frameworks.Character.Enums
 		Pupil,
 		Highlight,
 		Blush,
-		Nose
+		Nose,
+		FaceTan,
+		BodyTan,
+		FaceTattoo,
+		BodyTattoo,
+		PubicHair
 	}
 }

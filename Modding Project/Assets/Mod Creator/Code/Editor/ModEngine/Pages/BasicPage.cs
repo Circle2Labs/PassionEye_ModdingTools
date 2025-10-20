@@ -160,13 +160,13 @@ namespace Code.Editor.ModEngine
 					case ECharacterObjectType.Texture:
 						template.TextureType = (ETextureType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_TEXTYPE")}*", template.TextureType, "MODCREATOR_BASIC_TEXTYPE_");
 
-						if (template.TextureType is ETextureType.BodyOverlay or ETextureType.Nipples)
+						if (template.TextureType is ETextureType.BodyOverlay or ETextureType.Nipples or ETextureType.BodyTan or ETextureType.BodyTattoo or ETextureType.PubicHair)
 						{
 							template.OverlayTarget = EOverlayTarget.Body;
 							template.OverlayMode = EOverlayMode.FullTexture;
 							template.IsOverlay = true;
 						}
-						else if (template.TextureType is ETextureType.FaceOverlay or ETextureType.Lips or ETextureType.Blush or ETextureType.Nose)
+						else if (template.TextureType is ETextureType.FaceOverlay or ETextureType.Lips or ETextureType.Blush or ETextureType.Nose or ETextureType.FaceTan or ETextureType.FaceTattoo)
 						{
 							template.OverlayTarget = EOverlayTarget.Face;
 							template.OverlayMode = EOverlayMode.FullTexture;
@@ -346,6 +346,10 @@ namespace Code.Editor.ModEngine
 								template.EyeControl = baseMesh.EyeControl;
 								template.ExpressionControl = baseMesh.ExpressionControl;
 								template.PoseControl = baseMesh.PoseControl;
+
+								var magicaColliders = baseMesh.GetGameObject().GetComponentsInChildren<MagicaCloth2.ColliderComponent>(true);
+								for (var i = 0; i < magicaColliders.Length; i++)
+									Components.PhysicsColliderHolder.FromMagicaCollider(magicaColliders[i]);
 							}
 							else
 							{
@@ -359,13 +363,20 @@ namespace Code.Editor.ModEngine
 
 				GUILayout.Space(5);
 
-				if (template.CompatibleBaseMeshes == null)
+				if (template.CharacterObjectType == ECharacterObjectType.Texture && (template.TextureType is ETextureType.Highlight or ETextureType.InnerIris or ETextureType.OuterIris or ETextureType.Pupil))
 				{
-					var availableBaseMeshes = GetBaseMeshes();
-					template.CompatibleBaseMeshes = availableBaseMeshes.Count == 0 ? Array.Empty<SCompatibleBaseMesh>() : new [] { new SCompatibleBaseMesh(availableBaseMeshes[0]) };
+					template.CompatibleBaseMeshes = null;
 				}
-				
-				template.CompatibleBaseMeshes = verticalList(template.CompatibleBaseMeshes, $"{GetLocalizedString("MODCREATOR_BASIC_COMPATIBLEBASEMESHES")}*");
+				else
+				{
+					if (template.CompatibleBaseMeshes == null)
+					{
+						var availableBaseMeshes = GetBaseMeshes();
+						template.CompatibleBaseMeshes = availableBaseMeshes.Count == 0 ? Array.Empty<SCompatibleBaseMesh>() : new [] { new SCompatibleBaseMesh(availableBaseMeshes[0]) };
+					}
+					
+					template.CompatibleBaseMeshes = verticalList(template.CompatibleBaseMeshes, $"{GetLocalizedString("MODCREATOR_BASIC_COMPATIBLEBASEMESHES")}*");
+				}
 
 				GUILayout.Space(10);
 			}
