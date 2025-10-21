@@ -1269,6 +1269,18 @@ namespace Code.Editor.ModEngine
 						Debug.LogError($"Component is not added for {template.Name}");
 					}
 
+					// prevent 3d chara objects without any renderers so we don't get ghost objects for no reason
+					// this is allowed for studio objects because they may just be lights, or particles, etc
+					if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType != ECharacterObjectType.Texture)
+					{
+						var renderers = gameObject.GetComponentsInChildren<Renderer>();
+						if (renderers.Length == 0)
+						{
+							pass = false;
+							Debug.LogError($"No renderers found for {template.Name}");
+						}
+					}
+					
 					if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType == ECharacterObjectType.Clothing)
 					{
 						var clothingObject = gameObject.GetComponent<IClothing>();
@@ -1285,6 +1297,14 @@ namespace Code.Editor.ModEngine
 								pass = false;
 								Debug.LogError($"Skinned mesh renderer missing for full state of {template.Name}. Make sure your mesh has an Armature");
 							}
+							else
+							{
+								var scale = fullState.transform.localScale;
+								if (!Mathf.Approximately(scale.x, scale.y) || !Mathf.Approximately(scale.y, scale.z))
+								{
+									Debug.LogWarning($"Full state scale components of {template.Name} differ, this might make clothing fitting not work. Make sure you applied transforms before exporting.");
+								}
+							}
 
 							var halfState = clothingObject.GetStateObject(EClothingState.Half);
 							if (halfState == null)
@@ -1296,7 +1316,15 @@ namespace Code.Editor.ModEngine
 								pass = false;
 								Debug.LogError($"Skinned mesh renderer missing for half state of {template.Name}. Make sure your mesh has an Armature");
 							}
-
+							else
+							{
+								var scale = halfState.transform.localScale;
+								if (!Mathf.Approximately(scale.x, scale.y) || !Mathf.Approximately(scale.y, scale.z))
+								{
+									Debug.LogWarning($"Half state scale components of {template.Name} differ, this might make clothing fitting not work. Make sure you applied transforms before exporting.");
+								}
+							}
+							
 							if (fullState == halfState && fullState != null)
 							{
 								pass = false;
@@ -1388,9 +1416,14 @@ namespace Code.Editor.ModEngine
 									Debug.LogError($"Blendshape title {k} is invalid for {template.Name}");
 								}
 
+								var isBlinkShape = false;
+								
 								for (var j = 0; j < blendshape.Blendshapes.Length; j++)
 								{
 									var strShape = blendshape.Blendshapes[j];
+									if (strShape == template.EyeData.BlinkBlendShapeLeft || strShape == template.EyeData.BlinkBlendShapeRight)
+										isBlinkShape = true;
+
 									if (!shapes.Contains(strShape))
 									{
 										pass = false;
@@ -1398,31 +1431,41 @@ namespace Code.Editor.ModEngine
 									}
 								}
 								
-								if (blendshape.FaceCategory == EFaceBlendShapeCategory.None && blendshape.BodyCategory == EBodyBlendShapeCategory.None)
+								if (isBlinkShape)
 								{
-									Debug.LogWarning($"Blendshape {k} has no category specified for {template.Name}");
+									if (blendshape.FaceCategory != EFaceBlendShapeCategory.None || blendshape.BodyCategory != EBodyBlendShapeCategory.None)
+									{
+										Debug.LogWarning($"Blink blendshape {blendshape.Title} has categories specified for {template.Name}. Set them to None so they are hidden in customization");
+									}
+								}
+								else
+								{
+									if (blendshape.FaceCategory == EFaceBlendShapeCategory.None && blendshape.BodyCategory == EBodyBlendShapeCategory.None)
+									{
+										Debug.LogWarning($"Blendshape {blendshape.Title} has no category specified for {template.Name}");
+									}
 								}
 
 								if (blendshape.NSFWRange[0] > blendshape.NSFWRange[1])
 								{
 									pass = false;
-									Debug.LogError($"Blendshape {k} minimum NSFW range is larger than the maximum for {template.Name}");
+									Debug.LogError($"Blendshape {blendshape.Title} minimum NSFW range is larger than the maximum for {template.Name}");
 								}
 								else if (blendshape.NSFWRange[0] == blendshape.NSFWRange[1])
 								{
 									pass = false;
-									Debug.LogError($"Blendshape {k} minimum NSFW range is the same as the maximum {template.Name}");
+									Debug.LogError($"Blendshape {blendshape.Title} minimum NSFW range is the same as the maximum {template.Name}");
 								}
 								
 								if (blendshape.SFWRange[0] > blendshape.SFWRange[1])
 								{
 									pass = false;
-									Debug.LogError($"Blendshape {k} minimum SFW range is larger than the maximum for {template.Name}");
+									Debug.LogError($"Blendshape {blendshape.Title} minimum SFW range is larger than the maximum for {template.Name}");
 								}
 								else if (blendshape.SFWRange[0] == blendshape.SFWRange[1])
 								{
 									pass = false;
-									Debug.LogError($"Blendshape {k} minimum SFW range is the same as the maximum {template.Name}");
+									Debug.LogError($"Blendshape {blendshape.Title} minimum SFW range is the same as the maximum {template.Name}");
 								}
 							}
 						}
@@ -1687,6 +1730,14 @@ namespace Code.Editor.ModEngine
 								pass = false;
 								Debug.LogError($"Accessory parent {k} is invalid for {template.Name}");
 							}
+						}
+					}
+
+					if (template.TemplateType == ETemplateType.CharacterObject && (template.CompatibleBaseMeshes == null || template.CompatibleBaseMeshes.Length == 0))
+					{
+						if (template.CharacterObjectType != ECharacterObjectType.BaseMesh && (template.CharacterObjectType != ECharacterObjectType.Texture || template.TextureType is not (ETextureType.Highlight or ETextureType.InnerIris or ETextureType.OuterIris or ETextureType.Pupil)))
+						{
+							Debug.LogWarning($"Compatible base meshes are not specified for {template.Name} so it will be shown for all base meshes. This is likely a mistake unless you are sure it is cross compatible");
 						}
 					}
 					

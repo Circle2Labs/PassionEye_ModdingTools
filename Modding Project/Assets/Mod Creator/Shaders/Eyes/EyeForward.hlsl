@@ -297,7 +297,10 @@ float AddEyePart(float enable, float useTexture, float colorMode, Texture2D _tex
         
         if(colorMode == SDF_COLORBLEND_MULTIPLY)
         {
-            tex = multiplyColorSDF(tex, tmp_color, tmp_color2, t);
+            // TODO: this leaves black edges around some textures
+            // tex = multiplyColorSDF(tex, tmp_color, tmp_color2, t);
+            
+            tex = tex * lerp(tmp_color, tmp_color2, t);
             if (tex.a <= 0.0 || enable == 0.0)
             {
                 tex.a = 0.0;
