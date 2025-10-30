@@ -61,7 +61,7 @@ namespace Code.Editor.ModEngine
 		public const bool IsVerbose = false;
 #endif
 
-		public const string Version = "v0.1.11.3";
+		public const string Version = "v0.1.12.0";
 		public const string EditorVersion = "6000.0.59f2";
 		
 		[SerializeField]
@@ -75,6 +75,9 @@ namespace Code.Editor.ModEngine
 		
 		private const string nameTypeFilter = @"(^[0-9])|([^a-zA-Z0-9_])";
 
+		private static bool? isWindowsModuleInstalled;
+		private static bool? isLinuxModuleInstalled;
+		
 		[MenuItem("Mod Engine/Mod Creator")]
 		public static void Initialize()
 		{
@@ -87,6 +90,30 @@ namespace Code.Editor.ModEngine
 		
 		public void OnGUI()
 		{
+			if (isWindowsModuleInstalled == null || isLinuxModuleInstalled == null)
+			{
+				var moduleManager = Type.GetType("UnityEditor.Modules.ModuleManager,UnityEditor.dll")!;
+			
+				var isPlatformSupportLoaded = moduleManager.GetMethod("IsPlatformSupportLoaded", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+				var getTargetStringFromBuildTarget = moduleManager.GetMethod("GetTargetStringFromBuildTarget", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+			
+				isWindowsModuleInstalled = (bool)isPlatformSupportLoaded.Invoke(null, new object[]
+				{
+					(string)getTargetStringFromBuildTarget.Invoke(null, new object[]
+					{
+						BuildTarget.StandaloneWindows64
+					})
+				});
+			
+				isLinuxModuleInstalled = (bool)isPlatformSupportLoaded.Invoke(null, new object[]
+				{
+					(string)getTargetStringFromBuildTarget.Invoke(null, new object[]
+					{
+						BuildTarget.StandaloneLinux64
+					})
+				});
+			} 
+			
 			if (Application.unityVersion != EditorVersion)
 			{
 				EditorGUILayout.LabelField("Unsupported Unity Editor Version", EditorStyles.boldLabel);
@@ -99,6 +126,28 @@ namespace Code.Editor.ModEngine
 				GUILayout.Space(8);
 				
 				EditorGUILayout.LabelField("Please upgrade your project to the correct Unity version");
+				return;
+			}
+			
+			if (isWindowsModuleInstalled == false)
+			{
+				EditorGUILayout.LabelField("Missing Windows build target module", EditorStyles.boldLabel);
+				
+				GUILayout.Space(8);
+
+				EditorGUILayout.LabelField("Certain mod features are built for both Windows and Linux targets");
+				EditorGUILayout.LabelField("Please install the Windows Build Support (Mono) module via the Unity Hub");
+				return;
+			}
+			
+			if (isLinuxModuleInstalled == false)
+			{
+				EditorGUILayout.LabelField("Missing Linux build target module", EditorStyles.boldLabel);
+				
+				GUILayout.Space(8);
+
+				EditorGUILayout.LabelField("Certain mod features are built for both Windows and Linux targets");
+				EditorGUILayout.LabelField("Please install the Linux Build Support (Mono) module via the Unity Hub");
 				return;
 			}
 			
