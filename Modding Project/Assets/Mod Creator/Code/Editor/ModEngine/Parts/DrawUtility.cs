@@ -43,6 +43,9 @@ namespace Code.Editor.ModEngine
 		}
 
 		private string[] stringArrayCopyBuffer = Array.Empty<string>();
+
+		private int boneAliasFromIndex;
+		private int boneAliasToIndex;
 		
 		public Enum LocalizedEnumPopup(string label, Enum selected, string localizationRoot, params GUILayoutOption[] options)
 		{
@@ -713,7 +716,7 @@ namespace Code.Editor.ModEngine
 			return array;
 		}
 		
-		private SCompatibleBaseMesh[] verticalList(SCompatibleBaseMesh[] array, string labelTitle)
+		private SCompatibleBaseMesh[] verticalList(SCompatibleBaseMesh[] array, string labelTitle, bool isBaseMesh)
 		{
 			GUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
@@ -768,6 +771,23 @@ namespace Code.Editor.ModEngine
 					break;
 				}
 				GUILayout.EndHorizontal();
+
+				if (isBaseMesh)
+				{
+					compatibleBaseMesh.TexturesCompatible = EditorGUILayout.Toggle(GetLocalizedString("MODCREATOR_BASIC_BASEMESHCOMPAT_TEXTURESCOMPAT"), compatibleBaseMesh.TexturesCompatible);
+				
+					compatibleBaseMesh.BoneAliasFrom ??= Array.Empty<string>();
+					compatibleBaseMesh.BoneAliasTo ??= Array.Empty<string>();
+
+					var fromParents = GetAccessoryParents(new Tuple<string, byte>(compatibleBaseMesh.GUID, compatibleBaseMesh.ID));
+					var toParents = new List<string>();
+
+					var parents = Templates[CurrentTemplate].AccessoryParents;
+					for (var k = 0; k < parents.Count; k++)
+						toParents.Add(parents[k].Item2);
+
+					verticalList(ref compatibleBaseMesh.BoneAliasFrom, ref compatibleBaseMesh.BoneAliasTo, fromParents, toParents);
+				}
 				
 				array[i] = compatibleBaseMesh;
 				
@@ -776,6 +796,52 @@ namespace Code.Editor.ModEngine
 			}
 
 			return array;
+		}
+
+		private void verticalList(ref string[] boneAliasFrom, ref string[] boneAliasTo, List<string> fromParents, List<string> toParents)
+		{
+			GUILayout.BeginHorizontal();
+			
+			boneAliasFromIndex = EditorGUILayout.Popup($"{GetLocalizedString("MODCREATOR_BASIC_BASEMESHCOMPAT_BONEALIASES_FROM")}*", boneAliasFromIndex, fromParents.ToArray());
+			boneAliasToIndex = EditorGUILayout.Popup($"{GetLocalizedString("MODCREATOR_BASIC_BASEMESHCOMPAT_BONEALIASES_TO")}*", boneAliasToIndex, toParents.ToArray());
+			
+			GUILayout.EndHorizontal();
+			
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(GetLocalizedString("MODCREATOR_BASIC_BASEMESHCOMPAT_BONEALIASES") + itemsCount(boneAliasFrom.Length), EditorStyles.boldLabel);
+			
+			GUI.enabled = fromParents.Count != 0 && toParents.Count != 0;
+			var add = GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50));
+			GUI.enabled = true;
+			
+			if (add)
+			{
+				boneAliasFrom = boneAliasFrom.Append(fromParents[boneAliasFromIndex]).ToArray();
+				boneAliasTo = boneAliasTo.Append(toParents[boneAliasToIndex]).ToArray();
+			}
+
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+			{
+				boneAliasFrom = Array.Empty<string>();
+				boneAliasTo = Array.Empty<string>();
+			}
+			
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < boneAliasFrom.Length; i++)
+			{
+				GUILayout.BeginHorizontal();
+				boneAliasFrom[i] = EditorGUILayout.TextField(boneAliasFrom[i]);
+				boneAliasTo[i] = EditorGUILayout.TextField(boneAliasTo[i]);
+
+				if (GUILayout.Button("-", GUILayout.Width(25)))
+				{
+					boneAliasFrom = boneAliasFrom.Where((_, k) => i != k).ToArray();
+					boneAliasTo = boneAliasTo.Where((_, k) => i != k).ToArray();
+				}
+				
+				GUILayout.EndHorizontal();
+			}
 		}
 		
 		private SClimaxAnimation[] verticalList(SClimaxAnimation[] array, string labelTitle, bool nonClimax = false)

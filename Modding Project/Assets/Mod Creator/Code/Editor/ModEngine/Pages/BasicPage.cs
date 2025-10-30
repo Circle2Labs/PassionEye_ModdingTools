@@ -371,7 +371,7 @@ namespace Code.Editor.ModEngine
 						template.CompatibleBaseMeshes = availableBaseMeshes.Count == 0 ? Array.Empty<SCompatibleBaseMesh>() : new [] { new SCompatibleBaseMesh(availableBaseMeshes[0]) };
 					}
 					
-					template.CompatibleBaseMeshes = verticalList(template.CompatibleBaseMeshes, $"{GetLocalizedString("MODCREATOR_BASIC_COMPATIBLEBASEMESHES")}*");
+					template.CompatibleBaseMeshes = verticalList(template.CompatibleBaseMeshes, $"{GetLocalizedString("MODCREATOR_BASIC_COMPATIBLEBASEMESHES")}*", template.CharacterObjectType == ECharacterObjectType.BaseMesh);
 				}
 
 				GUILayout.Space(10);
