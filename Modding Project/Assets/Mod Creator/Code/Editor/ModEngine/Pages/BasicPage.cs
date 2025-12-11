@@ -91,14 +91,17 @@ namespace Code.Editor.ModEngine
 								continue;
 
 							var state = $"{GetLocalizedString($"MODCREATOR_BASIC_CLOTHSTATE_{stateEnum.ToString().ToUpper()}")} state{(stateEnum == EClothingState.Full ? "*" : "")}";
-							var obj = (Transform)EditorGUILayout.ObjectField(state, template.ClothingStates[i], typeof(Transform), true);
 							
-							template.ClothingStates[i] = obj;
+							GUILayout.BeginHorizontal();
+							template.ClothingStates[i] = (Transform)EditorGUILayout.ObjectField(state, template.ClothingStates[i], typeof(Transform), true);
+							template.HideCock[i] = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_HIDECOCK"), template.HideCock[i], GUILayout.Width(175));
+							GUILayout.EndHorizontal();
 						}
 
 						GUILayout.Space(10);
 
-						clippingFix(template);
+						// TODO: fix the controller and or shader first
+						//clippingFix(template);
 						
 						if (!IsStandalone)
 						{
@@ -234,7 +237,8 @@ namespace Code.Editor.ModEngine
 
 						GUILayout.Space(5);
 						
-						template.Cock = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_COCKBONE")}*", template.Cock, typeof(Transform), true);
+						template.Cock = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_COCKBONE")}", template.Cock, typeof(Transform), true);
+						template.HideVag = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_HIDEVAG")}", template.Cock, typeof(Transform), true);
 						template.BodyRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_BODYROOTBONE")}*", template.BodyRootBone, typeof(Transform), true);
 						template.HeadRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_HEADROOTBONE")}*", template.HeadRootBone, typeof(Transform), true);
 						template.PrivatesRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_PRIVATESROOTBONE")}*", template.PrivatesRootBone, typeof(Transform), true);
@@ -244,6 +248,7 @@ namespace Code.Editor.ModEngine
 						template.Eyes ??= new List<Transform>();
 						template.Breasts ??= new List<Transform>();
 						template.Buttocks ??= new List<Transform>();
+						template.Balls ??= new List<Transform>();
 						
 						template.MergedEyes = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_MERGEDEYES")}*", template.MergedEyes, typeof(Transform), true);
 						template.InvertMergedEyes = EditorGUILayout.ToggleLeft($"{GetLocalizedString("MODCREATOR_BASIC_INVERTMERGEDEYES")}", template.InvertMergedEyes);
@@ -251,6 +256,7 @@ namespace Code.Editor.ModEngine
 						verticalList(template.Eyes, $"{GetLocalizedString("MODCREATOR_BASIC_EYES")}*");
 						verticalList(template.Breasts, GetLocalizedString("MODCREATOR_BASIC_BREASTS"));
 						verticalList(template.Buttocks, GetLocalizedString("MODCREATOR_BASIC_BUTTOCKS"));
+						verticalList(template.Balls, GetLocalizedString("MODCREATOR_BASIC_BALLS"));
 						
 						template.BlendshapeRenderers ??= new List<SkinnedMeshRenderer>();
 						template.SFWColliders ??= new List<Collider>();
@@ -335,6 +341,7 @@ namespace Code.Editor.ModEngine
 								template.EyeData = baseMesh.EyeData;
 								template.MouthData = baseMesh.MouthData;
 								template.Cock = baseMesh.Cock;
+								template.HideVag = baseMesh.HideVag;
 								template.BodyRootBone = baseMesh.BodyRootBone;
 								template.HeadRootBone = baseMesh.HeadRootBone;
 								template.PrivatesRootBone = baseMesh.PrivatesRootBone;
@@ -343,6 +350,7 @@ namespace Code.Editor.ModEngine
 								template.Eyes = baseMesh.Eyes.ToList();
 								template.Breasts = baseMesh.Breasts.ToList();
 								template.Buttocks = baseMesh.Buttocks.ToList();
+								template.Balls = baseMesh.Balls.ToList();
 								template.EyeControl = baseMesh.EyeControl;
 								template.ExpressionControl = baseMesh.ExpressionControl;
 								template.PoseControl = baseMesh.PoseControl;

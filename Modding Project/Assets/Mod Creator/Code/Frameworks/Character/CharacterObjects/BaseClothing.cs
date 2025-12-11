@@ -30,6 +30,9 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public Transform[] ClothingStates { get; set; }
 
 		[field: SerializeField]
+		public bool[] HideCock { get; set; }
+		
+		[field: SerializeField]
 		public EClothingState ClothingState { get; set; }
 
 		[field: SerializeField]
@@ -108,6 +111,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 				return null;
             
 			return ClothingStates[index].gameObject;
+		}
+		
+		public bool GetHideCock(EClothingState state)
+		{
+			return false;
 		}
 		
 		public GameObject GetGameObject()

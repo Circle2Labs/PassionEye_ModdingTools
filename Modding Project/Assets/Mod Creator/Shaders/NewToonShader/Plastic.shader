@@ -4,7 +4,7 @@ Shader "Toon/Plastic"
     {
         // Main color
         _TintColor("Main Color", Color) = (1,1,1,1)
-        _MainTex("Base Color", 2D) = "white" {}
+        [MainTexture]_MainTex("Base Color", 2D) = "white" {}
 
         // Normal map
         _NormalMap("Normal Map", 2D) = "bump" {}
@@ -20,8 +20,6 @@ Shader "Toon/Plastic"
         _RimLightAmount("Rim Light Amount", Range(0.0, 1)) = 1.0
         _RimLightPower("Rim Light Power", Range(0, 30)) = 5
 
-        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-
         // Clothing layers
         _ClothingLayersSeparation ("Clothing Layers Separation", Range(0, 0.01)) = 0.003
         _ClothingLayer ("Clothing Layer", float) = 0
@@ -31,31 +29,27 @@ Shader "Toon/Plastic"
         [HideInInspector]_Blend("__blend", Float) = 0.0
         [HideInInspector]_Cull("__cull", Float) = 2.0
         [HideInInspector][Toggle(_ALPHATEST_ON)] _AlphaClip("__clip", Float) = 0.0
-        [HideInInspector] _SrcBlend("__src", Float) = 1.0
-        [HideInInspector] _DstBlend("__dst", Float) = 0.0
-        [HideInInspector] _SrcBlendAlpha("__srcA", Float) = 1.0
-        [HideInInspector] _DstBlendAlpha("__dstA", Float) = 0.0
-        [HideInInspector] _ZWrite("__zwrite", Float) = 1.0
-        [HideInInspector] _ZTest("__ztest", Float) = 4.0
-        [HideInInspector] _BlendModePreserveSpecular("_BlendModePreserveSpecular", Float) = 1.0
+        [HideInInspector]_Cutoff("__cutoff", Range(0.0, 1.0)) = 0.5
+        [HideInInspector]_SrcBlend("__src", Float) = 1.0
+        [HideInInspector]_DstBlend("__dst", Float) = 0.0
+        [HideInInspector]_SrcBlendAlpha("__srcA", Float) = 1.0
+        [HideInInspector]_DstBlendAlpha("__dstA", Float) = 0.0
+        [HideInInspector]_ZWrite("__zwrite", Float) = 1.0
+        [HideInInspector]_ZTest("__ztest", Float) = 4.0
+        [HideInInspector]_BlendModePreserveSpecular("_BlendModePreserveSpecular", Float) = 1.0
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0
     }
     SubShader
     {
-        Pass
-        {
-            Name "BaseToon"
-
-            Tags
-            {
-                "RenderPipeline"="UniversalPipeline"
-            }
-
+        Tags { "RenderPipeline" = "UniversalPipeline" }
+        Pass {
+            Name "BasePlastic"
             ZTest [_ZTest]
             ZWrite [_ZWrite]
             Blend [_SrcBlend] [_DstBlend], [_SrcBlendAlpha] [_DstBlendAlpha]
             Cull [_Cull]
+            AlphaToMask True
 
             HLSLPROGRAM
             #include_with_pragmas "PlasticForward.hlsl"
@@ -63,26 +57,41 @@ Shader "Toon/Plastic"
         }
         Pass {
             Name "ShadowCaster"
-            Tags
-            {
-                "LightMode" = "ShadowCaster"
-            }
-            
+            Tags { "LightMode" = "ShadowCaster" }
             ZWrite [_ZWrite]
-            ZTest LEqual
+            ZTest [_ZTest]
             ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
-            #include_with_pragmas "../ToonShaders/ToonShadowCaster.hlsl"
+            #include_with_pragmas "BaseShadowCaster.hlsl"
+            //#include_with_pragmas "../ToonShaders/ToonShadowCaster.hlsl"
             ENDHLSL
         }
-        // TODO: usepass for the shadowcaster creates a bunch of errors but the shader works fine. Copy the passes over manually
-        //UsePass "Toon/Base/ShadowCaster"
-        UsePass "Toon/Base/DepthOnly"
-        UsePass "Toon/Base/DepthNormals"
+        Pass {
+            Name "PlasticDepthOnly"
+            Tags { "LightMode" = "DepthOnly" }
+            ZWrite On //Write depth
+            ZTest [_ZTest]
+            Cull [_Cull]
+            ColorMask 0 //Don't output any color
+            
+            HLSLPROGRAM
+            #include_with_pragmas "BaseDepthOnly.hlsl"
+            ENDHLSL
+        }
+        Pass {
+            Name "PlasticDepthNormals"
+            Tags { "LightMode" = "DepthNormals" }
+            ZWrite On
+            ZTest [_ZTest]
+            Cull [_Cull]
+            
+            HLSLPROGRAM
+            #include_with_pragmas "BaseDepthNormals.hlsl"
+            ENDHLSL
+        }
         UsePass "Toon/Base/META"
     }
-    //FallBack "Hidden/Core/FallbackError"
     CustomEditor "GameAssets.Shaders.ShaderGUIs.ToonShaderGUI"
 }

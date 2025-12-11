@@ -32,6 +32,9 @@ namespace Code.Components
         [field: SerializeField]
         public float AnimationDuration { get; set; }
 
+        [field: SerializeField]
+        public Rigidbody DualRigidbody { get; set; }
+        
         public DoorStateChangedEvent DoorStateChangedEvent => doorStateChangedEvent;
         public EDoorState DoorState => doorState;
 

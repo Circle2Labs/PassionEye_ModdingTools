@@ -297,10 +297,8 @@ float AddEyePart(float enable, float useTexture, float colorMode, Texture2D _tex
         
         if(colorMode == SDF_COLORBLEND_MULTIPLY)
         {
-            // TODO: this leaves black edges around some textures
-            // tex = multiplyColorSDF(tex, tmp_color, tmp_color2, t);
+            tex = multiplyColorSDF(tex, tmp_color, tmp_color2, t);
             
-            tex = tex * lerp(tmp_color, tmp_color2, t);
             if (tex.a <= 0.0 || enable == 0.0)
             {
                 tex.a = 0.0;
@@ -469,7 +467,7 @@ float4 frag(Varyings IN) : SV_TARGET
     //return remap(512.0, 4096.0, 0.0, 1.0, aa_width);
     aa_width = clamp(aa_width, min_aa_width, max_aa_width);
 
-    
+    // TODO: iris lines don't show up if an inner iris texture is used
     float iris_lines = 0;
     for(int x = -1; x <= 1; x++){
         for(int y = -1; y <= 1; y++){

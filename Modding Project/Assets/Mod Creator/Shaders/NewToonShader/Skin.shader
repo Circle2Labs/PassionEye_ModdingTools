@@ -32,56 +32,66 @@
         [HideInInspector]_Blend("__blend", Float) = 0.0
         [HideInInspector]_Cull("__cull", Float) = 2.0
         [HideInInspector][Toggle(_ALPHATEST_ON)] _AlphaClip("__clip", Float) = 0.0
-        [HideInInspector] _SrcBlend("__src", Float) = 1.0
-        [HideInInspector] _DstBlend("__dst", Float) = 0.0
-        [HideInInspector] _SrcBlendAlpha("__srcA", Float) = 1.0
-        [HideInInspector] _DstBlendAlpha("__dstA", Float) = 0.0
-        [HideInInspector] _ZWrite("__zwrite", Float) = 1.0
-        [HideInInspector] _ZTest("__ztest", Float) = 4.0
-        [HideInInspector] _BlendModePreserveSpecular("_BlendModePreserveSpecular", Float) = 1.0
+        [HideInInspector]_Cutoff("__cutoff", Range(0.0, 1.0)) = 0.5
+        [HideInInspector]_SrcBlend("__src", Float) = 1.0
+        [HideInInspector]_DstBlend("__dst", Float) = 0.0
+        [HideInInspector]_SrcBlendAlpha("__srcA", Float) = 1.0
+        [HideInInspector]_DstBlendAlpha("__dstA", Float) = 0.0
+        [HideInInspector]_ZWrite("__zwrite", Float) = 1.0
+        [HideInInspector]_ZTest("__ztest", Float) = 4.0
+        [HideInInspector]_BlendModePreserveSpecular("_BlendModePreserveSpecular", Float) = 1.0
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0
     }
     SubShader
     {
-        Pass
-        {
+        Pass {
             Name "BaseToonSkin"
-
-            Tags
-            {
-                "RenderPipeline"="UniversalPipeline"
-            }
-
+            Tags { "RenderPipeline"="UniversalPipeline" }
             ZTest [_ZTest]
             ZWrite [_ZWrite]
             Blend [_SrcBlend] [_DstBlend], [_SrcBlendAlpha] [_DstBlendAlpha]
             Cull [_Cull]
-
+            AlphaToMask On
             HLSLPROGRAM
             #include_with_pragmas "SkinForward.hlsl"
             ENDHLSL
         }
         Pass {
             Name "ShadowCaster"
-            Tags
-            {
-                "LightMode" = "ShadowCaster"
-            }
-            
+            Tags { "LightMode" = "ShadowCaster" }
+            ZTest [_ZTest]
             ZWrite [_ZWrite]
-            ZTest LEqual
             ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
-            #include_with_pragmas "../ToonShaders/ToonShadowCaster.hlsl"
+            #include_with_pragmas "BaseShadowCaster.hlsl"
             ENDHLSL
         }
-        // TODO: usepass for the shadowcaster creates a bunch of errors but the shader works fine. Copy the passes over manually
-        //UsePass "Toon/Base/ShadowCaster"
-        UsePass "Toon/Base/DepthOnly"
-        UsePass "Toon/Base/DepthNormals"
+        Pass {
+            Name "SkinDepthOnly"
+            Tags { "LightMode" = "DepthOnly" }
+            ZWrite On //Write depth
+            ZTest [_ZTest]
+            Cull [_Cull]
+            ColorMask 0 //Don't output any color
+            
+            HLSLPROGRAM
+            #include_with_pragmas "SkinDepthOnly.hlsl"
+            ENDHLSL
+        }
+        Pass {
+            Name "SkinDepthNormals"
+            Tags { "LightMode" = "DepthNormals" }
+            ZWrite On
+            ZTest [_ZTest]
+            Cull [_Cull]
+            
+            HLSLPROGRAM
+            #include_with_pragmas "SkinDepthNormals.hlsl"
+            ENDHLSL
+        }
         UsePass "Toon/Base/META"
     }
     //FallBack "Hidden/Core/FallbackError"

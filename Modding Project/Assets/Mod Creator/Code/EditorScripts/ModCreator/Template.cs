@@ -129,6 +129,9 @@ public class {Type} : {GetTemplateClass(this)}
 		// Clothing states map
 		public Transform[] ClothingStates;
 
+		// Hide cock map
+		public bool[] HideCock;
+
 		// Offsets used in blendshapes when making clothing
 		public SBlendshapeOffset[] BlendshapeOffsets;
 		
@@ -151,6 +154,7 @@ public class {Type} : {GetTemplateClass(this)}
 		public SEyeData EyeData;
 		public SMouthData MouthData;
 		public Transform Cock;
+		public Transform HideVag;
 		public Transform BodyRootBone;
 		public Transform HeadRootBone;
 		public Transform PrivatesRootBone;
@@ -159,6 +163,7 @@ public class {Type} : {GetTemplateClass(this)}
 		public List<Transform> Eyes;
 		public List<Transform> Breasts;
 		public List<Transform> Buttocks;
+		public List<Transform> Balls;
 		public bool EyeControl = true;
 		public bool ExpressionControl = true;
 		public bool PoseControl = true;
@@ -257,6 +262,13 @@ public class {Type} : {GetTemplateClass(this)}
 			{
 				copiedStates = new Transform[ClothingStates.Length];
 				Array.Copy(ClothingStates, copiedStates, ClothingStates.Length);
+			}
+			
+			bool[] copiedHideCock = null;
+			if (HideCock != null)
+			{
+				copiedHideCock = new bool[HideCock.Length];
+				Array.Copy(HideCock, copiedHideCock, HideCock.Length);
 			}
 
 			SCompatibleBaseMesh[] copiedCompatibleBaseMeshes = null;
@@ -360,6 +372,14 @@ public class {Type} : {GetTemplateClass(this)}
 				for (var i = 0; i < Buttocks.Count; i++)
 					copiedButtocks.Add(Buttocks[i]);
 			}
+			
+			List<Transform> copiedBalls = null;
+			if (Balls != null)
+			{
+				copiedBalls = new List<Transform>();
+				for (var i = 0; i < Balls.Count; i++)
+					copiedBalls.Add(Balls[i]);
+			}
 
 			AnimationClip[] copiedHAnimationIdleClips = null;
 			if (HAnimationIdleClips != null)
@@ -406,6 +426,7 @@ public class {Type} : {GetTemplateClass(this)}
 				// Clothing
 				ClothingType = ClothingType,
 				ClothingStates = copiedStates,
+				HideCock = copiedHideCock,
 				ClippingDistance = ClippingDistance,
 				UseClippingFix = UseClippingFix,
 				BlendshapeOffsets = copiedBlendshapeOffsets,
@@ -454,6 +475,7 @@ public class {Type} : {GetTemplateClass(this)}
 				EyeData = EyeData,
 				MouthData = MouthData,
 				Cock = Cock,
+				HideVag = HideVag,
 				BodyRootBone = BodyRootBone,
 				HeadRootBone = HeadRootBone,
 				PrivatesRootBone = PrivatesRootBone,
@@ -462,6 +484,7 @@ public class {Type} : {GetTemplateClass(this)}
 				Eyes = copiedEyes,
 				Breasts = copiedBreasts,
 				Buttocks = copiedButtocks,
+				Balls = copiedBalls,
 				EyeControl = EyeControl,
 				ExpressionControl = ExpressionControl,
 				PoseControl = PoseControl,
@@ -477,7 +500,8 @@ public class {Type} : {GetTemplateClass(this)}
 
 		public void SetupStates()
 		{
-			ClothingStates ??= new Transform[Enum.GetNames(typeof(EClothingState)).Length];
+			HideCock ??= new bool[Enum.GetNames(typeof(EClothingState)).Length];
+			ClothingStates ??= new Transform[HideCock.Length];
 
 			for (var i = 0; i < ClothingStates.Length; i++)
 			{

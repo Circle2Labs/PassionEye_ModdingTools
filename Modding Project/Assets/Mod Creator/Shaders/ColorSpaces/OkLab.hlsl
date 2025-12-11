@@ -96,7 +96,7 @@ half3 OkLABtoLinearSRGB(half3 c) {
 float3 BlendOkLab(float3 from, float3 to, float t) {
     from = LinearSRGBtoOkLAB(from);
     to = LinearSRGBtoOkLAB(to);
-    return OkLABtoLinearSRGB(lerp(from, to, t));
+    return saturate(OkLABtoLinearSRGB(lerp(from, to, t)));
 }
 
 /**

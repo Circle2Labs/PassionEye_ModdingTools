@@ -20,6 +20,12 @@ namespace Code.Frameworks.Character.Interfaces
         public Transform[] ClothingStates { get; set; }
 
         /// <summary>
+        /// Clothing state to hide cock map
+        /// If this is true, the cock gets hidden (like underwear)
+        /// </summary>
+        public bool[] HideCock { get; set; }
+        
+        /// <summary>
         /// The state the current clothing item is being weared.
         /// </summary>
         public EClothingState ClothingState { get; }
@@ -52,5 +58,10 @@ namespace Code.Frameworks.Character.Interfaces
         /// Get the GameObject for a specific state.
         /// </summary>
         public GameObject GetStateObject(EClothingState state);
+        
+        /// <summary>
+        /// Gets the hide cock value for a specific state.
+        /// </summary>
+        public bool GetHideCock(EClothingState state);
     }
 }
