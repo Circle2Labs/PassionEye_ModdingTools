@@ -100,8 +100,7 @@ namespace Code.Editor.ModEngine
 
 						GUILayout.Space(10);
 
-						// TODO: fix the controller and or shader first
-						//clippingFix(template);
+						clippingFix(template);
 						
 						if (!IsStandalone)
 						{
@@ -238,7 +237,7 @@ namespace Code.Editor.ModEngine
 						GUILayout.Space(5);
 						
 						template.Cock = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_COCKBONE")}", template.Cock, typeof(Transform), true);
-						template.HideVag = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_HIDEVAG")}", template.Cock, typeof(Transform), true);
+						template.HideVag = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_HIDEVAG")}", template.HideVag, typeof(Transform), true);
 						template.BodyRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_BODYROOTBONE")}*", template.BodyRootBone, typeof(Transform), true);
 						template.HeadRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_HEADROOTBONE")}*", template.HeadRootBone, typeof(Transform), true);
 						template.PrivatesRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_PRIVATESROOTBONE")}*", template.PrivatesRootBone, typeof(Transform), true);
@@ -373,12 +372,7 @@ namespace Code.Editor.ModEngine
 				}
 				else
 				{
-					if (template.CompatibleBaseMeshes == null)
-					{
-						var availableBaseMeshes = GetBaseMeshes();
-						template.CompatibleBaseMeshes = availableBaseMeshes.Count == 0 ? Array.Empty<SCompatibleBaseMesh>() : new [] { new SCompatibleBaseMesh(availableBaseMeshes[0]) };
-					}
-					
+					template.CompatibleBaseMeshes ??= Array.Empty<SCompatibleBaseMesh>();
 					template.CompatibleBaseMeshes = verticalList(template.CompatibleBaseMeshes, $"{GetLocalizedString("MODCREATOR_BASIC_COMPATIBLEBASEMESHES")}*", template.CharacterObjectType == ECharacterObjectType.BaseMesh);
 				}
 
