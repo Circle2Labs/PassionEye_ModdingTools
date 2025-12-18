@@ -61,7 +61,7 @@ namespace Code.Editor.ModEngine
 		public const bool IsVerbose = false;
 #endif
 
-		public const string Version = "v0.1.12.0";
+		public const string Version = "v0.1.13.0";
 		public const string EditorVersion = "6000.0.59f2";
 		
 		[SerializeField]

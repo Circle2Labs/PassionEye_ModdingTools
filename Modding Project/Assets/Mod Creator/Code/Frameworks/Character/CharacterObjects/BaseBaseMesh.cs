@@ -129,6 +129,8 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[field: SerializeField]
 		public Transform Cock { get; set; }
 		[field: SerializeField]
+		public Transform HideVag { get; set; }
+		[field: SerializeField]
 		public Transform BodyRootBone { get; set; }
 		[field: SerializeField]
 		public Transform HeadRootBone { get; set; }
@@ -146,6 +148,8 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public Transform[] Breasts { get; set; }
         [field: SerializeField]
         public Transform[] Buttocks { get; set; }
+        [field: SerializeField]
+        public Transform[] Balls { get; set; }
 
         [field: SerializeField]
         public bool EyeControl { get; set; } = true;

@@ -40,6 +40,10 @@ CBufTexture(_NormalMap);
 float _NormalStrength;
 
 CBufTexture(_AlphaMap);
+float _UseAlphaForTransparency;
+float _AlphaClip;
+float _Cutoff;
+float _Surface;
 CBUFFER_END
 
 #pragma vertex vert
@@ -126,7 +130,10 @@ float4 frag(v2f IN) : SV_Target
 
     //sample alphamap and exit early (for clipping fix)
     float4 alphaTexSample = RG_TEX_SAMPLE(_AlphaMap, IN.uv);
-    float alpha = CalculateAlpha(alphaTexSample.r, 1, 0, 0);
+    float alpha = CalculateAlpha(alphaTexSample.r, _AlphaClip, _Cutoff, _Surface);
+    
+    // as we technically do not need the semi-transparency with clipping fix active,
+    // instantly clip out pixels that need to be culled. 
     
     //ShadowMask
     float4 shadowCoord = 0;
@@ -136,14 +143,14 @@ float4 frag(v2f IN) : SV_Target
     shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     #endif
     half4 shadowMask = SAMPLE_SHADOWMASK(shadowCoord);
-
     
     float3 normalSample = UnpackNormal(RG_TEX_SAMPLE(_NormalMap, IN.uv));
     normalSample = (lerp(float3(0, 0, 1), normalSample, _NormalStrength));
     float3 normalWS = NormalMapToWorld(normalSample, IN.normal, IN.tangent);
     
     float4 color = _TintColor * RG_TEX_SAMPLE(_MainTex,IN.uv);
-
+    // for some semi transparent skin
+    color.a = alpha;
     //---------------------------------------
     // Main Lighting
     //---------------------------------------

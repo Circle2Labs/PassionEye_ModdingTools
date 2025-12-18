@@ -78,6 +78,7 @@ namespace Code.Frameworks.Character.Interfaces
 		public SMouthData MouthData { get; set; }
 		
 		public Transform Cock { get; set; }
+		public Transform HideVag { get; set; }
 		public Transform BodyRootBone { get; set; }
 		public Transform HeadRootBone { get; set; }
 		public Transform PrivatesRootBone { get; set; }
@@ -88,6 +89,7 @@ namespace Code.Frameworks.Character.Interfaces
 		public Transform[] Eyes { get; set; }
 		public Transform[] Breasts { get; set; }
         public Transform[] Buttocks { get; set; }
+        public Transform[] Balls { get; set; }
         
         public bool EyeControl { get; set; }
         public bool ExpressionControl { get; set; }

@@ -283,10 +283,14 @@ namespace Code.Editor.ModEngine
 									template.CharacterObjectType = ECharacterObjectType.Clothing;
 									template.ClothingStates = new Transform[Enum.GetNames(typeof(EClothingState)).Length];
 									template.BlendshapeOffsets = cloth.BlendshapeOffsets;
+									template.HideCock = new bool[template.ClothingStates.Length];
 					
 									for (var k = 0; k < cloth.ClothingStates.Length; k++)
 										template.ClothingStates[k] = cloth.ClothingStates[k];
 									
+									for (var k = 0; k < cloth.HideCock.Length; k++)
+										template.HideCock[k] = cloth.HideCock[k];
+
 									template.ClippingDistance = cloth.ClippingDistance;
 									break;
 								case IHair hair:
@@ -343,6 +347,7 @@ namespace Code.Editor.ModEngine
 									template.EyeData = baseMesh.EyeData;
 									template.MouthData = baseMesh.MouthData;
 									template.Cock = baseMesh.Cock;
+									template.HideVag = baseMesh.HideVag;
 									template.BodyRootBone = baseMesh.BodyRootBone;
 									template.HeadRootBone = baseMesh.HeadRootBone;
 									template.PrivatesRootBone = baseMesh.PrivatesRootBone;
@@ -351,6 +356,7 @@ namespace Code.Editor.ModEngine
 									template.Eyes = baseMesh.Eyes?.ToList();
 									template.Breasts = baseMesh.Breasts?.ToList();
 									template.Buttocks = baseMesh.Buttocks?.ToList();
+									template.Balls = baseMesh.Balls?.ToList();
 									template.EyeControl = baseMesh.EyeControl;
 									template.ExpressionControl = baseMesh.ExpressionControl;
 									template.PoseControl = baseMesh.PoseControl;
@@ -834,9 +840,13 @@ namespace Code.Editor.ModEngine
 							cloth.ObjectType = ECharacterObjectType.Clothing;
 							cloth.ClothingStates = new Transform[Enum.GetNames(typeof(EClothingState)).Length];
 							cloth.BlendshapeOffsets = template.BlendshapeOffsets;
+							cloth.HideCock = new bool[cloth.ClothingStates.Length];
 
 							for (var k = 0; k < template.ClothingStates.Length; k++)
 								cloth.ClothingStates[k] = template.ClothingStates[k];
+
+							for (var k = 0; k < template.HideCock.Length; k++)
+								cloth.HideCock[k] = template.HideCock[k];
 
 							cloth.ClippingDistance = template.ClippingDistance;
 							break;
@@ -875,6 +885,7 @@ namespace Code.Editor.ModEngine
 							baseMesh.EyeData = template.EyeData;
 							baseMesh.MouthData = template.MouthData;
 							baseMesh.Cock = template.Cock;
+							baseMesh.HideVag = template.HideVag;
 							baseMesh.BodyRootBone = template.BodyRootBone;
 							baseMesh.HeadRootBone = template.HeadRootBone;
 							baseMesh.PrivatesRootBone = template.PrivatesRootBone;
@@ -883,6 +894,7 @@ namespace Code.Editor.ModEngine
 							baseMesh.Eyes = template.Eyes.ToArray();
 							baseMesh.Breasts = template.Breasts.ToArray();
 							baseMesh.Buttocks = template.Buttocks.ToArray();
+							baseMesh.Balls = template.Balls.ToArray();
 							baseMesh.EyeControl = true;
 							baseMesh.ExpressionControl = true;
 							baseMesh.PoseControl = true;
@@ -1140,6 +1152,12 @@ namespace Code.Editor.ModEngine
 			var pass = true;
 			var checkAsm = true;
 
+			if (!CanAssignComponents())
+			{
+				pass = false;
+				Debug.LogError("Assign components checks failed");
+			}
+			
 			if (string.IsNullOrEmpty(Manifest.Name))
 			{
 				pass = false;
@@ -1568,6 +1586,29 @@ namespace Code.Editor.ModEngine
 							}
 						}
 						
+						if (template.Balls == null || template.Balls.Count == 0)
+						{
+							Debug.LogWarning($"No balls set up for {template.Name}");
+						}
+						else
+						{
+							for (var k = 0; k < template.Balls.Count; k++)
+							{
+								var ball = template.Balls[k];
+								if (ball != null)
+									continue;
+
+								pass = false;
+								Debug.LogError($"Ball {k} is invalid for {template.Name}");
+							}
+							
+							if (template.Balls.Count != 2 && template.Balls.Count != 0)
+							{
+								pass = false;
+								Debug.LogError($"Only 2 or 0 balls are currently supported for {template.Name}");
+							}
+						}
+						
 						if (template.PrivatesRootBone == null)
 						{
 							pass = false;
@@ -1588,8 +1629,12 @@ namespace Code.Editor.ModEngine
 					
 						if (template.Cock == null)
 						{
-							pass = false;
-							Debug.LogError($"Cock object is invalid for {template.Name}");
+							Debug.LogWarning($"Cock object is invalid for {template.Name}");
+						}
+						
+						if (template.HideVag == null)
+						{
+							Debug.LogWarning($"Hide Vagina object is invalid for {template.Name}");
 						}
 
 						if (template.Avatar == null)

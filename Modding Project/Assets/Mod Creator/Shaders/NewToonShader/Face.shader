@@ -81,13 +81,32 @@ Shader "Toon/Face"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #include_with_pragmas "../ToonShaders/ToonShadowCaster.hlsl"
+            #include_with_pragmas "BaseShadowCaster.hlsl"
             ENDHLSL
         }
-        // TODO: usepass for the shadowcaster creates a bunch of errors but the shader works fine. Copy the passes over manually
-        //UsePass "Toon/Base/ShadowCaster"
-        UsePass "Toon/Base/DepthOnly"
-        UsePass "Toon/Base/DepthNormals"
+        Pass {
+            Name "SkinDepthOnly"
+            Tags { "LightMode" = "DepthOnly" }
+            ZWrite On //Write depth
+            ZTest [_ZTest]
+            Cull [_Cull]
+            ColorMask 0 //Don't output any color
+            
+            HLSLPROGRAM
+            #include_with_pragmas "SkinDepthOnly.hlsl"
+            ENDHLSL
+        }
+        Pass {
+            Name "SkinDepthNormals"
+            Tags { "LightMode" = "DepthNormals" }
+            ZWrite On
+            ZTest [_ZTest]
+            Cull [_Cull]
+            
+            HLSLPROGRAM
+            #include_with_pragmas "SkinDepthNormals.hlsl"
+            ENDHLSL
+        }
         UsePass "Toon/Base/META"
     }
     //FallBack "Hidden/Core/FallbackError"
