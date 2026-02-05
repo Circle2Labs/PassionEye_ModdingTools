@@ -13,5 +13,7 @@ namespace Code.Frameworks.InteractionSystem.Structs
 		public GameObject Caller;
 		public GameObject Trigger;
 		public List<GameObject> Target;
+		
+		public bool KeepRunningAfterDisable;
 	}
 }
