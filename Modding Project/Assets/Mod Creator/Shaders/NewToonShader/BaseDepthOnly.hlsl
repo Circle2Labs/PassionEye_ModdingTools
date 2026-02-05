@@ -33,7 +33,7 @@ v2f vert(v IN) {
     return OUT;
 }
 
-float frag(v2f IN) : SV_DepthLessEqual
+float frag(v2f IN) : SV_Depth
 {
     //sample alphamap and exit early (for clipping fix)
     float4 alphaTexSample = RG_TEX_SAMPLE(_MainTex, IN.uv);
