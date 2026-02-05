@@ -238,6 +238,7 @@ namespace Code.Editor.ModEngine
 				foreach (var tuple in mod.GetModObjects())
 				{
 					var go = Railgun.ModEngine.Conversion.Converter.From(tuple.Item2).To<GameObject>().Convert();
+					removeUniqueID(go);
 					
 					foreach (var component in tuple.Item2.Components)
 					{
@@ -1654,6 +1655,8 @@ namespace Code.Editor.ModEngine
 								{
 									var leftEyeExists = false;
 									var rightEyeExists = false;
+									var leftShoulderExists = false;
+									var rightShoulderExists = false;
 
 									foreach (var bone in builtAvatar.humanDescription.human)
 									{
@@ -1661,9 +1664,25 @@ namespace Code.Editor.ModEngine
 											leftEyeExists = true;
 										else if (bone.humanName == "RightEye")
 											rightEyeExists = true;
+										else if (bone.humanName == "LeftShoulder")
+											leftShoulderExists = true;
+										else if (bone.humanName == "RightShoulder")
+											rightShoulderExists = true;
 									}
 									
-									if (leftEyeExists && rightEyeExists)
+									if (!leftEyeExists)
+										Debug.LogError("Left eye avatar bone is not assigned");
+
+									if (!rightEyeExists)
+										Debug.LogError("Right eye avatar bone is not assigned");
+									
+									if (!leftShoulderExists)
+										Debug.LogError("Left shoulder avatar bone is not assigned");
+
+									if (!rightShoulderExists)
+										Debug.LogError("Right shoulder avatar bone is not assigned");
+
+									if (leftEyeExists && rightEyeExists && leftShoulderExists && rightShoulderExists)
 										avatarValid = true;
 								}
 							}
@@ -1675,7 +1694,7 @@ namespace Code.Editor.ModEngine
 							if (!avatarValid)
 							{
 								pass = false;
-								Debug.LogError($"Avatar is invalid for {template.Name}. Make sure it is set to Humanoid, all bones are set up correctly and the eyes have their respective bones");
+								Debug.LogError($"Avatar is invalid for {template.Name}. Make sure it is set to Humanoid and all bones are set up correctly");
 							}
 						}
 						

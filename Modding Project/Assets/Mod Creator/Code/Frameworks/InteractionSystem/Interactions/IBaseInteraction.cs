@@ -10,6 +10,9 @@ namespace Code.Frameworks.InteractionSystem.Interactions
 		/// An interaction declared as running is marked as 'active' or 'currently playing'.
 		/// </summary>
 		public bool IsPlaying { get; set; }
+		
+		public bool IsApproaching { get; set; }
+
 		/// <summary>
 		/// After approaching finishes, should the interaction be started
 		/// </summary>

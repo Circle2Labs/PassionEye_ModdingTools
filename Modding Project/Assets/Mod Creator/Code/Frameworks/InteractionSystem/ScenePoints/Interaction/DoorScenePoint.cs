@@ -10,7 +10,7 @@ namespace Code.Frameworks.InteractionSystem.ScenePoints.Interaction
 	{
 		public override EInteractionIdentifier InteractionIdentifier => EInteractionIdentifier.Door;
 
-		public override object[] Parameters => new object[] { Door };
+		public override object[] Parameters => new object[] {Door};
 
 		[SerializeField]
 		public DoorController Door;

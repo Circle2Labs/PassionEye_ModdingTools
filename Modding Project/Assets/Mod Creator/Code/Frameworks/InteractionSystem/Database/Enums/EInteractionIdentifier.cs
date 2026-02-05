@@ -2,7 +2,7 @@ using System;
 
 namespace Code.Frameworks.InteractionSystem.Database.Enums
 {
-    [Serializable]
+	[Serializable]
 	public enum EInteractionIdentifier
 	{
 		Undefined = 0,
@@ -15,7 +15,12 @@ namespace Code.Frameworks.InteractionSystem.Database.Enums
 		Undress = 7,
 		Dress = 8,
 		CharacterAnimation = 9,
-        SyncedCharacterAnimation = 10,
-        Door = 11,
-    }
+		SyncedCharacterAnimation = 10,
+		Door = 11,
+		NPCDialog = 12,
+		Item = 13,
+		VendingMachine = 14,
+		Seat = 15,
+		NPCIdle = 16
+	}
 }
