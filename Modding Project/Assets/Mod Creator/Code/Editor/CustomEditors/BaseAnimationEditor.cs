@@ -4,7 +4,7 @@ using System.Linq;
 using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation;
 using Code.Frameworks.Animation.Structs;
-using Code.Frameworks.InteractionSystem.Interactions.Base.H.Enums;
+using Code.Frameworks.H.Enums;
 using UnityEditor;
 using UnityEngine;
 using Tuple = Code.Tools.Tuple;

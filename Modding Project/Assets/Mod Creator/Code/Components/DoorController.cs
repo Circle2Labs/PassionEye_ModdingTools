@@ -35,6 +35,9 @@ namespace Code.Components
         [field: SerializeField]
         public Rigidbody DualRigidbody { get; set; }
         
+        [field: SerializeField]
+        public Transform PrimaryIndicatorAnchor { get; set; }
+        
         public DoorStateChangedEvent DoorStateChangedEvent => doorStateChangedEvent;
         public EDoorState DoorState => doorState;
 

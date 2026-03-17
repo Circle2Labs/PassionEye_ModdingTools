@@ -1,5 +1,5 @@
 using Code.Frameworks.InteractionSystem.Database.Enums;
-using Code.Frameworks.InteractionSystem.Interactions.Base.H.Locations;
+using Code.Frameworks.H.Locations;
 using Code.Frameworks.InteractionSystem.ScenePoints;
 using Code.Frameworks.InteractionSystem.ScenePoints.Base;
 using Code.Frameworks.InteractionSystem.ScenePoints.Interaction;

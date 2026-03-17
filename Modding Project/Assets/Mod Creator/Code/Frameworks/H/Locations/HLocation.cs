@@ -1,19 +1,19 @@
-﻿using Animancer;
+﻿using System;
+using System.Collections.Generic;
+using Animancer;
 using Code.Components;
-using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation;
+using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Character.Enums;
-using Code.Frameworks.InteractionSystem.Interactions.Base.H.Enums;
-using Code.Frameworks.InteractionSystem.Interactions.Base.H.Interfaces;
-using Code.Frameworks.InteractionSystem.Interactions.Base.H.Structs;
+using Code.Frameworks.H.Enums;
+using Code.Frameworks.H.Interfaces;
+using Code.Frameworks.H.Structs;
 using Code.Managers;
 using Code.Tools;
-using System.Collections.Generic;
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Code.Frameworks.InteractionSystem.Interactions.Base.H.Locations
+namespace Code.Frameworks.H.Locations
 {
     public class HLocation : MonoBehaviour, IHLocation
     {

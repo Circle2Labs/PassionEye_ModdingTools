@@ -7,7 +7,7 @@ using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Structs;
 using Code.Frameworks.ForwardKinematics.Structs;
-using Code.Frameworks.InteractionSystem.Interactions.Base.H.Enums;
+using Code.Frameworks.H.Enums;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes.Flags;
 using Code.Frameworks.Studio.Enums;
