@@ -20,7 +20,7 @@ namespace Code.Frameworks.InteractionSystem.Interactions
         
 		public void Run(SRunParameters parameters);
 		public void End();
-		public void Cancel();
+		public void EndEarly();
 
 		public void Setup(object[] parameters);
 	}

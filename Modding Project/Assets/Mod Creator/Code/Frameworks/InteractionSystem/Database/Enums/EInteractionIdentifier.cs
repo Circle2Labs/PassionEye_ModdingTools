@@ -21,6 +21,9 @@ namespace Code.Frameworks.InteractionSystem.Database.Enums
 		Item = 13,
 		VendingMachine = 14,
 		Seat = 15,
-		NPCIdle = 16
+		NPCIdle = 16,
+		CanKnocker = 17,
+		Peep = 18,
+		Delivery = 19
 	}
 }

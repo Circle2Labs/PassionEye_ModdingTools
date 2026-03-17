@@ -22,6 +22,11 @@ namespace Code.Frameworks.InteractionSystem.Database.Interfaces
 		public List<EInteractionIdentifier> Dependencies { get; set; }
 		
 		/// <summary>
+		/// Allow displaying these interactions if BlockOthers is enabled
+		/// </summary>
+		public List<EInteractionIdentifier> BlockWhitelist { get; set; }
+
+		/// <summary>
 		/// Should this interaction be instantiated instantly once and then shared between runs, reusing logic and data
 		/// Setting it to false would create a new instance for every run, separating logic and data
 		/// A SharedInstance interaction calls Setup with parameters only once when it is initially instantiated
@@ -73,5 +78,10 @@ namespace Code.Frameworks.InteractionSystem.Database.Interfaces
 		/// Description of the interaction
 		/// </summary>
 		public string Description { get; set; }
+		
+		/// <summary>
+		/// Interaction with the highest priority is shown as primary interaction
+		/// </summary>
+		public int Priority { get; set; }
 	}
 }

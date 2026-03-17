@@ -15,7 +15,7 @@ using UnityEditor;
 using UnityEngine;
 using Code.Frameworks.Character.Structs;
 using Code.Frameworks.ClippingFix.Enums;
-using Code.Frameworks.InteractionSystem.Interactions.Base.H.Enums;
+using Code.Frameworks.H.Enums;
 using Tuple = Code.Tools.Tuple;
 
 namespace Code.Editor.ModEngine
