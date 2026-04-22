@@ -6,6 +6,7 @@ using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation.Structs;
 using Code.Frameworks.Character.Enums;
+using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Structs;
 using UnityEditor;
 using UnityEngine;
@@ -774,7 +775,7 @@ namespace Code.Editor.ModEngine
 
 				if (isBaseMesh)
 				{
-					compatibleBaseMesh.TexturesCompatible = EditorGUILayout.Toggle(GetLocalizedString("MODCREATOR_BASIC_BASEMESHCOMPAT_TEXTURESCOMPAT"), compatibleBaseMesh.TexturesCompatible);
+					compatibleBaseMesh.TypesCompatible = (ECompatibleCharacterObjectType)EditorGUILayout.EnumFlagsField(GetLocalizedString("MODCREATOR_BASIC_BASEMESHCOMPAT_TYPESCOMPAT"), compatibleBaseMesh.TypesCompatible);
 				
 					compatibleBaseMesh.BoneAliasFrom ??= Array.Empty<string>();
 					compatibleBaseMesh.BoneAliasTo ??= Array.Empty<string>();

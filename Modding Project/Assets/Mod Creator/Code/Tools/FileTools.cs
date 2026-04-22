@@ -15,7 +15,7 @@ namespace Code.Tools
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e);
+				Debug.LogError($"[FileTools] {e}");
 			}
 
 			directory = null;
@@ -31,7 +31,7 @@ namespace Code.Tools
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e);
+				Debug.LogError($"[FileTools] {e}");
 			}
 
 			text = "";
@@ -47,7 +47,7 @@ namespace Code.Tools
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e);
+				Debug.LogError($"[FileTools] {e}");
 			}
 
 			lines = Array.Empty<string>();
@@ -63,7 +63,7 @@ namespace Code.Tools
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e);
+				Debug.LogError($"[FileTools] {e}");
 			}
 
 			bytes = Array.Empty<byte>();
@@ -81,7 +81,7 @@ namespace Code.Tools
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e);
+				Debug.LogError($"[FileTools] {e}");
 			}
 
 			return false;
@@ -98,7 +98,7 @@ namespace Code.Tools
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e);
+				Debug.LogError($"[FileTools] {e}");
 			}
 
 			return false;
@@ -115,7 +115,7 @@ namespace Code.Tools
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e);
+				Debug.LogError($"[FileTools] {e}");
 			}
 
 			return false;
@@ -132,7 +132,7 @@ namespace Code.Tools
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e);
+				Debug.LogError($"[FileTools] {e}");
 			}
 
 			return false;
