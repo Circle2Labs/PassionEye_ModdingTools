@@ -100,6 +100,18 @@ namespace Code.Editor.ModEngine
 			}
 		}
 
+		public bool IsRootParent(Transform transform, Transform rootParent)
+		{
+			var parent = transform.parent;
+			if (parent == rootParent)
+				return true;
+
+			if (parent == null)
+				return false;
+			
+			return IsRootParent(parent, rootParent);
+		}
+		
 		private string itemsCount(int count)
 		{
 			return $" ({count} item{(count == 1 ? "" : "s")})";

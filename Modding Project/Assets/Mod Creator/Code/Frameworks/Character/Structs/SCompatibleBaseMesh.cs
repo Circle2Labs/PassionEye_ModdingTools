@@ -1,4 +1,5 @@
 using System;
+using Code.Frameworks.Character.Flags;
 
 namespace Code.Frameworks.Character.Structs
 {
@@ -8,17 +9,17 @@ namespace Code.Frameworks.Character.Structs
 		public string GUID;
 		public byte ID;
 
-		public bool TexturesCompatible;
+		public ECompatibleCharacterObjectType TypesCompatible;
 
 		public string[] BoneAliasFrom;
 		public string[] BoneAliasTo;
 
-		public SCompatibleBaseMesh(Tuple<string, byte> identifier, bool texturesCompatible = false, string[] boneAliasFrom = null, string[] boneAliasTo = null)
+		public SCompatibleBaseMesh(Tuple<string, byte> identifier, ECompatibleCharacterObjectType typesCompatible = ECompatibleCharacterObjectType.None, string[] boneAliasFrom = null, string[] boneAliasTo = null)
 		{
 			GUID = identifier.Item1;
 			ID = identifier.Item2;
 
-			TexturesCompatible = texturesCompatible;
+			TypesCompatible = typesCompatible;
 			BoneAliasFrom = boneAliasFrom;
 			BoneAliasTo = boneAliasTo;
 		}
@@ -34,7 +35,7 @@ namespace Code.Frameworks.Character.Structs
 				var inner = new object[5];
 				inner[0] = compatibleBaseMesh.GUID;
 				inner[1] = compatibleBaseMesh.ID;
-				inner[2] = compatibleBaseMesh.TexturesCompatible;
+				inner[2] = compatibleBaseMesh.TypesCompatible;
 				inner[3] = compatibleBaseMesh.BoneAliasFrom;
 				inner[4] = compatibleBaseMesh.BoneAliasTo;
 
@@ -59,14 +60,25 @@ namespace Code.Frameworks.Character.Structs
 				if (obj.Length == 2)
 				{
 					// old data compat
-					inner.TexturesCompatible = true;
+					inner.TypesCompatible = ECompatibleCharacterObjectType.Clothing | ECompatibleCharacterObjectType.Accessory | ECompatibleCharacterObjectType.Hair | ECompatibleCharacterObjectType.Texture;
 					
 					inner.BoneAliasFrom = null;
 					inner.BoneAliasTo = null;
 				}
 				else if (obj.Length == 5)
 				{
-					inner.TexturesCompatible = (bool)obj[2];
+					if (obj[2] is bool texturesCompatible)
+					{
+						// old data compat
+						inner.TypesCompatible = ECompatibleCharacterObjectType.Clothing | ECompatibleCharacterObjectType.Accessory | ECompatibleCharacterObjectType.Hair | ECompatibleCharacterObjectType.Texture;
+
+						if (!texturesCompatible)
+							inner.TypesCompatible &= ~ECompatibleCharacterObjectType.Texture;
+					}
+					else
+					{
+						inner.TypesCompatible = (ECompatibleCharacterObjectType)obj[2];
+					}
 					
 					inner.BoneAliasFrom = toStringArray(obj[3]);
 					inner.BoneAliasTo = toStringArray(obj[4]);

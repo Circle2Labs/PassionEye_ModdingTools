@@ -147,7 +147,7 @@ namespace Code.Managers
 			}
 
 			languages[data.Language] = data;
-			Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, $"[LocalizationManager] Loaded language {data.Language} with {data.Entries.Count} entries from {files} files");
+			Debug.Log($"[LocalizationManager] Loaded language {data.Language} with {data.Entries.Count} entries from {files} files");
 		}
 
 		private Dictionary<string, LanguageDataEntry> parseLanguageEntries(string language, string file, string[] lines)
@@ -252,7 +252,7 @@ namespace Code.Managers
 					if (FileTools.CreateDirectorySafe(createDirectoryPath, out var dir))
 					{
 #if UNITY_EDITOR
-						Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, $"[LocalizationManager] Created localization direction {createDirectoryPath} for language {language.Key}");
+						Debug.Log($"[LocalizationManager] Created localization direction {createDirectoryPath} for language {language.Key}");
 #endif
 						reloadLanguages.AddUnique(language.Key);
 					}
@@ -295,7 +295,7 @@ namespace Code.Managers
 						if (FileTools.AppendAllTextSafe(createPath, line))
 						{
 #if UNITY_EDITOR
-							Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, $"[LocalizationManager] Appended localization entry {englishKey} in path {createPath} for language {language.Key}");
+							Debug.Log($"[LocalizationManager] Appended localization entry {englishKey} in path {createPath} for language {language.Key}");
 #endif
 							reloadLanguages.AddUnique(language.Key);
 						}

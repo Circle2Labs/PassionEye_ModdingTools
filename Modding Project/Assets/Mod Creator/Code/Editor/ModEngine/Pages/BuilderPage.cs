@@ -289,8 +289,11 @@ namespace Code.Editor.ModEngine
 									for (var k = 0; k < cloth.ClothingStates.Length; k++)
 										template.ClothingStates[k] = cloth.ClothingStates[k];
 									
-									for (var k = 0; k < cloth.HideCock.Length; k++)
-										template.HideCock[k] = cloth.HideCock[k];
+									if (cloth.HideCock != null)
+									{
+										for (var k = 0; k < cloth.HideCock.Length; k++)
+											template.HideCock[k] = cloth.HideCock[k];
+									}
 
 									template.ClippingDistance = cloth.ClippingDistance;
 									break;
@@ -1281,6 +1284,7 @@ namespace Code.Editor.ModEngine
 					}
 					
 					var gameObject = (GameObject)prefab;
+					var transform = gameObject.transform;
 					
 					if ((template.TemplateType == ETemplateType.CharacterObject && gameObject.GetComponent<ICharacterObject>() == null) || (template.TemplateType == ETemplateType.StudioObject && gameObject.GetComponent<IStudioObject>() == null))
 					{
@@ -1318,6 +1322,12 @@ namespace Code.Editor.ModEngine
 							}
 							else
 							{
+								if (!IsRootParent(fullState.transform, transform))
+								{
+									pass = false;
+									Debug.LogError($"Full state for {template.Name} is not a child of the mod object");
+								}
+								
 								var scale = fullState.transform.localScale;
 								if (!Mathf.Approximately(scale.x, scale.y) || !Mathf.Approximately(scale.y, scale.z))
 								{
@@ -1337,6 +1347,12 @@ namespace Code.Editor.ModEngine
 							}
 							else
 							{
+								if (!IsRootParent(halfState.transform, transform))
+								{
+									pass = false;
+									Debug.LogError($"Half state for {template.Name} is not a child of the mod object");
+								}
+								
 								var scale = halfState.transform.localScale;
 								if (!Mathf.Approximately(scale.x, scale.y) || !Mathf.Approximately(scale.y, scale.z))
 								{
@@ -1393,6 +1409,12 @@ namespace Code.Editor.ModEngine
 								}
 								else
 								{
+									if (!IsRootParent(blendshapeRenderer.transform, transform))
+									{
+										pass = false;
+										Debug.LogError($"Blendshape renderer {k} for {template.Name} is not a child of the mod object");
+									}
+									
 									for (var j = 0; j < blendshapeRenderer.sharedMesh.blendShapeCount; j++)
 									{
 										shapes.Add(blendshapeRenderer.sharedMesh.GetBlendShapeName(j));
@@ -1502,7 +1524,15 @@ namespace Code.Editor.ModEngine
 								{
 									var eye = template.Eyes[k];
 									if (eye != null)
+									{
+										if (!IsRootParent(eye, transform))
+										{
+											pass = false;
+											Debug.LogError($"Eye {k} for {template.Name} is not a child of the mod object");
+										}
+										
 										continue;
+									}
 
 									pass = false;
 									Debug.LogError($"Eye {k} is invalid for {template.Name}");
@@ -1517,6 +1547,12 @@ namespace Code.Editor.ModEngine
 						}
 						else
 						{
+							if (!IsRootParent(template.MergedEyes, transform))
+							{
+								pass = false;
+								Debug.LogError($"Merged Eyes for {template.Name} is not a child of the mod object");
+							}
+							
 							var rend = template.MergedEyes.GetComponent<SkinnedMeshRenderer>();
 							if (rend == null)
 							{
@@ -1551,7 +1587,15 @@ namespace Code.Editor.ModEngine
 							{
 								var breast = template.Breasts[k];
 								if (breast != null)
+								{
+									if (!IsRootParent(breast, transform))
+									{
+										pass = false;
+										Debug.LogError($"Breast {k} for {template.Name} is not a child of the mod object");
+									}
+									
 									continue;
+								}
 
 								pass = false;
 								Debug.LogError($"Breast {k} is invalid for {template.Name}");
@@ -1574,7 +1618,15 @@ namespace Code.Editor.ModEngine
 							{
 								var buttock = template.Buttocks[k];
 								if (buttock != null)
+								{
+									if (!IsRootParent(buttock, transform))
+									{
+										pass = false;
+										Debug.LogError($"Buttock {k} for {template.Name} is not a child of the mod object");
+									}
+									
 									continue;
+								}
 
 								pass = false;
 								Debug.LogError($"Buttock {k} is invalid for {template.Name}");
@@ -1597,7 +1649,15 @@ namespace Code.Editor.ModEngine
 							{
 								var ball = template.Balls[k];
 								if (ball != null)
+								{
+									if (!IsRootParent(ball, transform))
+									{
+										pass = false;
+										Debug.LogError($"Ball {k} for {template.Name} is not a child of the mod object");
+									}
+									
 									continue;
+								}
 
 								pass = false;
 								Debug.LogError($"Ball {k} is invalid for {template.Name}");
@@ -1615,27 +1675,85 @@ namespace Code.Editor.ModEngine
 							pass = false;
 							Debug.LogError($"Privates root bone is invalid for {template.Name}");
 						}
+						else
+						{
+							if (!IsRootParent(template.PrivatesRootBone, transform))
+							{
+								pass = false;
+								Debug.LogError($"Privates Root Bone for {template.Name} is not a child of the mod object");
+							}
+						}
 					
 						if (template.HeadRootBone == null)
 						{
 							pass = false;
 							Debug.LogError($"Head root bone is invalid for {template.Name}");
 						}
-					
+						else
+						{
+							if (!IsRootParent(template.HeadRootBone, transform))
+							{
+								pass = false;
+								Debug.LogError($"Head Root Bone for {template.Name} is not a child of the mod object");
+							}
+						}
+						
 						if (template.BodyRootBone == null)
 						{
 							pass = false;
 							Debug.LogError($"Body root bone is invalid for {template.Name}");
 						}
-					
+						else
+						{
+							if (!IsRootParent(template.BodyRootBone, transform))
+							{
+								pass = false;
+								Debug.LogError($"Body Root Bone for {template.Name} is not a child of the mod object");
+							}
+						}
+
+						if (template.POV != null)
+						{
+							if (!IsRootParent(template.POV, transform))
+							{
+								pass = false;
+								Debug.LogError($"POV for {template.Name} is not a child of the mod object");
+							}
+						}
+						
+						if (template.FaceTransform != null)
+						{
+							if (!IsRootParent(template.FaceTransform, transform))
+							{
+								pass = false;
+								Debug.LogError($"Face Transform for {template.Name} is not a child of the mod object");
+							}
+						}
+						
 						if (template.Cock == null)
 						{
 							Debug.LogWarning($"Cock object is invalid for {template.Name}");
+						}
+						else
+						{
+							if (!IsRootParent(template.Cock, transform))
+							{
+								pass = false;
+								Debug.LogError($"Cock object for {template.Name} is not a child of the mod object");
+							}
 						}
 						
 						if (template.HideVag == null)
 						{
 							Debug.LogWarning($"Hide Vagina object is invalid for {template.Name}");
+						}
+						else
+						{
+							if (!IsRootParent(template.HideVag, transform))
+							{
+								pass = false;
+								Debug.LogError($"Hide Vagina object for {template.Name} is not a child of the mod object");
+							}
 						}
 
 						if (template.Avatar == null)
@@ -1657,6 +1775,7 @@ namespace Code.Editor.ModEngine
 									var rightEyeExists = false;
 									var leftShoulderExists = false;
 									var rightShoulderExists = false;
+									var rightMiddleProximalExists = false;
 
 									foreach (var bone in builtAvatar.humanDescription.human)
 									{
@@ -1668,6 +1787,8 @@ namespace Code.Editor.ModEngine
 											leftShoulderExists = true;
 										else if (bone.humanName == "RightShoulder")
 											rightShoulderExists = true;
+										else if (bone.humanName == "Right Middle Proximal") // Why does this have spaces?
+											rightMiddleProximalExists = true;
 									}
 									
 									if (!leftEyeExists)
@@ -1681,6 +1802,9 @@ namespace Code.Editor.ModEngine
 
 									if (!rightShoulderExists)
 										Debug.LogError("Right shoulder avatar bone is not assigned");
+
+									if (!rightMiddleProximalExists)
+										Debug.LogWarning("Right middle proximal avatar bone is not assigned. This will cause some animation inaccuracy");
 
 									if (leftEyeExists && rightEyeExists && leftShoulderExists && rightShoulderExists)
 										avatarValid = true;
@@ -1713,6 +1837,12 @@ namespace Code.Editor.ModEngine
 							}
 							else
 							{
+								if (!IsRootParent(face.Item2.transform, transform))
+								{
+									pass = false;
+									Debug.LogError($"Face texture map renderer for {template.Name} is not a child of the mod object");
+								}
+								
 								var mats = face.Item2.sharedMaterials;
 								if (face.Item3 >= mats.Length || face.Item3 < 0)
 								{
@@ -1729,6 +1859,12 @@ namespace Code.Editor.ModEngine
 							}
 							else
 							{
+								if (!IsRootParent(body.Item2.transform, transform))
+								{
+									pass = false;
+									Debug.LogError($"Body texture map renderer for {template.Name} is not a child of the mod object");
+								}
+								
 								var mats = body.Item2.sharedMaterials;
 								if (body.Item3 >= mats.Length || body.Item3 < 0)
 								{
@@ -1754,7 +1890,14 @@ namespace Code.Editor.ModEngine
 							for (var k = 0; k < template.SFWColliders.Count; k++)
 							{
 								if (template.SFWColliders[k] != null)
+								{
+									if (!IsRootParent(template.SFWColliders[k].transform, transform))
+									{
+										pass = false;
+										Debug.LogError($"SFW Collider {k} for {template.Name} is not a child of the mod object");
+									}
 									continue;
+								}
 
 								pass = false;
 								Debug.LogError($"SFW collider {k} is invalid for {template.Name}");
@@ -1772,7 +1915,15 @@ namespace Code.Editor.ModEngine
 							{
 								var bodyPart = template.BodyParts[k];
 								if (bodyPart.Bone != null)
+								{
+									if (!IsRootParent(bodyPart.Bone, transform))
+									{
+										pass = false;
+										Debug.LogError($"Body part bone {bodyPart.Type} for {template.Name} is not a child of the mod object");
+									}
+									
 									continue;
+								}
 
 								pass = false;
 								Debug.LogError($"Body part {bodyPart.Type} is invalid for {template.Name}");
@@ -1789,7 +1940,15 @@ namespace Code.Editor.ModEngine
 							for (var k = 0; k < template.AccessoryParents.Count; k++)
 							{
 								if (template.AccessoryParents[k].Item1 != null)
+								{
+									if (!IsRootParent(template.AccessoryParents[k].Item1.transform, transform))
+									{
+										pass = false;
+										Debug.LogError($"Accessory parent {k} for {template.Name} is not a child of the mod object");
+									}
+									
 									continue;
+								}
 
 								pass = false;
 								Debug.LogError($"Accessory parent {k} is invalid for {template.Name}");
@@ -1915,7 +2074,9 @@ namespace Code.Editor.ModEngine
 				}
 			}
 
-			var toonShader = Shader.Find("Toon/ToonShader");
+			// ToonShader is gone, uncomment once we deprecate sth else
+			
+			/*var toonShader = Shader.Find("Toon/ToonShader");
 			
 			for (var i = 0; i < Prefabs.Count; i++)
 			{
@@ -1947,7 +2108,7 @@ namespace Code.Editor.ModEngine
 						Debug.LogWarning($"Object {template.Name} uses deprecated shader {toonShader.name}. Consider upgrading as this shader will be removed in the future");
 					}
 				}
-			}
+			}*/
 			
 			return pass;
 		}

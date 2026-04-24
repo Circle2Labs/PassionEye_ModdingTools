@@ -16,7 +16,7 @@ namespace Code.Managers
             {
                 if (value > 1f || value < 0.0001f)
                 {
-                    Debug.LogWarning("LightSmooth must be between 0.0001 and 1");
+                    Debug.LogWarning("[ShadingManager] LightSmooth must be between 0.0001 and 1");
                     return;
                 }
                 _LightSmooth = value;
@@ -33,7 +33,7 @@ namespace Code.Managers
             {
                 if (value < 0 || value > 0.999f)
                 {
-                    Debug.LogWarning("LightMin must be between 0 and 0.999");
+                    Debug.LogWarning("[ShadingManager] LightMin must be between 0 and 0.999");
                     return;
                 }
                 _LightMin = value;
@@ -50,7 +50,7 @@ namespace Code.Managers
             {
                 if (value < 0 || value > 1f)
                 {
-                    Debug.LogWarning("MidPoint must be between 0 and 1");
+                    Debug.LogWarning("[ShadingManager] MidPoint must be between 0 and 1");
                     return;
                 }
                 _MidPoint = value;
@@ -68,7 +68,7 @@ namespace Code.Managers
             {
                 if (value < 0.01f || value > 0.5f)
                 {
-                    Debug.LogWarning("ShiftAmount must be between 0.01 and 0.5");
+                    Debug.LogWarning("[ShadingManager] ShiftAmount must be between 0.01 and 0.5");
                     return;
                 }
                 _ShiftAmount = value;
@@ -85,7 +85,7 @@ namespace Code.Managers
             {
                 if (value < 0 || value > 1f)
                 {
-                    Debug.LogWarning("KelvinTemp must be between 0 and 1");
+                    Debug.LogWarning("[ShadingManager] KelvinTemp must be between 0 and 1");
                     return;
                 }
                 _kelvinTemp = value;
@@ -103,7 +103,7 @@ namespace Code.Managers
             {
                 if (value < 0 || value > 1f)
                 {
-                    Debug.LogWarning("DayNightTintStrength must be between 0 and 1");
+                    Debug.LogWarning("[ShadingManager] DayNightTintStrength must be between 0 and 1");
                     return;
                 }
                 _DayNightTintStrength = value;
