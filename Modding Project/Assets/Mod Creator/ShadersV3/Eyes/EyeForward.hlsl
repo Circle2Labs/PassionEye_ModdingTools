@@ -176,6 +176,8 @@ int _IrisLinesSeed;
 
 EYE_PART_VARS(Pupil)
 
+float4 _BackgroundColor;
+
 float _EnableHighlight;
 float _UseHighlightTexture;
 Texture2D _HighlightTexture;
@@ -560,9 +562,9 @@ void FragmentPass(
     ///////////////////////////////////////// extras start
     
     if (_EnableLighting > 0.0)
-        color = renderSDF(_BaseColor) * color;
+        color = renderSDF(_BackgroundColor) * color;
     else
-        color = renderSDF(_BaseColor);
+        color = renderSDF(_BackgroundColor);
 
     color.a = 1.0;
     

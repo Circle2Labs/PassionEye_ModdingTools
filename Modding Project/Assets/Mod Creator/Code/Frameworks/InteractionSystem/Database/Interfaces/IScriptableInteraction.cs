@@ -83,5 +83,10 @@ namespace Code.Frameworks.InteractionSystem.Database.Interfaces
 		/// Interaction with the highest priority is shown as primary interaction
 		/// </summary>
 		public int Priority { get; set; }
+				
+		/// <summary>
+		/// Should the interaction be disabled if the game is in SFW mode
+		/// </summary>
+		public bool IsNSFW { get; set; }
 	}
 }

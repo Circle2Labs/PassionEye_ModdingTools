@@ -33,10 +33,22 @@ namespace Code.Components
         public float AnimationDuration { get; set; }
 
         [field: SerializeField]
-        public Rigidbody DualRigidbody { get; set; }
+        public float AutoCloseAfter { get; set; }
         
         [field: SerializeField]
+        public Rigidbody DualRigidbody { get; set; }
+
+        [field: SerializeField]
+        public bool DualInvertDirection { get; set; }
+
+        [field: SerializeField]
         public Transform PrimaryIndicatorAnchor { get; set; }
+        
+        [field: SerializeField]
+        public string CustomInteractionOpenName { get; set; }
+        
+        [field: SerializeField]
+        public string CustomInteractionCloseName { get; set; }
         
         public DoorStateChangedEvent DoorStateChangedEvent => doorStateChangedEvent;
         public EDoorState DoorState => doorState;

@@ -49,6 +49,11 @@
 //#include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
 #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
+#if defined(RG_METAL)
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
+#endif
+
 // -------------------------------------
 // Unity defined keywords
 #if !defined(RG_HAIR) && !defined(RG_EYE)
