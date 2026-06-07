@@ -24,7 +24,11 @@ namespace Code.Frameworks.InteractionSystem.Database.Enums
 		NPCIdle = 16,
 		CanKnocker = 17,
 		Peep = 18,
-		Delivery = 19,
+		//Delivery = 19, -- deprecated
 		SceneTransition = 20,
+		Shop = 21,
+		TV = 22,
+		CrimeScene = 23,
+		Payphone = 24
 	}
 }

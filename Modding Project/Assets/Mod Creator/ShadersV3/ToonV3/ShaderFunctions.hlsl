@@ -52,10 +52,10 @@ float3 CalculateMetalness(float3 baseColor, float metallicStrength, float gradie
     return baseColor.rgb * gradientSample;
 }
 
-float3 CalculateReflections(float3 viewDir, float3 normal, float roughness){
+float3 CalculateReflections(float3 viewDir, float3 pos, float3 normal, float roughness, float2 uv){
     float3 reflectVector = reflect(-viewDir, normal);
     //TODO: fresnel maybe? or do we want to keep this more simple?
-    return GlossyEnvironmentReflection(reflectVector, roughness, 1 );
+    return GlossyEnvironmentReflection(reflectVector, pos, roughness, 1, uv);
 
 }
 
@@ -238,7 +238,7 @@ half3 CalculateLighting(Light light, InputData inputData, SurfaceData surfaceDat
     float3 metalRampSample = UnitySampleGradient(GetMetallicGradient(), metalUv) * surfaceData.metallic;
     float3 metallicColor = CalculateMetalness(surfaceData.albedo, surfaceData.metallic, metalRampSample);
 
-    float3 reflection = CalculateReflections(inputData.viewDirectionWS, inputData.normalWS, _MetallicRoughness);
+    float3 reflection = CalculateReflections(inputData.viewDirectionWS, inputData.positionWS, inputData.normalWS, _MetallicRoughness, inputData.normalizedScreenSpaceUV);
     reflection = lerp(float3(1,1,1), reflection, _MetallicReflection);
     float3 reflectionColor = metallicColor * reflection * light.color * light.distanceAttenuation;
     
