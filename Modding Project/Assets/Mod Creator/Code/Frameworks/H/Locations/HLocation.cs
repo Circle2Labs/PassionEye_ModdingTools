@@ -12,6 +12,7 @@ using Code.Managers;
 using Code.Tools;
 using UnityEngine;
 using UnityEngine.UI;
+using Tuple = Code.Tools.Tuple;
 
 namespace Code.Frameworks.H.Locations
 {
@@ -22,6 +23,12 @@ namespace Code.Frameworks.H.Locations
 
         [field: SerializeField]
         public ELocationType Type { get; set; }
+        
+        [field: SerializeField]
+        public string[] ExclusiveTags { get; set; }
+
+        [field: SerializeField]
+        public Tuple.SerializableTuple<string, Animator, AnimationClip>[] ObjectAnimations { get; set; }
         
 #if UNITY_EDITOR
         public void OnDrawGizmos()

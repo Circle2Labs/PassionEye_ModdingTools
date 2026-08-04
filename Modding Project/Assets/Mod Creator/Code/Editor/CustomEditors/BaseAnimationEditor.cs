@@ -50,6 +50,11 @@ namespace Code.Editor.CustomEditors
 					
 					GUILayout.Space(5);
 					
+					hAnimation.ExclusiveTags = verticalList(hAnimation.ExclusiveTags, "Exclusive Tags");
+					hAnimation.ObjectAnimationTag = EditorGUILayout.TextField("Object Animation Tag", hAnimation.ObjectAnimationTag);
+					
+					GUILayout.Space(5);
+					
 					hAnimation.ArouseActive = EditorGUILayout.Toggle("Arouse Active Member", hAnimation.ArouseActive);
 					hAnimation.ArousePassive = EditorGUILayout.Toggle("Arouse Passive Member", hAnimation.ArousePassive);
 					
@@ -73,6 +78,17 @@ namespace Code.Editor.CustomEditors
 					}
 					
 					hAnimation.RaycastDown = verticalList(hAnimation.RaycastDown, "Raycast Down", true);
+
+					GUILayout.Space(5);
+					
+					if (hAnimation.LookAtPartner == null || hAnimation.LookAtPartner.Length != hAnimation.ClipContainers.Length)
+					{
+						var lookAtPartner = hAnimation.LookAtPartner;
+						Array.Resize(ref lookAtPartner, hAnimation.ClipContainers.Length);
+						hAnimation.LookAtPartner = lookAtPartner;
+					}
+					
+					hAnimation.LookAtPartner = verticalList(hAnimation.LookAtPartner, "Look at Partner", true);
 
 					GUILayout.Space(5);
 
@@ -226,6 +242,37 @@ namespace Code.Editor.CustomEditors
 			{
 				GUILayout.BeginHorizontal();
 				array[i] = EditorGUILayout.ToggleLeft($"Container {i}", array[i]);
+				
+				if (!modifyOnly)
+				{
+					if (GUILayout.Button("-", GUILayout.Width(25)))
+						array = array.Where((_, k) => i != k).ToArray();
+				}
+				
+				GUILayout.EndHorizontal();
+			}
+
+			return array;
+		}
+		
+		private string[] verticalList(string[] array, string labelTitle, bool modifyOnly = false)
+		{
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+
+			if (!modifyOnly)
+			{
+				if (GUILayout.Button("Add", GUILayout.Width(50)))
+					array = array.Append("").ToArray();
+				if (GUILayout.Button("Clear", GUILayout.Width(50)))
+					array = Array.Empty<string>();
+			}
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < array.Length; i++)
+			{
+				GUILayout.BeginHorizontal();
+				array[i] = EditorGUILayout.TextField(array[i]);
 				
 				if (!modifyOnly)
 				{
