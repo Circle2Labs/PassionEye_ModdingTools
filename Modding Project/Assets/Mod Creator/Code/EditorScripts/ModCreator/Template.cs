@@ -215,6 +215,9 @@ public class {Type} : {GetTemplateClass(this)}
 
 		public EHAnimationType HAnimationType = EHAnimationType.Penetration;
 		public ESupportedClimaxTypesFlags HAnimationSupportedClimaxTypes = ESupportedClimaxTypesFlags.Inside | ESupportedClimaxTypesFlags.Outside;
+
+		public string[] HAnimationExclusiveTags = Array.Empty<string>();
+		public string HAnimationObjectAnimationTag;
 		
 		public bool HAnimationArouseActive = true;
 		public bool HAnimationArousePassive = true;
@@ -226,6 +229,7 @@ public class {Type} : {GetTemplateClass(this)}
 		public float HAnimationCameraDistance = 1f;
 
 		public bool[] HAnimationRaycastDown = Array.Empty<bool>();
+		public bool[] HAnimationLookAtPartner = Array.Empty<bool>();
 		
 		public AnimationClip[] HAnimationIdleClips = Array.Empty<AnimationClip>();
 		public SClimaxAnimation[] HAnimationNonClimaxClips = Array.Empty<SClimaxAnimation>();
@@ -381,11 +385,39 @@ public class {Type} : {GetTemplateClass(this)}
 					copiedBalls.Add(Balls[i]);
 			}
 
+			string[] copiedHAnimationExclusiveTags = null;
+			if (HAnimationExclusiveTags != null)
+			{
+				copiedHAnimationExclusiveTags = new String[HAnimationExclusiveTags.Length];
+				Array.Copy(HAnimationExclusiveTags, copiedHAnimationExclusiveTags, HAnimationExclusiveTags.Length);
+			}
+			
+			bool[] copiedHAnimationRaycastDown = null;
+			if (HAnimationRaycastDown != null)
+			{
+				copiedHAnimationRaycastDown = new bool[HAnimationRaycastDown.Length];
+				Array.Copy(HAnimationRaycastDown, copiedHAnimationRaycastDown, HAnimationRaycastDown.Length);
+			}
+			
+			bool[] copiedHAnimationLookAtPartner = null;
+			if (HAnimationLookAtPartner != null)
+			{
+				copiedHAnimationLookAtPartner = new bool[HAnimationLookAtPartner.Length];
+				Array.Copy(HAnimationLookAtPartner, copiedHAnimationLookAtPartner, HAnimationLookAtPartner.Length);
+			}
+			
 			AnimationClip[] copiedHAnimationIdleClips = null;
 			if (HAnimationIdleClips != null)
 			{
 				copiedHAnimationIdleClips = new AnimationClip[HAnimationIdleClips.Length];
 				Array.Copy(HAnimationIdleClips, copiedHAnimationIdleClips, HAnimationIdleClips.Length);
+			}
+			
+			SClimaxAnimation[] copiedHAnimationNonClimaxClips = null;
+			if (HAnimationNonClimaxClips != null)
+			{
+				copiedHAnimationNonClimaxClips = new SClimaxAnimation[HAnimationNonClimaxClips.Length];
+				Array.Copy(HAnimationNonClimaxClips, copiedHAnimationNonClimaxClips, HAnimationNonClimaxClips.Length);
 			}
 
 			Tuple.SerializableTuple<EClimaxType, SClimaxAnimation[]>[] copiedHAnimationClimaxClips = null;
@@ -455,9 +487,27 @@ public class {Type} : {GetTemplateClass(this)}
 				AnimationUsageFlags = AnimationUsageFlags,
 				AnimationClipContainers = copiedClipContainers,
 				AnimationFadeDuration = AnimationFadeDuration,
-
+				
+				HAnimationType = HAnimationType,
+				HAnimationSupportedClimaxTypes = HAnimationSupportedClimaxTypes,
+				
+				HAnimationExclusiveTags = copiedHAnimationExclusiveTags,
+				HAnimationObjectAnimationTag = HAnimationObjectAnimationTag,
+				
+				HAnimationArouseActive = HAnimationArouseActive,
+				HAnimationArousePassive = HAnimationArousePassive,
+				
 				HAnimationArousalMultiplier = HAnimationArousalMultiplier,
+				
+				HAnimationCameraPositionOffset = HAnimationCameraPositionOffset,
+				HAnimationCameraAnglesOffset = HAnimationCameraAnglesOffset,
+				HAnimationCameraDistance = HAnimationCameraDistance,
+				
+				HAnimationRaycastDown = copiedHAnimationRaycastDown,
+				HAnimationLookAtPartner = copiedHAnimationLookAtPartner,
+				
 				HAnimationIdleClips = copiedHAnimationIdleClips,
+				HAnimationNonClimaxClips = copiedHAnimationNonClimaxClips,
 				HAnimationClimaxClips = copiedHAnimationClimaxClips,
 				
 				// Base Mesh

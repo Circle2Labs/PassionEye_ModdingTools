@@ -16,6 +16,18 @@ namespace Code.Frameworks.Animation
 		public EHAnimationType Type { get; set; }
 		
 		/// <summary>
+		/// Tags to filter HLocations
+		/// </summary>
+		[field: SerializeField]
+		public string[] ExclusiveTags { get; set; }
+		
+		/// <summary>
+		/// Object animation to call on HLocation
+		/// </summary>
+		[field: SerializeField]
+		public string ObjectAnimationTag { get; set; }
+		
+		/// <summary>
 		/// Climax types supported by this H animation
 		/// </summary>
 		[field: SerializeField]
@@ -92,6 +104,12 @@ namespace Code.Frameworks.Animation
         [field: SerializeField]
 		public bool[] RaycastDown { get; set; }
 
+		/// <summary>
+		/// Should the participant look at their partner
+		/// </summary>
+		[field: SerializeField]
+		public bool[] LookAtPartner { get; set; }
+		
         /// <summary>
         /// Returns climax animations for specified climax type
         /// Array indexing matches clip container setup

@@ -14,6 +14,8 @@ namespace Code.Frameworks.H.Structs
 		public string Description;
 		public Sprite Icon;
 		public EHAnimationType Type;
+		public string[] ExclusiveTags;
+		public string ObjectAnimationTag;
 		public bool IsAffectingActiveArousal;
 		public bool IsAffectingPassiveArousal;
 		public float ArousalModifier;
@@ -23,6 +25,7 @@ namespace Code.Frameworks.H.Structs
 		public EClimaxType[] ClimaxTypes;
 
 		public bool[] RaycastDown;
+		public bool[] LookAtPartner;
 
 		public ITransition[] Idles;                                         //index = participant index
 		public ITransition[] Activities;                                    //index = participant index

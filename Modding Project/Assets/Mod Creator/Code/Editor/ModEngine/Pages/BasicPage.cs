@@ -419,6 +419,11 @@ namespace Code.Editor.ModEngine
 					
 					GUILayout.Space(5);
 					
+					template.HAnimationExclusiveTags = verticalList(template.HAnimationExclusiveTags, GetLocalizedString("MODCREATOR_BASIC_HEXCLUSIVETAGS"));
+					template.HAnimationObjectAnimationTag = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BASIC_HOBJECT_ANIMATION_TAG"), template.HAnimationObjectAnimationTag);
+					
+					GUILayout.Space(5);
+					
 					template.HAnimationArouseActive = EditorGUILayout.Toggle($"{GetLocalizedString("MODCREATOR_BASIC_HAROUSEACTIVE")}*", template.HAnimationArouseActive);
 					template.HAnimationArousePassive = EditorGUILayout.Toggle($"{GetLocalizedString("MODCREATOR_BASIC_HAROUSEPASSIVE")}*", template.HAnimationArousePassive);
 					
@@ -438,6 +443,13 @@ namespace Code.Editor.ModEngine
 						Array.Resize(ref template.HAnimationRaycastDown, template.AnimationClipContainers.Length);
 					
 					template.HAnimationRaycastDown = verticalList(template.HAnimationRaycastDown, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS_HRAYCASTDOWN")}*", true);
+
+					GUILayout.Space(5);
+
+					if (template.HAnimationLookAtPartner == null || template.HAnimationLookAtPartner.Length != template.AnimationClipContainers.Length)
+						Array.Resize(ref template.HAnimationLookAtPartner, template.AnimationClipContainers.Length);
+					
+					template.HAnimationLookAtPartner = verticalList(template.HAnimationLookAtPartner, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS_HLOOKATPARTNER")}*", true);
 
 					GUILayout.Space(5);
 

@@ -395,6 +395,8 @@ namespace Code.Editor.ModEngine
 							template.AnimationUsageFlags = animation.UsageFlags;
 							template.AnimationFadeDuration = animation.FadeDuration;
 							template.AnimationClipContainers = animation.ClipContainers;
+							
+							// todo: set up HAnimation loading
 						}
 
 						template.Tags ??= Array.Empty<string>();
@@ -982,6 +984,8 @@ namespace Code.Editor.ModEngine
 						var hAnimation = gameObject.AddComponent<HAnimation>();
 						hAnimation.Type = template.HAnimationType;
 						hAnimation.SupportedClimaxTypes = template.HAnimationSupportedClimaxTypes;
+						hAnimation.ExclusiveTags = template.HAnimationExclusiveTags;
+						hAnimation.ObjectAnimationTag = template.HAnimationObjectAnimationTag;
 						hAnimation.ArouseActive = template.HAnimationArouseActive;
 						hAnimation.ArousePassive = template.HAnimationArousePassive;
 						hAnimation.ArousalMultiplier = template.HAnimationArousalMultiplier;
@@ -989,6 +993,7 @@ namespace Code.Editor.ModEngine
 						hAnimation.CameraAnglesOffset = template.HAnimationCameraAnglesOffset;
 						hAnimation.CameraDistance = template.HAnimationCameraDistance;
 						hAnimation.RaycastDown = template.HAnimationRaycastDown;
+						hAnimation.LookAtPartner = template.HAnimationLookAtPartner;
 						hAnimation.IdleClips = template.HAnimationIdleClips;
 						hAnimation.NonClimaxClips = template.HAnimationNonClimaxClips;
 						hAnimation.ClimaxClips = template.HAnimationClimaxClips;
@@ -1776,6 +1781,7 @@ namespace Code.Editor.ModEngine
 									var leftShoulderExists = false;
 									var rightShoulderExists = false;
 									var rightMiddleProximalExists = false;
+									var leftMiddleProximalExists = false;
 
 									foreach (var bone in builtAvatar.humanDescription.human)
 									{
@@ -1789,6 +1795,8 @@ namespace Code.Editor.ModEngine
 											rightShoulderExists = true;
 										else if (bone.humanName == "Right Middle Proximal") // Why does this have spaces?
 											rightMiddleProximalExists = true;
+										else if (bone.humanName == "Left Middle Proximal")
+											leftMiddleProximalExists = true;
 									}
 									
 									if (!leftEyeExists)
@@ -1805,6 +1813,9 @@ namespace Code.Editor.ModEngine
 
 									if (!rightMiddleProximalExists)
 										Debug.LogWarning("Right middle proximal avatar bone is not assigned. This will cause some animation inaccuracy");
+
+									if (!leftMiddleProximalExists)
+										Debug.LogWarning("Left middle proximal avatar bone is not assigned. This will cause some animation inaccuracy");
 
 									if (leftEyeExists && rightEyeExists && leftShoulderExists && rightShoulderExists)
 										avatarValid = true;
