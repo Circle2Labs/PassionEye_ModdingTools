@@ -159,6 +159,9 @@ namespace Code.Frameworks.Character.CharacterObjects
         public bool PoseControl { get; set; } = true;
 		
         [field: SerializeField]
+        public bool IsGhost { get; set; }
+        
+        [field: SerializeField]
         public List<Tools.Tuple.SerializableTuple<ERaysResolution, byte>> RaysIDs { get; set; }
         
 		#endregion

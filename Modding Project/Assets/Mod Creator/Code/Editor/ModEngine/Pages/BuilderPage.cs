@@ -365,6 +365,7 @@ namespace Code.Editor.ModEngine
 									template.ExpressionControl = baseMesh.ExpressionControl;
 									template.PoseControl = baseMesh.PoseControl;
 									template.FKData = baseMesh.FKData;
+									template.IsGhost = baseMesh.IsGhost;
 									break;
 							}
 						}
@@ -901,10 +902,11 @@ namespace Code.Editor.ModEngine
 							baseMesh.Breasts = template.Breasts.ToArray();
 							baseMesh.Buttocks = template.Buttocks.ToArray();
 							baseMesh.Balls = template.Balls.ToArray();
-							baseMesh.EyeControl = true;
-							baseMesh.ExpressionControl = true;
+							baseMesh.EyeControl = !template.IsGhost;
+							baseMesh.ExpressionControl = !template.IsGhost;
 							baseMesh.PoseControl = true;
 							baseMesh.FKData = template.FKData;
+							baseMesh.IsGhost = template.IsGhost;
 						break;
 					}
 				}
@@ -1399,8 +1401,15 @@ namespace Code.Editor.ModEngine
 						
 						if (template.BlendshapeRenderers == null || template.BlendshapeRenderers.Count == 0)
 						{
-							pass = false;
-							Debug.LogError($"No blendshape renderers set up for {template.Name}");
+							if (!template.IsGhost)
+							{
+								pass = false;
+								Debug.LogError($"No blendshape renderers set up for {template.Name}");
+							}
+							else
+							{
+								Debug.LogWarning($"No blendshape renderers set up for {template.Name}");
+							}
 						}
 						else
 						{
@@ -1427,29 +1436,39 @@ namespace Code.Editor.ModEngine
 								}
 							}
 						}
-						
-						if (!shapes.Contains(template.MouthData.OpenBlendShape))
+
+						if (!template.IsGhost)
 						{
-							pass = false;
-							Debug.LogError($"None of the blendshape renderers contain the Mouth opening blendshape for {template.Name}");
-						}
+							if (!shapes.Contains(template.MouthData.OpenBlendShape))
+							{
+								pass = false;
+								Debug.LogError($"None of the blendshape renderers contain the Mouth opening blendshape for {template.Name}");
+							}
 					
-						if (!shapes.Contains(template.EyeData.BlinkBlendShapeLeft))
-						{
-							pass = false;
-							Debug.LogError($"None of the blendshape renderers contain the Blink (left) blendshape for {template.Name}");
-						}
+							if (!shapes.Contains(template.EyeData.BlinkBlendShapeLeft))
+							{
+								pass = false;
+								Debug.LogError($"None of the blendshape renderers contain the Blink (left) blendshape for {template.Name}");
+							}
 					
-						if (!shapes.Contains(template.EyeData.BlinkBlendShapeRight))
-						{
-							pass = false;
-							Debug.LogError($"None of the blendshape renderers contain the Blink (right) blendshape for {template.Name}");
+							if (!shapes.Contains(template.EyeData.BlinkBlendShapeRight))
+							{
+								pass = false;
+								Debug.LogError($"None of the blendshape renderers contain the Blink (right) blendshape for {template.Name}");
+							}
 						}
 						
 						if (template.Blendshapes == null || template.Blendshapes.Count == 0)
 						{
-							pass = false;
-							Debug.LogError($"No blendshapes set up for {template.Name}");
+							if (!template.IsGhost)
+							{
+								pass = false;
+								Debug.LogError($"No blendshapes set up for {template.Name}");
+							}
+							else
+							{
+								Debug.LogWarning($"No blendshapes set up for {template.Name}");
+							}
 						}
 						else
 						{
@@ -1516,162 +1535,165 @@ namespace Code.Editor.ModEngine
 							}
 						}
 
-						if (template.MergedEyes == null)
+						if (!template.IsGhost)
 						{
-							if (template.Eyes == null || template.Eyes.Count == 0)
+							if (template.MergedEyes == null)
 							{
-								pass = false;
-								Debug.LogError($"No eyes set up for {template.Name}");
+								if (template.Eyes == null || template.Eyes.Count == 0)
+								{
+									pass = false;
+									Debug.LogError($"No eyes set up for {template.Name}");
+								}
+								else
+								{
+									for (var k = 0; k < template.Eyes.Count; k++)
+									{
+										var eye = template.Eyes[k];
+										if (eye != null)
+										{
+											if (!IsRootParent(eye, transform))
+											{
+												pass = false;
+												Debug.LogError($"Eye {k} for {template.Name} is not a child of the mod object");
+											}
+
+											continue;
+										}
+
+										pass = false;
+										Debug.LogError($"Eye {k} is invalid for {template.Name}");
+									}
+
+									if (template.Eyes.Count != 2)
+									{
+										pass = false;
+										Debug.LogError($"Only 2 eyes are currently supported for {template.Name}");
+									}
+								}
 							}
 							else
 							{
-								for (var k = 0; k < template.Eyes.Count; k++)
+								if (!IsRootParent(template.MergedEyes, transform))
 								{
-									var eye = template.Eyes[k];
-									if (eye != null)
+									pass = false;
+									Debug.LogError($"Merged Eyes for {template.Name} is not a child of the mod object");
+								}
+
+								var rend = template.MergedEyes.GetComponent<SkinnedMeshRenderer>();
+								if (rend == null)
+								{
+									pass = false;
+									Debug.LogError($"Merged eyes does not have a renderer for {template.Name}");
+								}
+								else
+								{
+									if (rend.sharedMesh == null)
 									{
-										if (!IsRootParent(eye, transform))
+										pass = false;
+										Debug.LogError($"Merged eyes mesh is null for {template.Name}");
+									}
+									else
+									{
+										if (rend.sharedMesh.subMeshCount != 2)
 										{
 											pass = false;
-											Debug.LogError($"Eye {k} for {template.Name} is not a child of the mod object");
+											Debug.LogError($"Only 2 eyes (merged eyes submeshes) are currently supported for {template.Name}");
+										}
+									}
+								}
+							}
+							
+							if (template.Breasts == null || template.Breasts.Count == 0)
+							{
+								Debug.LogWarning($"No breasts set up for {template.Name}");
+							}
+							else
+							{
+								for (var k = 0; k < template.Breasts.Count; k++)
+								{
+									var breast = template.Breasts[k];
+									if (breast != null)
+									{
+										if (!IsRootParent(breast, transform))
+										{
+											pass = false;
+											Debug.LogError($"Breast {k} for {template.Name} is not a child of the mod object");
 										}
 										
 										continue;
 									}
 
 									pass = false;
-									Debug.LogError($"Eye {k} is invalid for {template.Name}");
+									Debug.LogError($"Breast {k} is invalid for {template.Name}");
 								}
-
-								if (template.Eyes.Count != 2)
+								
+								if (template.Breasts.Count != 2 && template.Breasts.Count != 0)
 								{
 									pass = false;
-									Debug.LogError($"Only 2 eyes are currently supported for {template.Name}");
+									Debug.LogError($"Only 2 or 0 breasts are currently supported for {template.Name}");
 								}
 							}
-						}
-						else
-						{
-							if (!IsRootParent(template.MergedEyes, transform))
-							{
-								pass = false;
-								Debug.LogError($"Merged Eyes for {template.Name} is not a child of the mod object");
-							}
 							
-							var rend = template.MergedEyes.GetComponent<SkinnedMeshRenderer>();
-							if (rend == null)
+							if (template.Buttocks == null || template.Buttocks.Count == 0)
 							{
-								pass = false;
-								Debug.LogError($"Merged eyes does not have a renderer for {template.Name}");
+								Debug.LogWarning($"No buttocks set up for {template.Name}");
 							}
 							else
 							{
-								if (rend.sharedMesh == null)
+								for (var k = 0; k < template.Buttocks.Count; k++)
+								{
+									var buttock = template.Buttocks[k];
+									if (buttock != null)
+									{
+										if (!IsRootParent(buttock, transform))
+										{
+											pass = false;
+											Debug.LogError($"Buttock {k} for {template.Name} is not a child of the mod object");
+										}
+										
+										continue;
+									}
+
+									pass = false;
+									Debug.LogError($"Buttock {k} is invalid for {template.Name}");
+								}
+								
+								if (template.Buttocks.Count != 2 && template.Buttocks.Count != 0)
 								{
 									pass = false;
-									Debug.LogError($"Merged eyes mesh is null for {template.Name}");
+									Debug.LogError($"Only 2 or 0 buttocks are currently supported for {template.Name}");
 								}
-								else
-								{
-									if (rend.sharedMesh.subMeshCount != 2)
-									{
-										pass = false;
-										Debug.LogError($"Only 2 eyes (merged eyes submeshes) are currently supported for {template.Name}");
-									}
-								}
-							}
-						}
-					
-						if (template.Breasts == null || template.Breasts.Count == 0)
-						{
-							Debug.LogWarning($"No breasts set up for {template.Name}");
-						}
-						else
-						{
-							for (var k = 0; k < template.Breasts.Count; k++)
-							{
-								var breast = template.Breasts[k];
-								if (breast != null)
-								{
-									if (!IsRootParent(breast, transform))
-									{
-										pass = false;
-										Debug.LogError($"Breast {k} for {template.Name} is not a child of the mod object");
-									}
-									
-									continue;
-								}
-
-								pass = false;
-								Debug.LogError($"Breast {k} is invalid for {template.Name}");
 							}
 							
-							if (template.Breasts.Count != 2 && template.Breasts.Count != 0)
+							if (template.Balls == null || template.Balls.Count == 0)
 							{
-								pass = false;
-								Debug.LogError($"Only 2 or 0 breasts are currently supported for {template.Name}");
+								Debug.LogWarning($"No balls set up for {template.Name}");
 							}
-						}
-						
-						if (template.Buttocks == null || template.Buttocks.Count == 0)
-						{
-							Debug.LogWarning($"No buttocks set up for {template.Name}");
-						}
-						else
-						{
-							for (var k = 0; k < template.Buttocks.Count; k++)
+							else
 							{
-								var buttock = template.Buttocks[k];
-								if (buttock != null)
+								for (var k = 0; k < template.Balls.Count; k++)
 								{
-									if (!IsRootParent(buttock, transform))
+									var ball = template.Balls[k];
+									if (ball != null)
 									{
-										pass = false;
-										Debug.LogError($"Buttock {k} for {template.Name} is not a child of the mod object");
+										if (!IsRootParent(ball, transform))
+										{
+											pass = false;
+											Debug.LogError($"Ball {k} for {template.Name} is not a child of the mod object");
+										}
+										
+										continue;
 									}
-									
-									continue;
-								}
 
-								pass = false;
-								Debug.LogError($"Buttock {k} is invalid for {template.Name}");
-							}
-							
-							if (template.Buttocks.Count != 2 && template.Buttocks.Count != 0)
-							{
-								pass = false;
-								Debug.LogError($"Only 2 or 0 buttocks are currently supported for {template.Name}");
-							}
-						}
-						
-						if (template.Balls == null || template.Balls.Count == 0)
-						{
-							Debug.LogWarning($"No balls set up for {template.Name}");
-						}
-						else
-						{
-							for (var k = 0; k < template.Balls.Count; k++)
-							{
-								var ball = template.Balls[k];
-								if (ball != null)
+									pass = false;
+									Debug.LogError($"Ball {k} is invalid for {template.Name}");
+								}
+								
+								if (template.Balls.Count != 2 && template.Balls.Count != 0)
 								{
-									if (!IsRootParent(ball, transform))
-									{
-										pass = false;
-										Debug.LogError($"Ball {k} for {template.Name} is not a child of the mod object");
-									}
-									
-									continue;
+									pass = false;
+									Debug.LogError($"Only 2 or 0 balls are currently supported for {template.Name}");
 								}
-
-								pass = false;
-								Debug.LogError($"Ball {k} is invalid for {template.Name}");
-							}
-							
-							if (template.Balls.Count != 2 && template.Balls.Count != 0)
-							{
-								pass = false;
-								Debug.LogError($"Only 2 or 0 balls are currently supported for {template.Name}");
 							}
 						}
 						
@@ -1735,29 +1757,32 @@ namespace Code.Editor.ModEngine
 							}
 						}
 						
-						if (template.Cock == null)
+						if (!template.IsGhost)
 						{
-							Debug.LogWarning($"Cock object is invalid for {template.Name}");
-						}
-						else
-						{
-							if (!IsRootParent(template.Cock, transform))
+							if (template.Cock == null)
 							{
-								pass = false;
-								Debug.LogError($"Cock object for {template.Name} is not a child of the mod object");
+								Debug.LogWarning($"Cock object is invalid for {template.Name}");
 							}
-						}
-						
-						if (template.HideVag == null)
-						{
-							Debug.LogWarning($"Hide Vagina object is invalid for {template.Name}");
-						}
-						else
-						{
-							if (!IsRootParent(template.HideVag, transform))
+							else
 							{
-								pass = false;
-								Debug.LogError($"Hide Vagina object for {template.Name} is not a child of the mod object");
+								if (!IsRootParent(template.Cock, transform))
+								{
+									pass = false;
+									Debug.LogError($"Cock object for {template.Name} is not a child of the mod object");
+								}
+							}
+						
+							if (template.HideVag == null)
+							{
+								Debug.LogWarning($"Hide Vagina object is invalid for {template.Name}");
+							}
+							else
+							{
+								if (!IsRootParent(template.HideVag, transform))
+								{
+									pass = false;
+									Debug.LogError($"Hide Vagina object for {template.Name} is not a child of the mod object");
+								}
 							}
 						}
 
@@ -1884,41 +1909,51 @@ namespace Code.Editor.ModEngine
 								}
 							}
 
-							if (face.Item2 == body.Item2 && face.Item3 == body.Item3)
+							if (face.Item2 == body.Item2 && face.Item3 == body.Item3 && !template.IsGhost)
 							{
 								pass = false;
 								Debug.LogError($"Face and body material can not be the same for {template.Name}");
 							}
 						}
-						
-						if (template.SFWColliders == null || template.SFWColliders.Count == 0)
-						{
-							pass = false;
-							Debug.LogError($"No SFW colliders set up for {template.Name}");
-						}
-						else
-						{
-							for (var k = 0; k < template.SFWColliders.Count; k++)
-							{
-								if (template.SFWColliders[k] != null)
-								{
-									if (!IsRootParent(template.SFWColliders[k].transform, transform))
-									{
-										pass = false;
-										Debug.LogError($"SFW Collider {k} for {template.Name} is not a child of the mod object");
-									}
-									continue;
-								}
 
+						if (!template.IsGhost)
+						{
+							if (template.SFWColliders == null || template.SFWColliders.Count == 0)
+							{
 								pass = false;
-								Debug.LogError($"SFW collider {k} is invalid for {template.Name}");
+								Debug.LogError($"No SFW colliders set up for {template.Name}");
+							}
+							else
+							{
+								for (var k = 0; k < template.SFWColliders.Count; k++)
+								{
+									if (template.SFWColliders[k] != null)
+									{
+										if (!IsRootParent(template.SFWColliders[k].transform, transform))
+										{
+											pass = false;
+											Debug.LogError($"SFW Collider {k} for {template.Name} is not a child of the mod object");
+										}
+										continue;
+									}
+
+									pass = false;
+									Debug.LogError($"SFW collider {k} is invalid for {template.Name}");
+								}
 							}
 						}
 						
 						if (template.BodyParts == null || template.BodyParts.Count == 0)
 						{
-							pass = false;
-							Debug.LogError($"No body parts set up for {template.Name}");
+							if (!template.IsGhost)
+							{
+								pass = false;
+								Debug.LogError($"No body parts set up for {template.Name}");
+							}
+							else
+							{
+								Debug.LogWarning($"No body parts set up for {template.Name}");
+							}
 						}
 						else
 						{
@@ -1943,8 +1978,15 @@ namespace Code.Editor.ModEngine
 						
 						if (template.AccessoryParents == null || template.AccessoryParents.Count == 0)
 						{
-							pass = false;
-							Debug.LogError($"No accessory parents set up for {template.Name}");
+							if (!template.IsGhost)
+							{
+								pass = false;
+								Debug.LogError($"No accessory parents set up for {template.Name}");
+							}
+							else
+							{
+								Debug.LogWarning($"No accessory parents set up for {template.Name}");
+							}
 						}
 						else
 						{
@@ -2326,6 +2368,7 @@ namespace Code.Editor.ModEngine
 							case IBaseMesh baseMesh:
 								contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("basemesh", true)).ToArray();
 								contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("supportedgenders", baseMesh.SupportedGendersFlags)).ToArray();
+								contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("isghost", baseMesh.IsGhost)).ToArray();
 								break;
 						} 
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("nsfw", characterObject.IsNSFW)).ToArray();

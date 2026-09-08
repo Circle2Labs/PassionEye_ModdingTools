@@ -167,6 +167,7 @@ public class {Type} : {GetTemplateClass(this)}
 		public bool EyeControl = true;
 		public bool ExpressionControl = true;
 		public bool PoseControl = true;
+		public bool IsGhost;
 
 		#endregion
 		
@@ -538,6 +539,7 @@ public class {Type} : {GetTemplateClass(this)}
 				EyeControl = EyeControl,
 				ExpressionControl = ExpressionControl,
 				PoseControl = PoseControl,
+				IsGhost = IsGhost,
 				
 				// Shared
 				Simulation = copiedSimulation,

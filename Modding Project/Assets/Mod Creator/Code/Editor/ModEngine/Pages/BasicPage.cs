@@ -188,6 +188,7 @@ namespace Code.Editor.ModEngine
 						GUILayout.EndHorizontal();
 						break;
 					case ECharacterObjectType.BaseMesh:
+						template.IsGhost = EditorGUILayout.ToggleLeft($"{GetLocalizedString("MODCREATOR_BASIC_ISGHOST")}", template.IsGhost);
 						template.Avatar = (Avatar)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_AVATAR")}*", template.Avatar, typeof(Avatar), false);
 						template.SupportedGendersFlags = (ESupportedGendersFlags)EditorGUILayout.EnumFlagsField($"{GetLocalizedString("MODCREATOR_BASIC_GENDERS")}*", template.SupportedGendersFlags);
 						
@@ -217,27 +218,34 @@ namespace Code.Editor.ModEngine
 						template.TextureMaterialMap[1] = bodyTextureMap;
 						
 						GUILayout.Space(5);
+
+						if (!template.IsGhost)
+						{
+							var eyeData = template.EyeData;
+							eyeData.BlinkBlendShapeLeft = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_EYEDATA_BLINKSHAPE_LEFT")}*", eyeData.BlinkBlendShapeLeft);
+							eyeData.BlinkBlendShapeRight = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_EYEDATA_BLINKSHAPE_RIGHT")}*", eyeData.BlinkBlendShapeRight);
+							template.EyeData = eyeData;
 						
-						var eyeData = template.EyeData;
-						eyeData.BlinkBlendShapeLeft = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_EYEDATA_BLINKSHAPE_LEFT")}*", eyeData.BlinkBlendShapeLeft);
-						eyeData.BlinkBlendShapeRight = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_EYEDATA_BLINKSHAPE_RIGHT")}*", eyeData.BlinkBlendShapeRight);
-						template.EyeData = eyeData;
+							GUILayout.Space(5);
 						
-						GUILayout.Space(5);
+							var mouthData = template.MouthData;
+							mouthData.OpenBlendShape = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_MOUTHDATA_OPENSHAPE")}*", mouthData.OpenBlendShape);
+							template.MouthData = mouthData;
 						
-						var mouthData = template.MouthData;
-						mouthData.OpenBlendShape = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_MOUTHDATA_OPENSHAPE")}*", mouthData.OpenBlendShape);
-						template.MouthData = mouthData;
-						
-						GUILayout.Space(5);
+							GUILayout.Space(5);
+						}
 						
 						template.POV = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_POVTR")}*", template.POV, typeof(Transform), true);
 						template.FaceTransform = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_FACETR")}*", template.FaceTransform, typeof(Transform), true);
 
 						GUILayout.Space(5);
+
+						if (!template.IsGhost)
+						{
+							template.Cock = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_COCKBONE")}", template.Cock, typeof(Transform), true);
+							template.HideVag = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_HIDEVAG")}", template.HideVag, typeof(Transform), true);
+						}
 						
-						template.Cock = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_COCKBONE")}", template.Cock, typeof(Transform), true);
-						template.HideVag = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_HIDEVAG")}", template.HideVag, typeof(Transform), true);
 						template.BodyRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_BODYROOTBONE")}*", template.BodyRootBone, typeof(Transform), true);
 						template.HeadRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_HEADROOTBONE")}*", template.HeadRootBone, typeof(Transform), true);
 						template.PrivatesRootBone = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_PRIVATESROOTBONE")}*", template.PrivatesRootBone, typeof(Transform), true);
@@ -248,19 +256,24 @@ namespace Code.Editor.ModEngine
 						template.Breasts ??= new List<Transform>();
 						template.Buttocks ??= new List<Transform>();
 						template.Balls ??= new List<Transform>();
-						
-						template.MergedEyes = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_MERGEDEYES")}*", template.MergedEyes, typeof(Transform), true);
-						template.InvertMergedEyes = EditorGUILayout.ToggleLeft($"{GetLocalizedString("MODCREATOR_BASIC_INVERTMERGEDEYES")}", template.InvertMergedEyes);
-						
-						verticalList(template.Eyes, $"{GetLocalizedString("MODCREATOR_BASIC_EYES")}*");
-						verticalList(template.Breasts, GetLocalizedString("MODCREATOR_BASIC_BREASTS"));
-						verticalList(template.Buttocks, GetLocalizedString("MODCREATOR_BASIC_BUTTOCKS"));
-						verticalList(template.Balls, GetLocalizedString("MODCREATOR_BASIC_BALLS"));
+
+						if (!template.IsGhost)
+						{
+							template.MergedEyes = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_MERGEDEYES")}*", template.MergedEyes, typeof(Transform), true);
+							template.InvertMergedEyes = EditorGUILayout.ToggleLeft($"{GetLocalizedString("MODCREATOR_BASIC_INVERTMERGEDEYES")}", template.InvertMergedEyes);
+
+							verticalList(template.Eyes, $"{GetLocalizedString("MODCREATOR_BASIC_EYES")}*");
+							verticalList(template.Breasts, GetLocalizedString("MODCREATOR_BASIC_BREASTS"));
+							verticalList(template.Buttocks, GetLocalizedString("MODCREATOR_BASIC_BUTTOCKS"));
+							verticalList(template.Balls, GetLocalizedString("MODCREATOR_BASIC_BALLS"));
+						}
 						
 						template.BlendshapeRenderers ??= new List<SkinnedMeshRenderer>();
 						template.SFWColliders ??= new List<Collider>();
 
-						verticalList(template.SFWColliders, $"{GetLocalizedString("MODCREATOR_BASIC_SFWCOLLIDERS")}*");
+						if (!template.IsGhost)
+							verticalList(template.SFWColliders, $"{GetLocalizedString("MODCREATOR_BASIC_SFWCOLLIDERS")}*");
+						
 						verticalList(template.BlendshapeRenderers, $"{GetLocalizedString("MODCREATOR_BASIC_SHAPERENDERERS")}*");
 						
 						GUILayout.BeginHorizontal();
@@ -353,6 +366,7 @@ namespace Code.Editor.ModEngine
 								template.EyeControl = baseMesh.EyeControl;
 								template.ExpressionControl = baseMesh.ExpressionControl;
 								template.PoseControl = baseMesh.PoseControl;
+								template.IsGhost = baseMesh.IsGhost;
 							}
 							else
 							{
