@@ -95,6 +95,8 @@ namespace Code.Frameworks.Character.Interfaces
         public bool ExpressionControl { get; set; }
         public bool PoseControl { get; set; }
 			
+        public bool IsGhost { get; set; }
+
         /// <summary>
         /// Internal IDs of the base mesh rays to be grabbed from the mod file
         /// </summary>

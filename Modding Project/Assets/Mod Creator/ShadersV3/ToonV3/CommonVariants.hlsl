@@ -5,13 +5,13 @@
 #define RG_STYLIZED_LAMBERT // chara related use stylized
 #elif defined(RG_SKINDEF) || defined(RG_EYE)
 #define RG_SKIN // skin and eyes use skin
-#elif defined(RG_BASE) || defined(RG_METAL) || defined(RG_PLASTIC) || defined(RG_WATER)
+#elif defined(RG_BASE) || defined(RG_METAL) || defined(RG_PLASTIC) || defined(RG_WATER) || defined(RG_GHOSTSKIN)
 #define RG_LAMBERT // everything else use lambert
 #else
 #pragma multi_compile_local_fragment RG_LAMBERT RG_HALF_LAMBERT RG_STYLIZED_LAMBERT RG_SKIN // unused path
 #endif
 
-#if defined(RG_BASE) || defined(RG_METAL) || defined(RG_PLASTIC) || defined(RG_WATER) || defined(RG_SKINDEF) || defined(RG_EYE) || defined(RG_CLOTHING) || defined(RG_HAIR) || defined(RG_FUR)
+#if defined(RG_BASE) || defined(RG_METAL) || defined(RG_PLASTIC) || defined(RG_WATER) || defined(RG_SKINDEF) || defined(RG_EYE) || defined(RG_CLOTHING) || defined(RG_HAIR) || defined(RG_FUR) || defined(RG_GHOSTSKIN)
 #define RG_MAX_MIX // everything uses replace lighting
 #else
 #pragma multi_compile_local_fragment RG_ADDITIVE_MIX RG_MAX_MIX // unused path
@@ -19,7 +19,7 @@
 
 // -------------------------------------
 // Material keywords
-#if !defined(RG_EYE)
+#if !defined(RG_EYE) && !defined(RG_GHOSTSKIN)
 #pragma shader_feature_local _NORMALMAP
 #pragma shader_feature_local_fragment _EMISSION
 #endif
@@ -34,7 +34,7 @@
 #define _ADDITIONAL_LIGHTS 1 // _ADDITIONAL_LIGHTS_VERTEX dont use it (we dont use vertex lighting)
 //#pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX dont use it (we dont use apv)
 //#pragma multi_compile _ LIGHTMAP_SHADOW_MIXING dont use it (might need if lightmap shadows weird)
-#if !defined(RG_HAIR) && !defined(RG_EYE)
+#if !defined(RG_HAIR) && !defined(RG_EYE) && !defined(RG_GHOSTSKIN)
 #pragma multi_compile _ SHADOWS_SHADOWMASK
 #endif
 #define _LIGHT_LAYERS 1
@@ -56,7 +56,7 @@
 
 // -------------------------------------
 // Unity defined keywords
-#if !defined(RG_HAIR) && !defined(RG_EYE)
+#if !defined(RG_HAIR) && !defined(RG_EYE) && !defined(RG_GHOSTSKIN)
 #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 #pragma multi_compile _ LIGHTMAP_ON
 #endif
