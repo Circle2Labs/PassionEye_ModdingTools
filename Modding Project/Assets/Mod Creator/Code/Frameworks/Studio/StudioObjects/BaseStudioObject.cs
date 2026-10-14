@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Code.Frameworks.ForwardKinematics;
 using Code.Frameworks.ForwardKinematics.Structs;
+using Code.Frameworks.Shared.Structs;
 using Code.Frameworks.Studio.Enums;
 using Code.Frameworks.Studio.Interfaces;
 using Code.Tools;
@@ -33,12 +34,23 @@ namespace Code.Frameworks.Studio.StudioObjects
 		public bool IsNSFW { get; set; }
 
 		[field: SerializeField]
+		public SVariant[] Variants { get; set; }
+
+		[field: SerializeField]
+		public int Variant { get; set; } = -1;
+		
+		[field: SerializeField]
 		public SFKData FKData { get; set; }
 		
 		[field: SerializeField]
 		public Renderer[] Renderers { get; set; }
 
 		public virtual void Awake()
+		{
+			
+		}
+
+		public void SetVariant(int variant)
 		{
 			
 		}

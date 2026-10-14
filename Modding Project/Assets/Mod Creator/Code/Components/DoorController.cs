@@ -16,6 +16,7 @@ namespace Code.Components
         public void Toggle();
         public void SetValue(float amount);
         public float GetValue();
+        public string GetIdentifier();
     }
 
     public class DoorController : MonoBehaviour, IDoorController
@@ -55,6 +56,11 @@ namespace Code.Components
 
         private DoorStateChangedEvent doorStateChangedEvent;
         private EDoorState doorState;
+        
+        public string GetIdentifier()
+        {
+            return "";
+        }
         
         public void Open()
         {

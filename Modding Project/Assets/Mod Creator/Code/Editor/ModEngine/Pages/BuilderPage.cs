@@ -17,6 +17,7 @@ using Code.Frameworks.Character.Structs;
 using Code.Frameworks.ClippingFix.Enums;
 using Code.Frameworks.ModdedScenes;
 using Code.Frameworks.RayTracing;
+using Code.Frameworks.Shared.Structs;
 using Code.Frameworks.Studio.Interfaces;
 using Code.Frameworks.Studio.StudioObjects;
 using Code.Tools;
@@ -265,6 +266,7 @@ namespace Code.Editor.ModEngine
 							template.Description = studioObject.Description;
 							template.IsNSFW = studioObject.IsNSFW;
 							template.FKData = studioObject.FKData;
+							template.Variants = studioObject.Variants.ToList();
 						}
 						else if (comp is ICharacterObject characterObject)
 						{
@@ -940,6 +942,7 @@ namespace Code.Editor.ModEngine
 						studioObject.Icon = template.Icon;
 						studioObject.Tags = template.Tags;
 						studioObject.FKData = template.FKData;
+						studioObject.Variants = template.Variants.ToArray();
 					}
 				}
 				else if (template.TemplateType == ETemplateType.ModdedScene)
@@ -1299,6 +1302,50 @@ namespace Code.Editor.ModEngine
 						Debug.LogError($"Component is not added for {template.Name}");
 					}
 
+					if (template.TemplateType == ETemplateType.StudioObject)
+					{
+						var studioObject = gameObject.GetComponent<IStudioObject>();
+						if (studioObject.Variants != null)
+						{
+							for (var k = 0; k < studioObject.Variants.Length; k++)
+							{
+								var variant = studioObject.Variants[k];
+								
+								if (string.IsNullOrEmpty(variant.Name))
+								{
+									pass = false;
+									Debug.LogError($"Name for variant at index {k} is empty on object {template.Name}");
+								}
+								
+								if (variant.Transforms.Count == 0)
+								{
+									pass = false;
+									Debug.LogError($"Transforms list for variant {variant.Name} is empty on object {template.Name}");
+								}
+								else
+								{
+									for (var l = 0; l < variant.Transforms.Count; l++)
+									{
+										var tuple = variant.Transforms[l];
+										if (tuple.Item1 == null)
+										{
+											pass = false;
+											Debug.LogError($"Transform at index {l} for variant {variant.Name} is null on object {template.Name}");
+										}
+										else
+										{
+											if (!IsRootParent(tuple.Item1, transform))
+											{
+												pass = false;
+												Debug.LogError($"Transform at index {l} for variant {variant.Name} is not a child of the mod object on object {template.Name}");
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					
 					// prevent 3d chara objects without any renderers so we don't get ghost objects for no reason
 					// this is allowed for studio objects because they may just be lights, or particles, etc
 					if (template.TemplateType == ETemplateType.CharacterObject && template.CharacterObjectType != ECharacterObjectType.Texture)

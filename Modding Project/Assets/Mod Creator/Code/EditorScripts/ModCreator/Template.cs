@@ -10,6 +10,7 @@ using Code.Frameworks.ForwardKinematics.Structs;
 using Code.Frameworks.H.Enums;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.ModdedScenes.Flags;
+using Code.Frameworks.Shared.Structs;
 using Code.Frameworks.Studio.Enums;
 using Code.Tools;
 using UnityEngine;
@@ -129,6 +130,9 @@ public class {Type} : {GetTemplateClass(this)}
 		// Clothing states map
 		public Transform[] ClothingStates;
 
+		// Variants map
+		public List<SVariant> Variants;
+		
 		// Hide cock map
 		public bool[] HideCock;
 
@@ -437,6 +441,25 @@ public class {Type} : {GetTemplateClass(this)}
 					copiedHAnimationClimaxClips[i] = copiedTuple;
 				}
 			}
+
+			List<SVariant> copiedVariants = null;
+			if (Variants != null)
+			{
+				copiedVariants = new List<SVariant>();
+				for (var i = 0; i < Variants.Count; i++)
+				{
+					var variant = Variants[i];
+					
+					var copiedVariant = new SVariant();
+					copiedVariant.Name = variant.Name;
+					copiedVariant.Transforms = new List<Tuple.SerializableTuple<Transform, bool>>();
+
+					for (var k = 0; k < variant.Transforms.Count; k++)
+						copiedVariant.Transforms[k] = variant.Transforms[k];
+					
+					copiedVariants.Add(copiedVariant);
+				}
+			}
 			
 			var template = new Template
 			{
@@ -466,6 +489,7 @@ public class {Type} : {GetTemplateClass(this)}
 
 				// Studio
 				StudioObjectType = StudioObjectType,
+				Variants = copiedVariants,
 				
 				// Accessory
 				AccessoryType = AccessoryType,
