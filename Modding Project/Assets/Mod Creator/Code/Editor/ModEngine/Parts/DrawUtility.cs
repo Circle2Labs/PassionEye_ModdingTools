@@ -8,10 +8,12 @@ using Code.Frameworks.Animation.Structs;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Structs;
+using Code.Frameworks.Shared.Structs;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
+using Tuple = Code.Tools.Tuple;
 
 namespace Code.Editor.ModEngine
 {
@@ -324,6 +326,44 @@ namespace Code.Editor.ModEngine
 			}
 		}
 		
+		private void verticalList(List<SVariant> list, string labelTitle)
+		{
+			GUILayout.BeginHorizontal();
+			GUILayout.Label(labelTitle + itemsCount(list.Count));
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+				list.Add(new SVariant());
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+				list.Clear();
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < list.Count; i++)
+			{
+				GUILayout.BeginVertical();
+				
+				var variant = list[i];
+				variant.Transforms ??= new List<Tuple.SerializableTuple<Transform, bool>>();
+				
+				GUILayout.BeginHorizontal();
+				variant.Name = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BASIC_NAME"), variant.Name);
+
+				if (GUILayout.Button("-", GUILayout.Width(25)))
+				{
+					list.RemoveAt(i);
+					return;
+				}
+				
+				GUILayout.EndHorizontal();
+
+				verticalList(variant.Transforms, $"{GetLocalizedString("MODCREATOR_BASIC_TRANSFORMS")}*");
+				
+				list[i] = variant;
+				GUILayout.EndVertical();
+				
+				if (i != list.Count - 1)
+					EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+			}
+		}
+		
 		private void verticalList(List<Tools.Tuple.SerializableTuple<Transform, string>> list, string labelTitle)
 		{
 			GUILayout.BeginHorizontal();
@@ -341,6 +381,32 @@ namespace Code.Editor.ModEngine
 				var tuple = list[i];
 				tuple.Item1 = (Transform)EditorGUILayout.ObjectField("", tuple.Item1, typeof(Transform), true);
 				tuple.Item2 = EditorGUILayout.TextField("", tuple.Item2);
+				list[i] = tuple;
+				
+				if (GUILayout.Button("-", GUILayout.Width(25)))
+					list.RemoveAt(i);
+				
+				GUILayout.EndHorizontal();
+			}
+		}
+		
+		private void verticalList(List<Tuple.SerializableTuple<Transform, bool>> list, string labelTitle)
+		{
+			GUILayout.BeginHorizontal();
+			GUILayout.Label(labelTitle + itemsCount(list.Count));
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+				list.Add(new Tools.Tuple.SerializableTuple<Transform, bool>(null, false));
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+				list.Clear();
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < list.Count; i++)
+			{
+				GUILayout.BeginHorizontal();
+				
+				var tuple = list[i];
+				tuple.Item1 = (Transform)EditorGUILayout.ObjectField("", tuple.Item1, typeof(Transform), true);
+				tuple.Item2 = EditorGUILayout.ToggleLeft(GetLocalizedString("MODCREATOR_BASIC_OBJECTACTIVESTATE"), tuple.Item2, GUILayout.Width(125));
 				list[i] = tuple;
 				
 				if (GUILayout.Button("-", GUILayout.Width(25)))

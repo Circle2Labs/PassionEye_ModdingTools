@@ -255,7 +255,7 @@ float AddEyePart(float enable, float useTexture, float colorMode, Texture2D _tex
                 tex.a = 0.0;
             }
             addColor(tex);
-            return tex.a;
+            return 1 - tex.a;
         } else if(colorMode == SDF_COLORBLEND_COLORIZE)
         {
             //we use the a channel of the texture as an sdf value
@@ -265,7 +265,7 @@ float AddEyePart(float enable, float useTexture, float colorMode, Texture2D _tex
                 tmp_color2.a = 0.0;
             }
             addSDF(tex.a, tmp_color, tmp_color2, t, tex.a);
-            return tex.a;
+            return 1 - tex.a;
         } else
         {
             if (enable == 0.0)
@@ -273,7 +273,7 @@ float AddEyePart(float enable, float useTexture, float colorMode, Texture2D _tex
                 tex.a = 0.0;
             }
             addColor(tex);
-            return tex.a;
+            return 1 - tex.a;
         }
     } else
     {
@@ -423,7 +423,6 @@ void FragmentPass(
     //return remap(512.0, 4096.0, 0.0, 1.0, aa_width);
     aa_width = clamp(aa_width, min_aa_width, max_aa_width);
 
-    // TODO: iris lines don't show up if an inner iris texture is used
     float iris_lines = 0;
     for(int x = -1; x <= 1; x++){
         for(int y = -1; y <= 1; y++){
@@ -446,7 +445,7 @@ void FragmentPass(
 
     //iris lines is not a real SDF, so we just add it as a color unless it's full black
     float4 iris_lines_color = saturate(_IrisLinesColor);
-    iris_lines_color.a *= iris_lines * (inner_iris_sdf > 0.0 ? 0.0 : 1.0) * _EnableIrisLines;
+    iris_lines_color.a *= iris_lines * (inner_iris_sdf > 0.006 ? 0.0 : 1.0) * _EnableIrisLines; // need to use a small margin to avoid some artifacts
     addColor(saturate(iris_lines_color));
     
     ADD_EYE_PART(Pupil, uv);

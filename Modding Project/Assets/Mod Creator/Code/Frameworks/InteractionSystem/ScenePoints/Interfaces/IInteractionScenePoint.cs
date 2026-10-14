@@ -44,5 +44,7 @@ namespace Code.Frameworks.InteractionSystem.ScenePoints.Interfaces
 		/// Override the default action category with a custom one
 		/// </summary>
 		public ActionCategory GetActionCategory(ActionCategory defaultActionCategory, IScriptableInteraction scriptableInteraction, SRunParameters runparameters);
+		
+		public GameObject GetGameObject();
 	}
 }

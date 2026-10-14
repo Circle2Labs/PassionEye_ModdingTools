@@ -4,6 +4,7 @@ using Code.Frameworks.InteractionSystem.ScenePoints;
 using Code.Frameworks.InteractionSystem.ScenePoints.Base;
 using Code.Frameworks.InteractionSystem.ScenePoints.Interaction;
 using Code.Frameworks.InteractionSystem.ScenePoints.Interfaces;
+using Code.Frameworks.SceneTransition.ScenePoints;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,8 +20,8 @@ namespace Code.Editor
         #endregion
 
         #region Interaction Scene Points
-        [MenuItem("GameObject/ScenePoint/Door Point", false)]
-        public static void CreateDoor(MenuCommand cmd) => createInteractionScenePoint<DoorScenePoint>(cmd, EInteractionIdentifier.Door, false);
+        [MenuItem("GameObject/ScenePoint/SceneTransition Point", false)]
+        public static void CreateSceneTransition(MenuCommand cmd) => createInteractionScenePoint<SceneTransitionScenePoint>(cmd, EInteractionIdentifier.SceneTransition, false);
         
 		[MenuItem("GameObject/ScenePoint/LightSwitch Point", false)]
 		public static void CreateLightSwitch(MenuCommand cmd) => createInteractionScenePoint<LightSwitchScenePoint>(cmd, EInteractionIdentifier.LightSwitch, false);

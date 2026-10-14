@@ -31,5 +31,10 @@ namespace Code.Frameworks.InteractionSystem.ScenePoints
 		{
 			return defaultActionCategory;
 		}
+		
+		public virtual GameObject GetGameObject()
+		{
+			return gameObject;
+		}
 	}
 }

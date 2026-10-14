@@ -16,6 +16,7 @@ using UnityEngine;
 using Code.Frameworks.Character.Structs;
 using Code.Frameworks.ClippingFix.Enums;
 using Code.Frameworks.H.Enums;
+using Code.Frameworks.Shared.Structs;
 using Tuple = Code.Tools.Tuple;
 
 namespace Code.Editor.ModEngine
@@ -35,6 +36,7 @@ namespace Code.Editor.ModEngine
 		private bool accessoryParentsFold;
 		private bool blendshapesFold;
 		private bool blendshapePresetsFold;
+		private bool variantsFold;
 		
 		private bool blendshapeOffsetsFold;
 		private bool physicsSimulationFold;
@@ -399,6 +401,10 @@ namespace Code.Editor.ModEngine
 				
 				GUILayout.Space(5);
 						
+				variants(template);
+				
+				GUILayout.Space(5);
+				
 				forwardKinematics(template);
 				
 				GUILayout.Space(10);
@@ -824,6 +830,26 @@ namespace Code.Editor.ModEngine
 			GUILayout.EndVertical();
 			
 			template.BlendshapeOffsets = tempList.ToArray();
+		}
+
+		private void variants(Template template)
+		{
+			GUILayout.Space(5);
+
+			template.Variants ??= new List<SVariant>();
+			
+			// unity can you be more hacky than this?
+			var style = EditorStyles.foldout;
+			var previousStyle = style.fontStyle;
+			
+			style.fontStyle = FontStyle.Bold;
+			variantsFold = EditorGUILayout.Foldout(variantsFold, GetLocalizedString("MODCREATOR_BASIC_VARIANTS"), true);
+			style.fontStyle = previousStyle;
+
+			if (!variantsFold) 
+				return;
+
+			verticalList(template.Variants, "List");
 		}
 		
 		private void physicsSimulation(Template template)

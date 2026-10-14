@@ -11,5 +11,10 @@ namespace Code.Frameworks.InteractionSystem.ScenePoints.Interaction
 
 		[SerializeField]
 		public Light[] Lights;
+		
+		public string GetIdentifier()
+		{
+			return "";
+		}
 	}
 }
