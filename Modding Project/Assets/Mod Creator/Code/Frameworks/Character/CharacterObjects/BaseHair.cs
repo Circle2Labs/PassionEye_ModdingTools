@@ -8,13 +8,15 @@ using Code.Frameworks.PhysicsSimulation;
 using Code.Tools;
 using Railgun.AssetPipeline.Attributes;
 using UnityEngine;
+using Code.Frameworks.Shared.Structs;
+using Railgun.ModEngine.Types;
 
 namespace Code.Frameworks.Character.CharacterObjects
 {
 	[Serializable]
 	public class BaseHair : MonoBehaviour, IHair
 	{
-        protected const bool __metadata = true;
+		public GameObjectMetadata Metadata { get; set; }
         
         [APLIgnore]
         public bool IsSingular => false;
@@ -41,6 +43,12 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public bool IsNSFW { get; set; }
 		
 		[field: SerializeField]
+		public SVariant[] Variants { get; set; }
+
+		[field: SerializeField]
+		public int Variant { get; set; } = -1;
+
+		[field: SerializeField]
 		public bool Reparentable { get; set; }
 
 		/// <summary>
@@ -62,6 +70,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[APLIgnore]
 		public Character Character { get; private set; }
 
+		public void SetVariant(int variant)
+		{
+			
+		}
+		
 		public virtual void Assign(Character chara)
 		{
 

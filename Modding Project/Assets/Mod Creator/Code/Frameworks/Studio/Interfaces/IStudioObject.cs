@@ -1,12 +1,14 @@
 using Code.Frameworks.ForwardKinematics.Interfaces;
+using Code.Frameworks.Shared.Interfaces;
 using Code.Frameworks.Shared.Structs;
 using Code.Frameworks.Studio.Enums;
 using Code.Interfaces;
+using Railgun.ModEngine.Types;
 using UnityEngine;
 
 namespace Code.Frameworks.Studio.Interfaces
 {
-	public interface IStudioObject : IMaterialCustomizable, IFKCompatible
+	public interface IStudioObject : IMaterialCustomizable, IFKCompatible, IHasMetadata, IHasVariants
 	{
 		public EStudioObjectType StudioObjectType { get; set; }
 		
@@ -19,12 +21,6 @@ namespace Code.Frameworks.Studio.Interfaces
 		public string Description { get; set; }
 		
 		public bool IsNSFW { get; set; }
-		
-		public SVariant[] Variants { get; set; }
-        
-		public int Variant { get; }
-		
-		public void SetVariant(int variant);
 		
 		public GameObject GetGameObject();
 	}

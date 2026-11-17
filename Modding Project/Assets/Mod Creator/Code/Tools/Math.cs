@@ -7,6 +7,48 @@ namespace Code.Tools
 {
 	public static class Math
 	{
+		public static float InvertScale(float scale)
+		{
+			return Mathf.Abs(scale) > 0.0001f ? 1f / scale : 1f;
+		}
+		
+		public static float SafeDivide(float a, float b)
+		{
+			return Mathf.Abs(b) > 0.0001f ? a / b : a;
+		}
+		
+		public static Matrix4x4 Orthogonalize(Matrix4x4 matrix, int primaryAxis)
+		{
+			Vector3 x = matrix.GetColumn(0);
+			Vector3 y = matrix.GetColumn(1);
+			Vector3 z = matrix.GetColumn(2);
+
+			if (primaryAxis == 0)
+			{
+				x = x.normalized;
+				y = Vector3.Cross(z, x).normalized;
+				z = Vector3.Cross(x, y).normalized;
+			}
+			else if (primaryAxis == 1)
+			{
+				y = y.normalized;
+				x = Vector3.Cross(y, z).normalized;
+				z = Vector3.Cross(x, y).normalized;
+			}
+			else
+			{
+				z = z.normalized;
+				x = Vector3.Cross(y, z).normalized;
+				y = Vector3.Cross(z, x).normalized;
+			}
+
+			matrix.SetColumn(0, new Vector4(x.x, x.y, x.z, 0f));
+			matrix.SetColumn(1, new Vector4(y.x, y.y, y.z, 0f));
+			matrix.SetColumn(2, new Vector4(z.x, z.y, z.z, 0f));
+
+			return matrix;
+		}
+		
 		public static float Remap(float value, float minfrom, float maxfrom, float minto, float maxto)
 		{
 			return minto + (value - minfrom) * (maxto - minto) / (maxfrom - minfrom);

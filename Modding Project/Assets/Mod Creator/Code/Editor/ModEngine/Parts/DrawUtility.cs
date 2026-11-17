@@ -9,6 +9,7 @@ using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Structs;
 using Code.Frameworks.Shared.Structs;
+using RootMotion.FinalIK;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -344,8 +345,44 @@ namespace Code.Editor.ModEngine
 				variant.Transforms ??= new List<Tuple.SerializableTuple<Transform, bool>>();
 				
 				GUILayout.BeginHorizontal();
-				variant.Name = EditorGUILayout.TextField(GetLocalizedString("MODCREATOR_BASIC_NAME"), variant.Name);
+				variant.Name = EditorGUILayout.TextField($"{GetLocalizedString("MODCREATOR_BASIC_NAME")}*", variant.Name);
 
+				EditorGUIUtility.labelWidth = 35;
+				variant.Icon = (Sprite)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_ICON")}*", variant.Icon, typeof(Sprite), true, GUILayout.Width(95));
+				EditorGUIUtility.labelWidth = 0;
+
+				if (GUILayout.Button("/\\", GUILayout.Width(25)))
+				{
+					if (i == 0)
+						return;
+
+					var previous = list[i - 1];
+					var current = list[i];
+
+					list[i] = previous;
+					list[i - 1] = current;
+					return;
+				}
+				
+				if (GUILayout.Button("\\/", GUILayout.Width(25)))
+				{
+					if (i == list.Count - 1)
+						return;
+					
+					var current = list[i];
+					var next = list[i + 1];
+
+					list[i] = next;
+					list[i + 1] = current;
+					return;
+				}
+				
+				if (GUILayout.Button("Clone", GUILayout.Width(45)))
+				{
+					list.Add(list[i].Clone());
+					return;
+				}
+				
 				if (GUILayout.Button("-", GUILayout.Width(25)))
 				{
 					list.RemoveAt(i);
@@ -438,6 +475,82 @@ namespace Code.Editor.ModEngine
 				
 				if (GUILayout.Button("-", GUILayout.Width(25)))
 					list.RemoveAt(i);
+				
+				GUILayout.EndHorizontal();
+			}
+		}
+		
+		private void verticalList(List<Tuple.SerializableTuple<ECockTarget, Transform>> list, string labelTitle)
+		{
+			var values = Enum.GetValues(typeof(ECockTarget));
+			for (var i = 0; i < values.Length; i++)
+			{
+				var value = (ECockTarget)values.GetValue(i);
+				if (value == ECockTarget.None)
+					continue;
+				
+				var found = false;
+				
+				for (var k = 0; k < list.Count; k++)
+				{
+					if (list[k].Item1 != value)
+						continue;
+
+					found = true;
+					break;
+				}
+
+				if (!found)
+					list.Add(new Tuple.SerializableTuple<ECockTarget, Transform>(value, null));
+			}
+			
+			GUILayout.Label(labelTitle + itemsCount(list.Count));
+			
+			for (var i = 0; i < list.Count; i++)
+			{
+				GUILayout.BeginHorizontal();
+				
+				var tuple = list[i];
+				LocalizedEnumPopup("", tuple.Item1, "MODCREATOR_BASIC_COCKTARGETS_");
+				tuple.Item2 = (Transform)EditorGUILayout.ObjectField("", tuple.Item2, typeof(Transform), true);
+
+				list[i] = tuple;
+				
+				GUILayout.EndHorizontal();
+			}
+		}
+		
+		private void verticalList(List<Tuple.SerializableTuple<EAdditionalHumanBodyBones, Transform>> list, string labelTitle)
+		{
+			var values = Enum.GetValues(typeof(EAdditionalHumanBodyBones));
+			for (var i = 0; i < values.Length; i++)
+			{
+				var found = false;
+				
+				for (var k = 0; k < list.Count; k++)
+				{
+					if (list[k].Item1 != (EAdditionalHumanBodyBones)values.GetValue(i))
+						continue;
+
+					found = true;
+					break;
+				}
+
+				if (!found)
+					list.Add(new Tuple.SerializableTuple<EAdditionalHumanBodyBones, Transform>((EAdditionalHumanBodyBones)values.GetValue(i), null));
+			}
+			
+			GUILayout.Label(labelTitle + itemsCount(list.Count));
+			
+			for (var i = 0; i < list.Count; i++)
+			{
+				GUILayout.BeginHorizontal();
+				
+				var tuple = list[i];
+				LocalizedEnumPopup("", tuple.Item1, "MODCREATOR_BASIC_ADDHUMANBODYBONES_");
+				tuple.Item2 = (Transform)EditorGUILayout.ObjectField("", tuple.Item2, typeof(Transform), true);
+
+				list[i] = tuple;
 				
 				GUILayout.EndHorizontal();
 			}
@@ -658,33 +771,33 @@ namespace Code.Editor.ModEngine
 				
 				container.ClipContainerType = (EClipContainerType)LocalizedEnumPopup($"{GetLocalizedString("MODCREATOR_BASIC_CONTAINERTYPE")}*", container.ClipContainerType, "MODCREATOR_BASIC_CONTAINERTYPE_");
 				
-				container.Clips ??= Array.Empty<AnimationClip>();
-				container.Clips = verticalList(container.Clips, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS")}*");
+				container.ClipDefinitions ??= Array.Empty<SClipDefinition>();
+				container.ClipDefinitions = verticalList(container.ClipDefinitions, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS")}*");
 
 				if (container.ClipContainerType == EClipContainerType.Single)
 				{
-					if (container.Clips.Length == 0 || container.Clips.Length > 1)
-						Array.Resize(ref container.Clips, 1);
+					if (container.ClipDefinitions.Length == 0 || container.ClipDefinitions.Length > 1)
+						Array.Resize(ref container.ClipDefinitions, 1);
 				}
 				else
 				{
-					if (container.Clips.Length == 0 || container.Clips.Length < 2)
-						Array.Resize(ref container.Clips, 2);
+					if (container.ClipDefinitions.Length == 0 || container.ClipDefinitions.Length < 2)
+						Array.Resize(ref container.ClipDefinitions, 2);
 				}
 				
-				if (container.Clips.Length > 1)
+				if (container.ClipDefinitions.Length > 1)
 				{
 					GUILayout.Space(5);
 					
 					container.Thresholds ??= Array.Empty<float>();
 
-					if (container.Thresholds.Length != container.Clips.Length)
-						Array.Resize(ref container.Thresholds, container.Clips.Length);
+					if (container.Thresholds.Length != container.ClipDefinitions.Length)
+						Array.Resize(ref container.Thresholds, container.ClipDefinitions.Length);
 
 					container.Positions ??= Array.Empty<Vector2>();
 
-					if (container.Positions.Length != container.Clips.Length)
-						Array.Resize(ref container.Positions, container.Clips.Length);
+					if (container.Positions.Length != container.ClipDefinitions.Length)
+						Array.Resize(ref container.Positions, container.ClipDefinitions.Length);
 
 					if (container.ClipContainerType == EClipContainerType.Linear)
 					{
@@ -924,9 +1037,9 @@ namespace Code.Editor.ModEngine
 			{
 				var element = array[i];
 				
-				element.Transition = (AnimationClip)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_CLIPS_HTRANSITION"), element.Transition, typeof(AnimationClip), false);
-				element.Climax = (AnimationClip)EditorGUILayout.ObjectField($"{GetLocalizedString($"MODCREATOR_BASIC_CLIPS_H{prefix}CLIMAX")}{postfix}", element.Climax, typeof(AnimationClip), false);
-				element.Idle = (AnimationClip)EditorGUILayout.ObjectField(GetLocalizedString("MODCREATOR_BASIC_CLIPS_HIDLE"), element.Idle, typeof(AnimationClip), false);
+				element.TransitionDefinition = drawClipDefinition(element.TransitionDefinition, GetLocalizedString("MODCREATOR_BASIC_CLIPS_HTRANSITION"));
+				element.ClimaxDefinition = drawClipDefinition(element.ClimaxDefinition, $"{GetLocalizedString($"MODCREATOR_BASIC_CLIPS_H{prefix}CLIMAX")}{postfix}");
+				element.IdleDefinition = drawClipDefinition(element.IdleDefinition, GetLocalizedString("MODCREATOR_BASIC_CLIPS_HIDLE"));
 				
 				array[i] = element;
 				
@@ -936,6 +1049,155 @@ namespace Code.Editor.ModEngine
 			return array;
 		}
 		
+		private SClipDefinition drawClipDefinition(SClipDefinition definition, string labelTitle)
+		{
+			var newDefinition = definition;
+			newDefinition.AnimationClip = (AnimationClip)EditorGUILayout.ObjectField(labelTitle, newDefinition.AnimationClip, typeof(AnimationClip), false);
+			
+			var cockTargetDefinition = newDefinition.CockTargetDefinition;
+			cockTargetDefinition.CockTarget = (ECockTarget)EditorGUILayout.EnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLIPS_HCOCKTARGET"), cockTargetDefinition.CockTarget);
+			if (cockTargetDefinition.CockTarget != ECockTarget.None)
+				cockTargetDefinition.Curve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLIPS_HCURVE"), cockTargetDefinition.Curve, Color.green, new Rect(0, 0, 1f, 1f));
+			newDefinition.CockTargetDefinition = cockTargetDefinition;
+
+			newDefinition.IKDefinitions = verticalList(newDefinition.IKDefinitions, "IK");
+			
+			return newDefinition;
+		}
+		
+		private SClipDefinition[] verticalList(SClipDefinition[] array, string labelTitle, bool modifyOnly = false)
+		{
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+
+			if (!modifyOnly)
+			{
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+					array = array.Append(new SClipDefinition()).ToArray();
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+					array = Array.Empty<SClipDefinition>();
+			}
+			
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < array.Length; i++)
+			{
+				var definition = array[i];
+				
+				GUILayout.BeginVertical();
+
+				GUILayout.BeginHorizontal();
+				
+				definition.AnimationClip = (AnimationClip)EditorGUILayout.ObjectField(definition.AnimationClip, typeof(AnimationClip), false);
+
+				if (!modifyOnly)
+				{
+					if (GUILayout.Button("-", GUILayout.Width(25)))
+					{
+						array = array.Where((_, k) => i != k).ToArray();
+						break;
+					}
+				}
+				
+				GUILayout.EndHorizontal();
+				
+				var cockTargetDefinition = definition.CockTargetDefinition;
+				cockTargetDefinition.CockTarget = (ECockTarget)EditorGUILayout.EnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLIPS_HCOCKTARGET"), cockTargetDefinition.CockTarget);
+				if (cockTargetDefinition.CockTarget != ECockTarget.None)
+					cockTargetDefinition.Curve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLIPS_HCURVE"), cockTargetDefinition.Curve, Color.green, new Rect(0, 0, 1f, 1f));
+				definition.CockTargetDefinition = cockTargetDefinition;
+
+				definition.IKDefinitions = verticalList(definition.IKDefinitions, "IK");
+				
+				GUILayout.EndVertical();
+				
+				array[i] = definition;
+
+				if (i < array.Length)
+					GUILayout.Space(10);
+			}
+
+			return array;
+		}
+		
+		private SStateIKDefinition[] copyIK;
+
+		private SStateIKDefinition[] verticalList(SStateIKDefinition[] array, string labelTitle)
+		{
+			array ??= Array.Empty<SStateIKDefinition>();
+
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+			
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_ADD"), GUILayout.Width(50)))
+				array = array.Append(new SStateIKDefinition()).ToArray();
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_COPY"), GUILayout.Width(50)))
+			{
+				copyIK = new SStateIKDefinition[array.Length];
+				for (var k = 0; k < array.Length; k++)
+					copyIK[k] = array[k].Copy();
+			}
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_PASTE"), GUILayout.Width(50)))
+				array = array.Concat(SStateIKDefinition.CopyArray(copyIK)).ToArray();
+			if (GUILayout.Button(GetLocalizedString("MODCREATOR_CLEAR"), GUILayout.Width(50)))
+				array = Array.Empty<SStateIKDefinition>();
+			
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < array.Length; i++)
+			{
+				var definition = array[i];
+				
+				GUILayout.BeginVertical();
+
+				GUILayout.BeginHorizontal();
+				
+				if (definition.IsChain)
+					definition.Chain = (FullBodyBipedChain)EditorGUILayout.EnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLIPS_IK_CHAIN"), definition.Chain);
+				else
+					definition.Effector = (FullBodyBipedEffector)EditorGUILayout.EnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLIPS_IK_EFFECTOR"), definition.Effector);
+				
+				if (GUILayout.Button(GetLocalizedString("MODCREATOR_COPY"), GUILayout.Width(50)))
+					copyIK = new[] { array[i] };
+
+				if (GUILayout.Button("-", GUILayout.Width(25)))
+				{
+					array = array.Where((_, k) => i != k).ToArray();
+					break;
+				}
+				
+				GUILayout.EndHorizontal();
+				
+				GUILayout.Space(5);
+				
+				definition.IsChain = EditorGUILayout.Toggle(GetLocalizedString("MODCREATOR_BASIC_CLIPS_IK_ISCHAIN"), definition.IsChain);
+				definition.TargetObject = (EIKTargetObject)EditorGUILayout.EnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLIPS_IK_TARGETOBJECT"), definition.TargetObject);
+
+				GUILayout.Space(5);
+				
+				definition.TargetType = (EIKTargetType)EditorGUILayout.EnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLIPS_IK_TARGETTYPE"), definition.TargetType);
+				
+				if (definition.TargetType == EIKTargetType.HumanBodyBones)
+					definition.TargetBone = (HumanBodyBones)EditorGUILayout.EnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLIPS_IK_TARGETBONE"), definition.TargetBone);
+				else if (definition.TargetType == EIKTargetType.AdditionalHumanBodyBones)
+					definition.AdditionalTargetBone = (EAdditionalHumanBodyBones)EditorGUILayout.EnumPopup(GetLocalizedString("MODCREATOR_BASIC_CLIPS_IK_ADDTARGETBONE"), definition.AdditionalTargetBone);
+				
+				GUILayout.Space(5);
+				
+				definition.PositionCurve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLIPS_IK_POSWEIGHT"), definition.PositionCurve, Color.green, new Rect(0, 0, 1f, 1f));
+				definition.RotationCurve = EditorGUILayout.CurveField(GetLocalizedString("MODCREATOR_BASIC_CLIPS_IK_ROTWEIGHT"), definition.RotationCurve, Color.green, new Rect(0, 0, 1f, 1f));
+				
+				GUILayout.EndVertical();
+				
+				array[i] = definition;
+
+				if (i < array.Length)
+					GUILayout.Space(10);
+			}
+
+			return array;
+		}
+
 		private bool[] verticalList(bool[] array, string labelTitle, bool modifyOnly = false)
 		{
 			GUILayout.BeginHorizontal();

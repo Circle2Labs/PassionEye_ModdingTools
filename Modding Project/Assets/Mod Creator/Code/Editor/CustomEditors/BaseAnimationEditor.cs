@@ -4,10 +4,11 @@ using System.Linq;
 using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation;
 using Code.Frameworks.Animation.Structs;
+using Code.Frameworks.Character.Enums;
 using Code.Frameworks.H.Enums;
+using RootMotion.FinalIK;
 using UnityEditor;
 using UnityEngine;
-using Tuple = Code.Tools.Tuple;
 
 namespace Code.Editor.CustomEditors
 {
@@ -92,14 +93,14 @@ namespace Code.Editor.CustomEditors
 
 					GUILayout.Space(5);
 
-					if (hAnimation.IdleClips == null || hAnimation.IdleClips.Length != hAnimation.ClipContainers.Length)
+					if (hAnimation.IdleDefinitions == null || hAnimation.IdleDefinitions.Length != hAnimation.ClipContainers.Length)
 					{
-						var idleClips = hAnimation.IdleClips;
-						Array.Resize(ref idleClips, hAnimation.ClipContainers.Length);
-						hAnimation.IdleClips = idleClips;
+						var idleDefinitions = hAnimation.IdleDefinitions;
+						Array.Resize(ref idleDefinitions, hAnimation.ClipContainers.Length);
+						hAnimation.IdleDefinitions = idleDefinitions;
 					}
 					
-					hAnimation.IdleClips = verticalList(hAnimation.IdleClips, "H Idle Animations", true);
+					hAnimation.IdleDefinitions = verticalList(hAnimation.IdleDefinitions, "H Idle Animations", true);
 
 					GUILayout.Space(5);
 					
@@ -181,10 +182,10 @@ namespace Code.Editor.CustomEditors
 			{
 				var element = array[i];
 				
-				element.Transition = (AnimationClip)EditorGUILayout.ObjectField("Transition", element.Transition, typeof(AnimationClip), false);
-				element.Climax = (AnimationClip)EditorGUILayout.ObjectField($"{prefix}Climax{postfix}", element.Climax, typeof(AnimationClip), false);
-				element.Idle = (AnimationClip)EditorGUILayout.ObjectField("Idle", element.Idle, typeof(AnimationClip), false);
-				
+				element.TransitionDefinition = drawClipDefinition(element.TransitionDefinition, "Transition");
+				element.ClimaxDefinition = drawClipDefinition(element.ClimaxDefinition, $"{prefix}Climax{postfix}");
+				element.IdleDefinition = drawClipDefinition(element.IdleDefinition, "Idle");
+
 				array[i] = element;
 				
 				GUILayout.Space(5);
@@ -219,6 +220,77 @@ namespace Code.Editor.CustomEditors
 				}
 				
 				GUILayout.EndHorizontal();
+			}
+
+			return array;
+		}
+
+		private SClipDefinition drawClipDefinition(SClipDefinition definition, string labelTitle)
+		{
+			var newDefinition = definition;
+			newDefinition.AnimationClip = (AnimationClip)EditorGUILayout.ObjectField(labelTitle, newDefinition.AnimationClip, typeof(AnimationClip), false);
+			
+			var cockTargetDefinition = newDefinition.CockTargetDefinition;
+			cockTargetDefinition.CockTarget = (ECockTarget)EditorGUILayout.EnumPopup("Cock Target", cockTargetDefinition.CockTarget);
+			if (cockTargetDefinition.CockTarget != ECockTarget.None)
+				cockTargetDefinition.Curve = EditorGUILayout.CurveField("Curve", cockTargetDefinition.Curve, Color.green, new Rect(0, 0, 1f, 1f));
+			newDefinition.CockTargetDefinition = cockTargetDefinition;
+			
+			newDefinition.IKDefinitions = verticalList(newDefinition.IKDefinitions, "IK");
+			
+			return newDefinition;
+		}
+		
+		private SClipDefinition[] verticalList(SClipDefinition[] array, string labelTitle, bool modifyOnly = false)
+		{
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+
+			if (!modifyOnly)
+			{
+				if (GUILayout.Button("Add", GUILayout.Width(50)))
+					array = array.Append(new SClipDefinition()).ToArray();
+				if (GUILayout.Button("Clear", GUILayout.Width(50)))
+					array = Array.Empty<SClipDefinition>();
+			}
+			
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < array.Length; i++)
+			{
+				var definition = array[i];
+				
+				GUILayout.BeginVertical();
+
+				GUILayout.BeginHorizontal();
+				
+				definition.AnimationClip = (AnimationClip)EditorGUILayout.ObjectField(definition.AnimationClip, typeof(AnimationClip), false);
+
+				if (!modifyOnly)
+				{
+					if (GUILayout.Button("-", GUILayout.Width(25)))
+					{
+						array = array.Where((_, k) => i != k).ToArray();
+						break;
+					}
+				}
+				
+				GUILayout.EndHorizontal();
+				
+				var cockTargetDefinition = definition.CockTargetDefinition;
+				cockTargetDefinition.CockTarget = (ECockTarget)EditorGUILayout.EnumPopup("Cock Target", cockTargetDefinition.CockTarget);
+				if (cockTargetDefinition.CockTarget != ECockTarget.None)
+					cockTargetDefinition.Curve = EditorGUILayout.CurveField("Curve", cockTargetDefinition.Curve, Color.green, new Rect(0, 0, 1f, 1f));
+				definition.CockTargetDefinition = cockTargetDefinition;
+				
+				definition.IKDefinitions = verticalList(definition.IKDefinitions, "IK");
+				
+				GUILayout.EndVertical();
+				
+				array[i] = definition;
+
+				if (i < array.Length)
+					GUILayout.Space(10);
 			}
 
 			return array;
@@ -317,33 +389,33 @@ namespace Code.Editor.CustomEditors
 				
 				container.ClipContainerType = (EClipContainerType)EditorGUILayout.EnumPopup("Container Type", container.ClipContainerType);
 				
-				container.Clips ??= Array.Empty<AnimationClip>();
-				container.Clips = verticalList(container.Clips, "Clips");
-
+				container.ClipDefinitions ??= Array.Empty<SClipDefinition>();
+				container.ClipDefinitions = verticalList(container.ClipDefinitions, "Clips");
+				
 				if (container.ClipContainerType == EClipContainerType.Single)
 				{
-					if (container.Clips.Length == 0 || container.Clips.Length > 1)
-						Array.Resize(ref container.Clips, 1);
+					if (container.ClipDefinitions.Length == 0 || container.ClipDefinitions.Length > 1)
+						Array.Resize(ref container.ClipDefinitions, 1);
 				}
 				else
 				{
-					if (container.Clips.Length == 0 || container.Clips.Length < 2)
-						Array.Resize(ref container.Clips, 2);
+					if (container.ClipDefinitions.Length == 0 || container.ClipDefinitions.Length < 2)
+						Array.Resize(ref container.ClipDefinitions, 2);
 				}
 				
-				if (container.Clips.Length > 1)
+				if (container.ClipDefinitions.Length > 1)
 				{
 					GUILayout.Space(5);
 					
 					container.Thresholds ??= Array.Empty<float>();
 
-					if (container.Thresholds.Length != container.Clips.Length)
-						Array.Resize(ref container.Thresholds, container.Clips.Length);
+					if (container.Thresholds.Length != container.ClipDefinitions.Length)
+						Array.Resize(ref container.Thresholds, container.ClipDefinitions.Length);
 
 					container.Positions ??= Array.Empty<Vector2>();
 
-					if (container.Positions.Length != container.Clips.Length)
-						Array.Resize(ref container.Positions, container.Clips.Length);
+					if (container.Positions.Length != container.ClipDefinitions.Length)
+						Array.Resize(ref container.Positions, container.ClipDefinitions.Length);
 
 					if (container.ClipContainerType == EClipContainerType.Linear)
 					{
@@ -371,6 +443,84 @@ namespace Code.Editor.CustomEditors
 				GUILayout.EndVertical();
 				
 				array[i] = container;
+			}
+
+			return array;
+		}
+
+		private SStateIKDefinition[] copyIK;
+		
+		private SStateIKDefinition[] verticalList(SStateIKDefinition[] array, string labelTitle)
+		{
+			array ??= Array.Empty<SStateIKDefinition>();
+			
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(labelTitle + itemsCount(array.Length), EditorStyles.boldLabel);
+			
+			if (GUILayout.Button("Add", GUILayout.Width(50)))
+				array = array.Append(new SStateIKDefinition()).ToArray();
+			if (GUILayout.Button("Copy", GUILayout.Width(50)))
+			{
+				copyIK = new SStateIKDefinition[array.Length];
+				for (var k = 0; k < array.Length; k++)
+					copyIK[k] = array[k].Copy();
+			}
+			if (GUILayout.Button("Paste", GUILayout.Width(50)))
+				array = array.Concat(SStateIKDefinition.CopyArray(copyIK)).ToArray();
+			if (GUILayout.Button("Clear", GUILayout.Width(50)))
+				array = Array.Empty<SStateIKDefinition>();
+			
+			GUILayout.EndHorizontal();
+			
+			for (var i = 0; i < array.Length; i++)
+			{
+				var definition = array[i];
+				
+				GUILayout.BeginVertical();
+
+				GUILayout.BeginHorizontal();
+				
+				if (definition.IsChain)
+					definition.Chain = (FullBodyBipedChain)EditorGUILayout.EnumPopup("Chain", definition.Chain);
+				else
+					definition.Effector = (FullBodyBipedEffector)EditorGUILayout.EnumPopup("Effector", definition.Effector);
+				
+				if (GUILayout.Button("Copy", GUILayout.Width(50)))
+					copyIK = new[] { array[i] };
+				
+				if (GUILayout.Button("-", GUILayout.Width(25)))
+				{
+					array = array.Where((_, k) => i != k).ToArray();
+					break;
+				}
+				
+				GUILayout.EndHorizontal();
+				
+				GUILayout.Space(5);
+				
+				definition.IsChain = EditorGUILayout.Toggle("Is Chain", definition.IsChain);
+				definition.TargetObject = (EIKTargetObject)EditorGUILayout.EnumPopup("Target Object", definition.TargetObject);
+				
+				GUILayout.Space(5);
+				
+				definition.TargetType = (EIKTargetType)EditorGUILayout.EnumPopup("Target Type", definition.TargetType);
+				
+				if (definition.TargetType == EIKTargetType.HumanBodyBones)
+					definition.TargetBone = (HumanBodyBones)EditorGUILayout.EnumPopup("Target Bone", definition.TargetBone);
+				else if (definition.TargetType == EIKTargetType.AdditionalHumanBodyBones)
+					definition.AdditionalTargetBone = (EAdditionalHumanBodyBones)EditorGUILayout.EnumPopup("Additional Target Bone", definition.AdditionalTargetBone);
+				
+				GUILayout.Space(5);
+				
+				definition.PositionCurve = EditorGUILayout.CurveField("Position Curve", definition.PositionCurve, Color.green, new Rect(0, 0, 1f, 1f));
+				definition.RotationCurve = EditorGUILayout.CurveField("Rotation Curve", definition.RotationCurve, Color.green, new Rect(0, 0, 1f, 1f));
+				
+				GUILayout.EndVertical();
+				
+				array[i] = definition;
+
+				if (i < array.Length)
+					GUILayout.Space(10);
 			}
 
 			return array;

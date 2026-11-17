@@ -1,0 +1,29 @@
+namespace Code.Frameworks.Character.Enums
+{
+	public enum EAdditionalHumanBodyBones
+	{
+		LeftButtock,
+		RightButtock,
+		LeftWaist,
+		RightWaist,
+		LeftSideShoulder,
+		RightSideShoulder,
+		BackNeck,
+		LeftEar,
+		RightEar,
+		TopOfHead,
+		TopOfHeadLeft,
+		TopOfHeadRight,
+		TopOfLeftInnerThigh,
+		TopOfRightInnerThigh,
+		TopOfLeftThigh,
+		TopOfRightThigh,
+		BottomOfMiddleCock,
+		TopOfHeadFrontLeft,
+		TopOfHeadFrontRight,
+		LeftInnerThigh,
+		RightInnerThigh,
+		LeftWaistFront,
+		RightWaistFront
+	}
+}

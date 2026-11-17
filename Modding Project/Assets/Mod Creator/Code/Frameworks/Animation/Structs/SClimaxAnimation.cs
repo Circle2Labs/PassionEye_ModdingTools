@@ -10,19 +10,19 @@ namespace Code.Frameworks.Animation.Structs
 		/// Transition which is optionally null
 		/// </summary>
 		[SerializeField]
-		public AnimationClip Transition;
+		public SClipDefinition TransitionDefinition;
 
 		/// <summary>
 		/// Climax action
 		/// If non-climax it is optional, otherwise required
 		/// </summary>
 		[SerializeField]
-		public AnimationClip Climax;
+		public SClipDefinition ClimaxDefinition;
 
 		/// <summary>
 		/// Idle which is optionally null
 		/// </summary>
 		[SerializeField]
-		public AnimationClip Idle;
+		public SClipDefinition IdleDefinition;
 	}
 }

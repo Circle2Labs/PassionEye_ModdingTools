@@ -1,13 +1,14 @@
 using System;
 using Code.Frameworks.ModdedScenes.Flags;
+using Railgun.ModEngine.Types;
 using UnityEngine;
 
 namespace Code.Frameworks.ModdedScenes
 {
 	[Serializable]
-	public class ModdedScene : MonoBehaviour
+	public class ModdedScene : MonoBehaviour, IHasMetadata
 	{
-		protected const bool __metadata = true;
+		public GameObjectMetadata Metadata { get; set; }
 		
 		[field: SerializeField]
 		public Sprite Icon { get; set; }

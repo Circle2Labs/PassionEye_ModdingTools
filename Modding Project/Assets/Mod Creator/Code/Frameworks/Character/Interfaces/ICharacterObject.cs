@@ -2,6 +2,8 @@
 using Code.Frameworks.Character.Structs;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Interfaces;
+using Railgun.ModEngine.Types;
+using Code.Frameworks.Shared.Interfaces;
 using UnityEngine;
 
 namespace Code.Frameworks.Character.Interfaces
@@ -9,7 +11,7 @@ namespace Code.Frameworks.Character.Interfaces
     /// <summary>
     /// Interface defining common functionality for generic items in the character editor and gameplay.
     /// </summary>
-    public interface ICharacterObject : IMaterialCustomizable
+    public interface ICharacterObject : IMaterialCustomizable, IHasMetadata, IHasVariants
     {
         /// <summary>
         /// Allow only one character object of this ECharacterObjectType

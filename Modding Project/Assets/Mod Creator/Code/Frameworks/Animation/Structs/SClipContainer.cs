@@ -4,44 +4,44 @@ using UnityEngine;
 
 namespace Code.Frameworks.Animation.Structs
 {
-	[Serializable]
+    [Serializable]
 	public struct SClipContainer
 	{
-		public EClipUsageFlags ClipUsageFlags;
+        public EClipUsageFlags ClipUsageFlags;
 
-		public EClipContainerType ClipContainerType;
+        public EClipContainerType ClipContainerType;
         
-		#region OneDimension
+        #region OneDimension
 
-		[SerializeField]
+        [SerializeField]
 		public string ParameterName;
 
-		[SerializeField]
-		public float ParameterInitialValue;
+        [SerializeField]
+        public float ParameterInitialValue;
 
-		[SerializeField]
+        [SerializeField]
 		public float[] Thresholds;
 
-		#endregion
+        #endregion
 
-		#region TwoDimensions
+        #region TwoDimensions
 
-		[SerializeField]
-		public string ParameterXName;
+        [SerializeField]
+        public string ParameterXName;
 
-		[SerializeField]
-		public string ParameterYName;
+        [SerializeField]
+        public string ParameterYName;
 
-		[SerializeField]
-		public Vector2 ParameterXYInitialValue;
+        [SerializeField]
+        public Vector2 ParameterXYInitialValue;
 
-		[SerializeField]
+        [SerializeField]
 		public Vector2[] Positions;
 
 		#endregion
 		
 		[SerializeField]
-		public AnimationClip[] Clips;
+		public SClipDefinition[] ClipDefinitions;
 
 		public SClipContainer Copy()
 		{
@@ -66,10 +66,28 @@ namespace Code.Frameworks.Animation.Structs
 			for (var i = 0; i < Positions.Length; i++)
 				container.Positions[i] = Positions[i];
 			
-			container.Clips = new AnimationClip[Clips.Length];
+			container.ClipDefinitions = new SClipDefinition[ClipDefinitions.Length];
 			
-			for (var i = 0; i < Clips.Length; i++)
-				container.Clips[i] = Clips[i];
+			for (var i = 0; i < ClipDefinitions.Length; i++)
+			{
+				var current = ClipDefinitions[i];
+				
+				SStateIKDefinition[] copiedIKDefinitions = null;
+				if (current.IKDefinitions != null)
+				{
+					copiedIKDefinitions = new SStateIKDefinition[current.IKDefinitions.Length];
+					Array.Copy(current.IKDefinitions, copiedIKDefinitions, current.IKDefinitions.Length);
+				}
+				
+				var copy = new SClipDefinition
+				{
+					AnimationClip = current.AnimationClip,
+					CockTargetDefinition = current.CockTargetDefinition,
+					IKDefinitions = copiedIKDefinitions
+				};
+				
+				container.ClipDefinitions[i] = copy;
+			}
 			
 			return container;
 		}
