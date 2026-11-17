@@ -2557,19 +2557,22 @@ namespace Code.Editor.ModEngine
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("studioobjecttype", studioObject.StudioObjectType)).ToArray();
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("nsfw", studioObject.IsNSFW)).ToArray();
 
-						var icons = new UnityEngine.Sprite[studioObject.Variants.Length];
-
-						for (var i = 0; i < studioObject.Variants.Length; i++)
+						if (studioObject.Variants.Length > 0)
 						{
-							var variant = studioObject.Variants[i];
+							var icons = new UnityEngine.Sprite[studioObject.Variants.Length];
 
-							icons[i] = variant.Icon;
-							variant.Icon = null;
+							for (var i = 0; i < studioObject.Variants.Length; i++)
+							{
+								var variant = studioObject.Variants[i];
 
-							studioObject.Variants[i] = variant;
+								icons[i] = variant.Icon;
+								variant.Icon = null;
+
+								studioObject.Variants[i] = variant;
+							}
+
+							contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("variants", icons)).ToArray();
 						}
-
-						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("variants", icons)).ToArray();
 						break;
 					}
 					case ICharacterObject characterObject:
@@ -2596,7 +2599,7 @@ namespace Code.Editor.ModEngine
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("nsfw", characterObject.IsNSFW)).ToArray();
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("compatiblebasemeshes", SCompatibleBaseMesh.ToObjects(characterObject.CompatibleBaseMeshes))).ToArray();
 
-						if (characterObject is IClothing or IHair or IAccessory)
+						if (characterObject is IClothing or IHair or IAccessory && characterObject.Variants.Length > 0)
 						{
 							var icons = new UnityEngine.Sprite[characterObject.Variants.Length];
 						
