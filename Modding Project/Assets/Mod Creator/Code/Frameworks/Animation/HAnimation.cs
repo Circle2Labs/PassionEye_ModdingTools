@@ -77,7 +77,7 @@ namespace Code.Frameworks.Animation
 		/// [1] = container 1 - female
 		/// </summary>
 		[field: SerializeField]
-		public AnimationClip[] IdleClips { get; set; }
+		public SClipDefinition[] IdleDefinitions { get; set; }
 		
 		/// <summary>
 		/// Non-Climax animations per-container
@@ -104,33 +104,10 @@ namespace Code.Frameworks.Animation
         [field: SerializeField]
 		public bool[] RaycastDown { get; set; }
 
-		/// <summary>
-		/// Should the participant look at their partner
-		/// </summary>
-		[field: SerializeField]
-		public bool[] LookAtPartner { get; set; }
-		
         /// <summary>
-        /// Returns climax animations for specified climax type
-        /// Array indexing matches clip container setup
-        /// eg:
-        /// if first container is male, the first index returned will be the climax animation for male
+        /// Should the participant look at their partner
         /// </summary>
-        public SClimaxAnimation[] GetClimaxClips(EClimaxType climaxType)
-		{
-			if (ClimaxClips == null)
-				return null;
-			
-			for (var i = 0; i < ClimaxClips.Length; i++)
-			{
-				var tuple = ClimaxClips[i];
-				if (tuple.Item1 != climaxType)
-					continue;
-				
-				return tuple.Item2;
-			}
-
-			return null;
-		}
+        [field: SerializeField]
+        public bool[] LookAtPartner { get; set; }
 	}
 }

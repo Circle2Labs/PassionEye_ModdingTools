@@ -15,6 +15,7 @@ using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Interfaces;
 using Code.Frameworks.Character.Structs;
 using Code.Frameworks.ClippingFix.Enums;
+using Code.Frameworks.DriverSystem;
 using Code.Frameworks.ModdedScenes;
 using Code.Frameworks.RayTracing;
 using Code.Frameworks.Shared.Structs;
@@ -266,7 +267,7 @@ namespace Code.Editor.ModEngine
 							template.Description = studioObject.Description;
 							template.IsNSFW = studioObject.IsNSFW;
 							template.FKData = studioObject.FKData;
-							template.Variants = studioObject.Variants.ToList();
+							template.Variants = studioObject.Variants?.ToList();
 						}
 						else if (comp is ICharacterObject characterObject)
 						{
@@ -278,7 +279,8 @@ namespace Code.Editor.ModEngine
 							template.IsNSFW = characterObject.IsNSFW;
 							template.Simulation = characterObject.Simulation;
 							template.CompatibleBaseMeshes = characterObject.CompatibleBaseMeshes;
-							
+							template.Variants = characterObject.Variants?.ToList();
+
 							switch (comp)
 							{
 								case IClothing cloth:
@@ -344,6 +346,8 @@ namespace Code.Editor.ModEngine
 									template.BlendshapePresets = baseMesh.BlendshapePresets?.ToList();
 									template.AccessoryParents = baseMesh.AccessoryParents;
 									template.TextureMaterialMap = baseMesh.TextureMaterialMap;
+									template.CockTargets = baseMesh.CockTargets;
+									template.AdditionalHumanBodyBones = baseMesh.AdditionalHumanBodyBones;
 									template.Blendshapes = baseMesh.Blendshapes;
 									template.BodyParts = baseMesh.BodyParts;
 									template.BlendshapeRenderers = baseMesh.BlendshapeRenderers;
@@ -368,6 +372,7 @@ namespace Code.Editor.ModEngine
 									template.PoseControl = baseMesh.PoseControl;
 									template.FKData = baseMesh.FKData;
 									template.IsGhost = baseMesh.IsGhost;
+									template.FloatingDialogOffset = baseMesh.FloatingDialogOffset;
 									break;
 							}
 						}
@@ -399,7 +404,24 @@ namespace Code.Editor.ModEngine
 							template.AnimationFadeDuration = animation.FadeDuration;
 							template.AnimationClipContainers = animation.ClipContainers;
 							
-							// todo: set up HAnimation loading
+							if (comp is HAnimation hAnimation)
+							{
+								template.HAnimationType = hAnimation.Type;
+								template.HAnimationExclusiveTags = hAnimation.ExclusiveTags;
+								template.HAnimationObjectAnimationTag = hAnimation.ObjectAnimationTag;
+								template.HAnimationSupportedClimaxTypes = hAnimation.SupportedClimaxTypes;
+								template.HAnimationArouseActive = hAnimation.ArouseActive;
+								template.HAnimationArousePassive = hAnimation.ArousePassive;
+								template.HAnimationArousalMultiplier = hAnimation.ArousalMultiplier;
+								template.HAnimationCameraPositionOffset = hAnimation.CameraPositionOffset;
+								template.HAnimationCameraAnglesOffset = hAnimation.CameraAnglesOffset;
+								template.HAnimationCameraDistance = hAnimation.CameraDistance;
+								template.HAnimationIdleDefinitions = hAnimation.IdleDefinitions;
+								template.HAnimationNonClimaxClips = hAnimation.NonClimaxClips;
+								template.HAnimationClimaxClips = hAnimation.ClimaxClips;
+								template.HAnimationRaycastDown = hAnimation.RaycastDown;
+								template.HAnimationLookAtPartner = hAnimation.LookAtPartner;
+							}
 						}
 
 						template.Tags ??= Array.Empty<string>();
@@ -840,6 +862,9 @@ namespace Code.Editor.ModEngine
 						charaObject.Tags = template.Tags;
 						charaObject.Simulation = template.Simulation;
 						charaObject.CompatibleBaseMeshes = template.CompatibleBaseMeshes;
+						
+						if (charaObject is IClothing or IAccessory or IHair)
+							charaObject.Variants = template.Variants?.ToArray();
 					}
 					
 					switch (comp)
@@ -885,6 +910,8 @@ namespace Code.Editor.ModEngine
 							baseMesh.BlendshapePresets = template.BlendshapePresets.ToArray();
 							baseMesh.AccessoryParents = template.AccessoryParents;
 							baseMesh.TextureMaterialMap = template.TextureMaterialMap;
+							baseMesh.CockTargets = template.CockTargets;
+							baseMesh.AdditionalHumanBodyBones = template.AdditionalHumanBodyBones;
 							baseMesh.Blendshapes = template.Blendshapes;
 							baseMesh.BodyParts = template.BodyParts;
 							baseMesh.BlendshapeRenderers = template.BlendshapeRenderers;
@@ -909,6 +936,7 @@ namespace Code.Editor.ModEngine
 							baseMesh.PoseControl = true;
 							baseMesh.FKData = template.FKData;
 							baseMesh.IsGhost = template.IsGhost;
+							baseMesh.FloatingDialogOffset = template.FloatingDialogOffset;
 						break;
 					}
 				}
@@ -942,7 +970,7 @@ namespace Code.Editor.ModEngine
 						studioObject.Icon = template.Icon;
 						studioObject.Tags = template.Tags;
 						studioObject.FKData = template.FKData;
-						studioObject.Variants = template.Variants.ToArray();
+						studioObject.Variants = template.Variants?.ToArray();
 					}
 				}
 				else if (template.TemplateType == ETemplateType.ModdedScene)
@@ -999,7 +1027,7 @@ namespace Code.Editor.ModEngine
 						hAnimation.CameraDistance = template.HAnimationCameraDistance;
 						hAnimation.RaycastDown = template.HAnimationRaycastDown;
 						hAnimation.LookAtPartner = template.HAnimationLookAtPartner;
-						hAnimation.IdleClips = template.HAnimationIdleClips;
+						hAnimation.IdleDefinitions = template.HAnimationIdleDefinitions;
 						hAnimation.NonClimaxClips = template.HAnimationNonClimaxClips;
 						hAnimation.ClimaxClips = template.HAnimationClimaxClips;
 						
@@ -1239,15 +1267,15 @@ namespace Code.Editor.ModEngine
 								for (var k = 0; k < anim.ClipContainers.Length; k++)
 								{
 									var container = anim.ClipContainers[k];
-									if (container.Clips.Length == 0)
+									if (container.ClipDefinitions.Length == 0)
 									{
 										pass = false;
 										Debug.LogError($"No clips specified for {anim.name} container {k} in scene {template.Name}");
 									}
 
-									for (var l = 0; l < container.Clips.Length; l++)
+									for (var l = 0; l < container.ClipDefinitions.Length; l++)
 									{
-										if (container.Clips[l] == null)
+										if (container.ClipDefinitions[l].AnimationClip == null)
 										{
 											pass = false;
 											Debug.LogError($"Invalid clips found in {anim.name} container {k} in scene {template.Name}");
@@ -1257,9 +1285,9 @@ namespace Code.Editor.ModEngine
 
 								if (anim is HAnimation hAnimation)
 								{
-									for (var k = 0; k < hAnimation.IdleClips.Length; k++)
+									for (var k = 0; k < hAnimation.IdleDefinitions.Length; k++)
 									{
-										if (hAnimation.IdleClips[k] != null)
+										if (hAnimation.IdleDefinitions[k].AnimationClip != null)
 											continue;
 
 										pass = false;
@@ -1273,7 +1301,7 @@ namespace Code.Editor.ModEngine
 										var climaxAnimations = hAnimation.ClimaxClips[k].Item2;
 										for (var l = 0; l < climaxAnimations.Length; l++)
 										{
-											if (climaxAnimations[l].Climax != null)
+											if (climaxAnimations[l].ClimaxDefinition.AnimationClip != null)
 												continue;
 
 											pass = false;
@@ -1302,19 +1330,25 @@ namespace Code.Editor.ModEngine
 						Debug.LogError($"Component is not added for {template.Name}");
 					}
 
-					if (template.TemplateType == ETemplateType.StudioObject)
+					if (template.TemplateType == ETemplateType.CharacterObject || template.TemplateType == ETemplateType.StudioObject)
 					{
-						var studioObject = gameObject.GetComponent<IStudioObject>();
-						if (studioObject.Variants != null)
+						var variants = template.TemplateType == ETemplateType.CharacterObject ? gameObject.GetComponent<ICharacterObject>().Variants : gameObject.GetComponent<IStudioObject>().Variants;
+						if (variants != null)
 						{
-							for (var k = 0; k < studioObject.Variants.Length; k++)
+							for (var k = 0; k < variants.Length; k++)
 							{
-								var variant = studioObject.Variants[k];
+								var variant = variants[k];
 								
 								if (string.IsNullOrEmpty(variant.Name))
 								{
 									pass = false;
 									Debug.LogError($"Name for variant at index {k} is empty on object {template.Name}");
+								}
+								
+								if (variant.Icon == null)
+								{
+									pass = false;
+									Debug.LogError($"Icon for variant at index {k} is empty on object {template.Name}");
 								}
 								
 								if (variant.Transforms.Count == 0)
@@ -1338,6 +1372,19 @@ namespace Code.Editor.ModEngine
 											{
 												pass = false;
 												Debug.LogError($"Transform at index {l} for variant {variant.Name} is not a child of the mod object on object {template.Name}");
+											}
+
+											var states = template.ClothingStates;
+											if (states == null)
+												continue;
+
+											for (var j = 0; j < states.Length; j++)
+											{
+												if (tuple.Item1 != states[j])
+													continue;
+
+												pass = false;
+												Debug.LogError($"Transform at index {l} for variant {variant.Name} can not be a clothing state on object {template.Name}");
 											}
 										}
 									}
@@ -2054,6 +2101,73 @@ namespace Code.Editor.ModEngine
 								Debug.LogError($"Accessory parent {k} is invalid for {template.Name}");
 							}
 						}
+						
+						if (template.CockTargets == null || template.CockTargets.Count == 0)
+						{
+							if (!template.IsGhost)
+							{
+								pass = false;
+								Debug.LogError($"No cock targets set up for {template.Name}. This will cause animation inaccuracy");
+							}
+							else
+							{
+								Debug.LogWarning($"No cock targets set up for {template.Name}. This will cause animation inaccuracy");
+							}
+						}
+						else
+						{
+							for (var k = 0; k < template.CockTargets.Count; k++)
+							{
+								if (template.CockTargets[k].Item1 == ECockTarget.None)
+									continue;
+								
+								if (template.CockTargets[k].Item2 != null)
+								{
+									if (!IsRootParent(template.CockTargets[k].Item2.transform, transform))
+									{
+										pass = false;
+										Debug.LogError($"Cock target {k} for {template.Name} is not a child of the mod object");
+									}
+									
+									continue;
+								}
+
+								pass = false;
+								Debug.LogError($"Cock target {k} is invalid for {template.Name}");
+							}
+						}
+						
+						if (template.AdditionalHumanBodyBones == null || template.AdditionalHumanBodyBones.Count == 0)
+						{
+							if (!template.IsGhost)
+							{
+								pass = false;
+								Debug.LogError($"No additional human body bones set up for {template.Name}. This will cause animation inaccuracy");
+							}
+							else
+							{
+								Debug.LogWarning($"No additional human body bones set up for {template.Name}. This will cause animation inaccuracy");
+							}
+						}
+						else
+						{
+							for (var k = 0; k < template.AdditionalHumanBodyBones.Count; k++)
+							{
+								if (template.AdditionalHumanBodyBones[k].Item2 != null)
+								{
+									if (!IsRootParent(template.AdditionalHumanBodyBones[k].Item2.transform, transform))
+									{
+										pass = false;
+										Debug.LogError($"Additional human body bone {k} for {template.Name} is not a child of the mod object");
+									}
+									
+									continue;
+								}
+
+								pass = false;
+								Debug.LogError($"Additional human body bone {k} is invalid for {template.Name}");
+							}
+						}
 					}
 
 					if (template.TemplateType == ETemplateType.CharacterObject && (template.CompatibleBaseMeshes == null || template.CompatibleBaseMeshes.Length == 0))
@@ -2076,15 +2190,15 @@ namespace Code.Editor.ModEngine
 						for (var k = 0; k < animation.ClipContainers.Length; k++)
 						{
 							var container = animation.ClipContainers[k];
-							if (container.Clips.Length == 0)
+							if (container.ClipDefinitions.Length == 0)
 							{
 								pass = false;
 								Debug.LogError($"No clips specified for container {k} in {template.Name}");
 							}
 
-							for (var l = 0; l < container.Clips.Length; l++)
+							for (var l = 0; l < container.ClipDefinitions.Length; l++)
 							{
-								if (container.Clips[l] == null)
+								if (container.ClipDefinitions[l].AnimationClip == null)
 								{
 									pass = false;
 									Debug.LogError($"Invalid clips found in container {k} in {template.Name}");
@@ -2094,9 +2208,9 @@ namespace Code.Editor.ModEngine
 						
 						if (animation is HAnimation hAnimation)
 						{
-							for (var k = 0; k < hAnimation.IdleClips.Length; k++)
+							for (var k = 0; k < hAnimation.IdleDefinitions.Length; k++)
 							{
-								if (hAnimation.IdleClips[k] != null)
+								if (hAnimation.IdleDefinitions[k].AnimationClip != null)
 									continue;
 
 								pass = false;
@@ -2110,7 +2224,7 @@ namespace Code.Editor.ModEngine
 								var climaxAnimations = hAnimation.ClimaxClips[k].Item2;
 								for (var l = 0; l < climaxAnimations.Length; l++)
 								{
-									if (climaxAnimations[l].Climax != null)
+									if (climaxAnimations[l].ClimaxDefinition.AnimationClip != null)
 										continue;
 
 									pass = false;
@@ -2150,6 +2264,51 @@ namespace Code.Editor.ModEngine
 					{
 						pass = false;
 						Debug.LogError($"Object {template.Name} contains an Animator component. It is created on runtime when needed and should not be saved into the mod. Remove the Animator component to resolve this error");
+					}
+
+					var anyDriverControllers = gameObject.GetComponentsInChildren<DriverController>();
+					if (anyDriverControllers != null && anyDriverControllers.Length != 0)
+					{
+						for (var k = 0; k < anyDriverControllers.Length; k++)
+						{
+							var driverController = anyDriverControllers[k];
+							
+							// Save them without the driver applying changes so initial values are correct
+							driverController.enabled = false;
+							
+							var drivers = driverController.Drivers;
+							for (var l = 0; l < drivers.Count; l++)
+							{
+								var driver = drivers[l];
+								if (driver.UseObject)
+								{
+									if (driver.Object == null)
+									{
+										pass = false;
+										Debug.LogError($"Driver at index {l} ({Tools.Object.GetGameObjectPath(driverController.transform)}) does not have an Object");
+									}
+									else if (!IsRootParent(driver.Object, transform))
+									{
+										pass = false;
+										Debug.LogError($"Driver at index {l} ({Tools.Object.GetGameObjectPath(driverController.transform)}) has an Object set that is not a child of the mod object");
+									}
+								}
+								
+								if (driver.UseTarget)
+								{
+									if (driver.Target == null)
+									{
+										pass = false;
+										Debug.LogError($"Driver at index {l} ({Tools.Object.GetGameObjectPath(driverController.transform)}) does not have a Target");
+									}
+									else if (!IsRootParent(driver.Target, transform))
+									{
+										pass = false;
+										Debug.LogError($"Driver at index {l} ({Tools.Object.GetGameObjectPath(driverController.transform)}) has a Target set that is not a child of the mod object");
+									}
+								}
+							}
+						}
 					}
 				}
 				else
@@ -2394,9 +2553,25 @@ namespace Code.Editor.ModEngine
 				switch (component)
 				{
 					case IStudioObject studioObject:
+					{
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("studioobjecttype", studioObject.StudioObjectType)).ToArray();
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("nsfw", studioObject.IsNSFW)).ToArray();
+
+						var icons = new UnityEngine.Sprite[studioObject.Variants.Length];
+
+						for (var i = 0; i < studioObject.Variants.Length; i++)
+						{
+							var variant = studioObject.Variants[i];
+
+							icons[i] = variant.Icon;
+							variant.Icon = null;
+
+							studioObject.Variants[i] = variant;
+						}
+
+						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("variants", icons)).ToArray();
 						break;
+					}
 					case ICharacterObject characterObject:
 						switch (characterObject)
 						{
@@ -2420,6 +2595,24 @@ namespace Code.Editor.ModEngine
 						} 
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("nsfw", characterObject.IsNSFW)).ToArray();
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("compatiblebasemeshes", SCompatibleBaseMesh.ToObjects(characterObject.CompatibleBaseMeshes))).ToArray();
+
+						if (characterObject is IClothing or IHair or IAccessory)
+						{
+							var icons = new UnityEngine.Sprite[characterObject.Variants.Length];
+						
+							for (var i = 0; i < characterObject.Variants.Length; i++)
+							{
+								var variant = characterObject.Variants[i];
+							
+								icons[i] = variant.Icon;
+								variant.Icon = null;
+							
+								characterObject.Variants[i] = variant;
+							}
+						
+							contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("variants", icons)).ToArray();
+						}
+						
 						break;
 					case ModdedScene moddedScene:
 						contentDescriptor.OptionalData = contentDescriptor.OptionalData.Append(new KeyValue("moddedscene", moddedScene.UsageFlags)).ToArray();

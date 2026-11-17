@@ -12,6 +12,7 @@ namespace Code.Frameworks.H.Interfaces
 		// Only HAnimation with these tags will show up
 		public string[] ExclusiveTags { get; set; }
 		// If a tag exists as item1, it will run item3 animation on item2 animator
+		public Transform PrimaryIndicatorAnchor { get; set; }
 		public Tuple.SerializableTuple<string, Animator, AnimationClip>[] ObjectAnimations { get; set; }
 	}
 }

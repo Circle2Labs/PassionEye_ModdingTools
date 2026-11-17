@@ -28,6 +28,9 @@ namespace Code.Frameworks.H.Locations
         public string[] ExclusiveTags { get; set; }
 
         [field: SerializeField]
+        public Transform PrimaryIndicatorAnchor { get; set; }
+
+        [field: SerializeField]
         public Tuple.SerializableTuple<string, Animator, AnimationClip>[] ObjectAnimations { get; set; }
         
 #if UNITY_EDITOR

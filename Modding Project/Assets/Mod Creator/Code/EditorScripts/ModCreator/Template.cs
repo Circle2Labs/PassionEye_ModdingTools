@@ -152,6 +152,8 @@ public class {Type} : {GetTemplateClass(this)}
 		public List<SBlendShape> Blendshapes;
 		public List<Tools.Tuple.SerializableTuple<Transform, string>> AccessoryParents;
 		public List<Tools.Tuple.SerializableTuple<ETextureType, Renderer, int>> TextureMaterialMap;
+		public List<Tools.Tuple.SerializableTuple<ECockTarget, Transform>> CockTargets;
+		public List<Tools.Tuple.SerializableTuple<EAdditionalHumanBodyBones, Transform>> AdditionalHumanBodyBones;
 		public List<SBodyPart> BodyParts;
 		public List<SkinnedMeshRenderer> BlendshapeRenderers;
 		public List<Collider> SFWColliders;
@@ -172,6 +174,7 @@ public class {Type} : {GetTemplateClass(this)}
 		public bool ExpressionControl = true;
 		public bool PoseControl = true;
 		public bool IsGhost;
+		public float FloatingDialogOffset;
 
 		#endregion
 		
@@ -236,7 +239,7 @@ public class {Type} : {GetTemplateClass(this)}
 		public bool[] HAnimationRaycastDown = Array.Empty<bool>();
 		public bool[] HAnimationLookAtPartner = Array.Empty<bool>();
 		
-		public AnimationClip[] HAnimationIdleClips = Array.Empty<AnimationClip>();
+		public SClipDefinition[] HAnimationIdleDefinitions = Array.Empty<SClipDefinition>();
 		public SClimaxAnimation[] HAnimationNonClimaxClips = Array.Empty<SClimaxAnimation>();
 		public Tuple.SerializableTuple<EClimaxType, SClimaxAnimation[]>[] HAnimationClimaxClips = Array.Empty<Tuple.SerializableTuple<EClimaxType, SClimaxAnimation[]>>();
 		
@@ -325,6 +328,22 @@ public class {Type} : {GetTemplateClass(this)}
 				for (var i = 0; i < TextureMaterialMap.Count; i++)
 					copiedTextureMaterialMap.Add(TextureMaterialMap[i]);
 			}
+			
+			List<Tuple.SerializableTuple<ECockTarget, Transform>> copiedCockTargets = null;
+			if (CockTargets != null)
+			{
+				copiedCockTargets = new List<Tuple.SerializableTuple<ECockTarget, Transform>>();
+				for (var i = 0; i < CockTargets.Count; i++)
+					copiedCockTargets.Add(CockTargets[i]);
+			}
+			
+			List<Tuple.SerializableTuple<EAdditionalHumanBodyBones, Transform>> copiedAdditionalHumanBodyBones = null;
+			if (AdditionalHumanBodyBones != null)
+			{
+				copiedAdditionalHumanBodyBones = new List<Tuple.SerializableTuple<EAdditionalHumanBodyBones, Transform>>();
+				for (var i = 0; i < AdditionalHumanBodyBones.Count; i++)
+					copiedAdditionalHumanBodyBones.Add(AdditionalHumanBodyBones[i]);
+			}
 
 			List<SBlendShape> copiedBlendshapes = null;
 			if (Blendshapes != null)
@@ -411,11 +430,11 @@ public class {Type} : {GetTemplateClass(this)}
 				Array.Copy(HAnimationLookAtPartner, copiedHAnimationLookAtPartner, HAnimationLookAtPartner.Length);
 			}
 			
-			AnimationClip[] copiedHAnimationIdleClips = null;
-			if (HAnimationIdleClips != null)
+			SClipDefinition[] copiedHAnimationIdleDefinitions = null;
+			if (HAnimationIdleDefinitions != null)
 			{
-				copiedHAnimationIdleClips = new AnimationClip[HAnimationIdleClips.Length];
-				Array.Copy(HAnimationIdleClips, copiedHAnimationIdleClips, HAnimationIdleClips.Length);
+				copiedHAnimationIdleDefinitions = new SClipDefinition[HAnimationIdleDefinitions.Length];
+				Array.Copy(HAnimationIdleDefinitions, copiedHAnimationIdleDefinitions, HAnimationIdleDefinitions.Length);
 			}
 			
 			SClimaxAnimation[] copiedHAnimationNonClimaxClips = null;
@@ -452,6 +471,7 @@ public class {Type} : {GetTemplateClass(this)}
 					
 					var copiedVariant = new SVariant();
 					copiedVariant.Name = variant.Name;
+					copiedVariant.Icon = variant.Icon;
 					copiedVariant.Transforms = new List<Tuple.SerializableTuple<Transform, bool>>();
 
 					for (var k = 0; k < variant.Transforms.Count; k++)
@@ -489,7 +509,6 @@ public class {Type} : {GetTemplateClass(this)}
 
 				// Studio
 				StudioObjectType = StudioObjectType,
-				Variants = copiedVariants,
 				
 				// Accessory
 				AccessoryType = AccessoryType,
@@ -531,7 +550,7 @@ public class {Type} : {GetTemplateClass(this)}
 				HAnimationRaycastDown = copiedHAnimationRaycastDown,
 				HAnimationLookAtPartner = copiedHAnimationLookAtPartner,
 				
-				HAnimationIdleClips = copiedHAnimationIdleClips,
+				HAnimationIdleDefinitions = copiedHAnimationIdleDefinitions,
 				HAnimationNonClimaxClips = copiedHAnimationNonClimaxClips,
 				HAnimationClimaxClips = copiedHAnimationClimaxClips,
 				
@@ -540,6 +559,8 @@ public class {Type} : {GetTemplateClass(this)}
 				SupportedGendersFlags = SupportedGendersFlags,
 				BlendshapePresets = copiedBlendshapePresets,
 				AccessoryParents = copiedAccessoryParents,
+				CockTargets = copiedCockTargets,
+				AdditionalHumanBodyBones = copiedAdditionalHumanBodyBones,
 				TextureMaterialMap = copiedTextureMaterialMap,
 				Blendshapes = copiedBlendshapes,
 				BodyParts = copiedBodyParts,
@@ -564,11 +585,13 @@ public class {Type} : {GetTemplateClass(this)}
 				ExpressionControl = ExpressionControl,
 				PoseControl = PoseControl,
 				IsGhost = IsGhost,
+				FloatingDialogOffset = FloatingDialogOffset,
 				
 				// Shared
 				Simulation = copiedSimulation,
 				FKData = FKData,
-				CompatibleBaseMeshes = copiedCompatibleBaseMeshes
+				CompatibleBaseMeshes = copiedCompatibleBaseMeshes,
+				Variants = copiedVariants,
 			};
 
 			return template;

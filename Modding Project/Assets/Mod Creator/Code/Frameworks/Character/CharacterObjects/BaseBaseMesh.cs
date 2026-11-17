@@ -21,13 +21,16 @@ using Material = UnityEngine.Material;
 using Ray = Code.Frameworks.RayTracing.Ray;
 using Shader = UnityEngine.Shader;
 using Sprite = UnityEngine.Sprite;
+using Code.Frameworks.Shared.Structs;
+using Railgun.ModEngine.Types;
+using Code.Frameworks.Animation.Enums;
 
 namespace Code.Frameworks.Character.CharacterObjects
 {
 	[Serializable]
 	public class BaseBaseMesh : MonoBehaviour, IBaseMesh
 	{
-		protected const bool __metadata = true;
+		public GameObjectMetadata Metadata { get; set; }
 
 		[APLIgnore]
 		public bool IsSingular => true;
@@ -52,6 +55,12 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[field: SerializeField]
 		public bool IsNSFW { get; set; }
 
+		[field: SerializeField]
+		public SVariant[] Variants { get; set; }
+
+		[field: SerializeField]
+		public int Variant { get; set; } = -1;
+		
 		[field: SerializeField]
 		public SFKData FKData { get; set; }
 		
@@ -102,8 +111,15 @@ namespace Code.Frameworks.Character.CharacterObjects
         
         [field: SerializeField]
 		public List<Tools.Tuple.SerializableTuple<Transform, string>> AccessoryParents { get; set; }
+		
+		[field: SerializeField]
+		public List<Tools.Tuple.SerializableTuple<EAdditionalHumanBodyBones, Transform>> AdditionalHumanBodyBones { get; set; }
+		
 		[field: SerializeField]
 		public List<Tools.Tuple.SerializableTuple<ETextureType, Renderer, int>> TextureMaterialMap { get; set; }
+        
+		[field: SerializeField]
+		public List<Tools.Tuple.SerializableTuple<ECockTarget, Transform>> CockTargets { get; set; }
         
 		[field: SerializeField]
 		public List<SBlendShape> Blendshapes { get; set; }
@@ -162,6 +178,9 @@ namespace Code.Frameworks.Character.CharacterObjects
         public bool IsGhost { get; set; }
         
         [field: SerializeField]
+        public float FloatingDialogOffset { get; set; }
+        
+        [field: SerializeField]
         public List<Tools.Tuple.SerializableTuple<ERaysResolution, byte>> RaysIDs { get; set; }
         
 		#endregion
@@ -172,6 +191,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 		public Avatar Avatar { get; set; }
 
 		#endregion
+		
+		public void SetVariant(int variant)
+		{
+			
+		}
 		
 		public virtual void Assign(Character chara)
 		{

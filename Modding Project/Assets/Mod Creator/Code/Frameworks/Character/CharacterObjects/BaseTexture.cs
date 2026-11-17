@@ -8,13 +8,15 @@ using Code.Frameworks.PhysicsSimulation;
 using Code.Tools;
 using Railgun.AssetPipeline.Attributes;
 using UnityEngine;
+using Code.Frameworks.Shared.Structs;
+using Railgun.ModEngine.Types;
 
 namespace Code.Frameworks.Character.CharacterObjects
 {
 	[Serializable]
 	public class BaseTexture : MonoBehaviour, ITexture
 	{
-		protected const bool __metadata = true;
+		public GameObjectMetadata Metadata { get; set; }
 
 		[APLIgnore]
 		public bool IsSingular => false;
@@ -49,6 +51,12 @@ namespace Code.Frameworks.Character.CharacterObjects
 		[field: SerializeField]
 		public bool IsNSFW { get; set; }
 		
+		[field: SerializeField]
+		public SVariant[] Variants { get; set; }
+
+		[field: SerializeField]
+		public int Variant { get; set; } = -1;
+
 		/// <summary>
 		/// Not supported for this type of object.
 		/// </summary>
@@ -88,6 +96,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 		
 		[field: SerializeField]
 		public Color OverlayColor { get; set; }
+		
+		public void SetVariant(int variant)
+		{
+			
+		}
 		
 		public virtual void Assign(Character chara)
 		{

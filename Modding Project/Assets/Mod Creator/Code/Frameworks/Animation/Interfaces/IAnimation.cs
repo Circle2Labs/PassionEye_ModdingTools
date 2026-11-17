@@ -1,10 +1,11 @@
 using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation.Structs;
+using Railgun.ModEngine.Types;
 using UnityEngine;
 
 namespace Code.Frameworks.Animation.Interfaces
 {
-    public interface IAnimation
+    public interface IAnimation : IHasMetadata
 	{
 		public Sprite Icon { get; set; }
 

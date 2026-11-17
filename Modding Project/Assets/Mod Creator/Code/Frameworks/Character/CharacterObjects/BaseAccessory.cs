@@ -8,13 +8,15 @@ using Code.Frameworks.PhysicsSimulation;
 using Code.Tools;
 using Railgun.AssetPipeline.Attributes;
 using UnityEngine;
+using Code.Frameworks.Shared.Structs;
+using Railgun.ModEngine.Types;
 
 namespace Code.Frameworks.Character.CharacterObjects
 {
 	[Serializable]
 	public class BaseAccessory : MonoBehaviour, IAccessory
 	{
-		protected const bool __metadata = true;
+		public GameObjectMetadata Metadata { get; set; }
 
 		[APLIgnore]
 		public bool IsSingular => false;
@@ -54,7 +56,13 @@ namespace Code.Frameworks.Character.CharacterObjects
 
 		[field: SerializeField]
 		public bool IsNSFW { get; set; }
+		
+		[field: SerializeField]
+		public SVariant[] Variants { get; set; }
 
+		[field: SerializeField]
+		public int Variant { get; set; } = -1;
+		
 		[field: SerializeField]
 		public Simulation Simulation { get; set; }
 
@@ -93,6 +101,11 @@ namespace Code.Frameworks.Character.CharacterObjects
 		}
 
 		public void SetAccessoryVisibility(EAccessoryVisibility visibility)
+		{
+
+		}
+		
+		public void SetVariant(int variant)
 		{
 
 		}

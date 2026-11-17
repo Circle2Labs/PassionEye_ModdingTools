@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Code.Frameworks.Animation.Enums;
 using Code.EditorScripts.ModCreator;
+using Code.Frameworks.Animation;
+using Code.Frameworks.Animation.Interfaces;
 using Code.Frameworks.Animation.Structs;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
@@ -34,6 +36,8 @@ namespace Code.Editor.ModEngine
 
 		private bool bodyPartsFold;
 		private bool accessoryParentsFold;
+		private bool cockTargetsFold;
+		private bool additionalHumanBodyBonesFold;
 		private bool blendshapesFold;
 		private bool blendshapePresetsFold;
 		private bool variantsFold;
@@ -75,6 +79,10 @@ namespace Code.Editor.ModEngine
                         }*/
 						template.Reparentable = false;
 
+						GUILayout.Space(5);
+						
+						variants(template);
+						
                         GUILayout.Space(5);
 
 						physicsSimulation(template);
@@ -125,6 +133,10 @@ namespace Code.Editor.ModEngine
                         }*/
 						template.Reparentable = false;
 
+						GUILayout.Space(5);
+						
+						variants(template);
+						
                         GUILayout.Space(5);
 						
 						physicsSimulation(template);
@@ -153,6 +165,10 @@ namespace Code.Editor.ModEngine
 							else
 								template.DefaultParent = accessoryParents[template.DefaultParentIdx];
 						}
+						
+						GUILayout.Space(5);
+						
+						variants(template);
 						
 						GUILayout.Space(5);
 						
@@ -239,6 +255,7 @@ namespace Code.Editor.ModEngine
 						
 						template.POV = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_POVTR")}*", template.POV, typeof(Transform), true);
 						template.FaceTransform = (Transform)EditorGUILayout.ObjectField($"{GetLocalizedString("MODCREATOR_BASIC_FACETR")}*", template.FaceTransform, typeof(Transform), true);
+						template.FloatingDialogOffset = EditorGUILayout.FloatField($"{GetLocalizedString("MODCREATOR_BASIC_FLOATINGDIALOGOFFSET")}", template.FloatingDialogOffset);
 
 						GUILayout.Space(5);
 
@@ -319,6 +336,8 @@ namespace Code.Editor.ModEngine
 						
 						bodyParts(template);
 						accessoryParents(template);
+						cockTargets(template);
+						additionalHumanBodyBones(template);
 						blendshapes(template);
 						blendshapePresets(template);
 						
@@ -346,6 +365,8 @@ namespace Code.Editor.ModEngine
 								template.BlendshapePresets = baseMesh.BlendshapePresets.ToList();
 								template.AccessoryParents = baseMesh.AccessoryParents;
 								template.TextureMaterialMap = baseMesh.TextureMaterialMap;
+								template.CockTargets = baseMesh.CockTargets;
+								template.AdditionalHumanBodyBones = baseMesh.AdditionalHumanBodyBones;
 								template.Blendshapes = baseMesh.Blendshapes;
 								template.BodyParts = baseMesh.BodyParts;
 								template.BlendshapeRenderers = baseMesh.BlendshapeRenderers;
@@ -369,6 +390,7 @@ namespace Code.Editor.ModEngine
 								template.ExpressionControl = baseMesh.ExpressionControl;
 								template.PoseControl = baseMesh.PoseControl;
 								template.IsGhost = baseMesh.IsGhost;
+								template.FloatingDialogOffset = baseMesh.FloatingDialogOffset;
 							}
 							else
 							{
@@ -473,10 +495,10 @@ namespace Code.Editor.ModEngine
 
 					GUILayout.Space(5);
 
-					if (template.HAnimationIdleClips == null || template.HAnimationIdleClips.Length != template.AnimationClipContainers.Length)
-						Array.Resize(ref template.HAnimationIdleClips, template.AnimationClipContainers.Length);
+					if (template.HAnimationIdleDefinitions == null || template.HAnimationIdleDefinitions.Length != template.AnimationClipContainers.Length)
+						Array.Resize(ref template.HAnimationIdleDefinitions, template.AnimationClipContainers.Length);
 					
-					template.HAnimationIdleClips = verticalList(template.HAnimationIdleClips, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS_HIDLE")}*", true);
+					template.HAnimationIdleDefinitions = verticalList(template.HAnimationIdleDefinitions, $"{GetLocalizedString("MODCREATOR_BASIC_CLIPS_HIDLE")}*", true);
 
 					GUILayout.Space(5);
 					
@@ -516,8 +538,48 @@ namespace Code.Editor.ModEngine
 						var climaxType = climaxTypes[i];
 						
 						tuple.Item1 = climaxType;
-						tuple.Item2 = verticalList(tuple.Item2, $"{GetLocalizedString($"MODCREATOR_BASIC_CLIPS_HCLIMAX_{((EClimaxType)i).ToString().ToUpper()}")}*");
+						tuple.Item2 = verticalList(tuple.Item2, $"{GetLocalizedString($"MODCREATOR_BASIC_CLIPS_HCLIMAX_{climaxType.ToString().ToUpper()}")}*");
 						template.HAnimationClimaxClips[i] = tuple;
+					}
+				}
+				
+				if (!IsStandalone && GUILayout.Button("Read from selected"))
+				{
+					var selected = Selection.activeGameObject;
+					if (selected != null && selected.TryGetComponent<IAnimation>(out var animation))
+					{
+						template.TemplateType = ETemplateType.Animation;
+						template.Name = animation.Name;
+						template.Tags = animation.Tags;
+						template.Icon = animation.Icon;
+						template.Description = animation.Description;
+						template.IsNSFW = animation.IsNSFW;
+						template.AnimationUsageFlags = animation.UsageFlags;
+						template.AnimationFadeDuration = animation.FadeDuration;
+						template.AnimationClipContainers = animation.ClipContainers;
+							
+						if (animation is HAnimation hAnimation)
+						{
+							template.HAnimationType = hAnimation.Type;
+							template.HAnimationExclusiveTags = hAnimation.ExclusiveTags;
+							template.HAnimationObjectAnimationTag = hAnimation.ObjectAnimationTag;
+							template.HAnimationSupportedClimaxTypes = hAnimation.SupportedClimaxTypes;
+							template.HAnimationArouseActive = hAnimation.ArouseActive;
+							template.HAnimationArousePassive = hAnimation.ArousePassive;
+							template.HAnimationArousalMultiplier = hAnimation.ArousalMultiplier;
+							template.HAnimationCameraPositionOffset = hAnimation.CameraPositionOffset;
+							template.HAnimationCameraAnglesOffset = hAnimation.CameraAnglesOffset;
+							template.HAnimationCameraDistance = hAnimation.CameraDistance;
+							template.HAnimationIdleDefinitions = hAnimation.IdleDefinitions;
+							template.HAnimationNonClimaxClips = hAnimation.NonClimaxClips;
+							template.HAnimationClimaxClips = hAnimation.ClimaxClips;
+							template.HAnimationRaycastDown = hAnimation.RaycastDown;
+							template.HAnimationLookAtPartner = hAnimation.LookAtPartner;
+						}
+					}
+					else
+					{
+						Debug.LogWarning("No IAnimation selected");
 					}
 				}
 				
@@ -660,6 +722,46 @@ namespace Code.Editor.ModEngine
 			}
 						
 			GUILayout.EndHorizontal();
+		}
+		
+		private void cockTargets(Template template)
+		{
+			GUILayout.Space(5);
+
+			template.CockTargets ??= new List<Tuple.SerializableTuple<ECockTarget, Transform>>();
+
+			// unity can you be more hacky than this?
+			var style = EditorStyles.foldout;
+			var previousStyle = style.fontStyle;
+			
+			style.fontStyle = FontStyle.Bold;
+			cockTargetsFold = EditorGUILayout.Foldout(cockTargetsFold, $"{GetLocalizedString("MODCREATOR_BASIC_COCKTARGETS")}*", true);
+			style.fontStyle = previousStyle;
+
+			if (!cockTargetsFold) 
+				return;
+
+			verticalList(template.CockTargets, "List");
+		}
+		
+		private void additionalHumanBodyBones(Template template)
+		{
+			GUILayout.Space(5);
+
+			template.AdditionalHumanBodyBones ??= new List<Tuple.SerializableTuple<EAdditionalHumanBodyBones, Transform>>();
+
+			// unity can you be more hacky than this?
+			var style = EditorStyles.foldout;
+			var previousStyle = style.fontStyle;
+			
+			style.fontStyle = FontStyle.Bold;
+			additionalHumanBodyBonesFold = EditorGUILayout.Foldout(additionalHumanBodyBonesFold, $"{GetLocalizedString("MODCREATOR_BASIC_ADDHUMANBODYBONES")}*", true);
+			style.fontStyle = previousStyle;
+
+			if (!additionalHumanBodyBonesFold) 
+				return;
+
+			verticalList(template.AdditionalHumanBodyBones, "List");
 		}
 
 		private void blendshapes(Template template)

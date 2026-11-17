@@ -7,6 +7,7 @@ using Code.EditorScripts.ModCreator;
 using Code.Frameworks.Animation.Interfaces;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Interfaces;
+using Code.Frameworks.DriverSystem;
 using Code.Frameworks.PhysicsSimulation;
 using Code.Frameworks.Studio.Interfaces;
 using UnityEditor;
@@ -50,6 +51,13 @@ namespace Code.Editor.ModEngine
 				{
 					Debug.LogWarning($"Removing game component {animation}");
 					DestroyImmediate((Component)animation);
+				}
+
+				var driverControllers = gameObject.GetComponentsInChildren<DriverController>();
+				for (var i = 0; i < driverControllers.Length; i++)
+				{
+					var driverController = driverControllers[i];
+					driverController.enabled = false;
 				}
 			}
 		}

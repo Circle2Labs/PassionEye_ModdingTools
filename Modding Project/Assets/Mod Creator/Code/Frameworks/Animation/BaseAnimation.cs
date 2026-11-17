@@ -2,6 +2,7 @@ using System;
 using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Animation.Interfaces;
 using Code.Frameworks.Animation.Structs;
+using Railgun.ModEngine.Types;
 using UnityEngine;
 
 namespace Code.Frameworks.Animation
@@ -9,7 +10,7 @@ namespace Code.Frameworks.Animation
     [Serializable]
 	public class BaseAnimation : MonoBehaviour, IAnimation
 	{
-		protected const bool __metadata = true;
+		public GameObjectMetadata Metadata { get; set; }
 
 		[field: SerializeField]
 		public Sprite Icon { get; set; }

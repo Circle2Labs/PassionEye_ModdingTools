@@ -6,6 +6,7 @@ using Code.Frameworks.Shared.Structs;
 using Code.Frameworks.Studio.Enums;
 using Code.Frameworks.Studio.Interfaces;
 using Code.Tools;
+using Railgun.ModEngine.Types;
 using UnityEngine;
 
 namespace Code.Frameworks.Studio.StudioObjects
@@ -13,7 +14,7 @@ namespace Code.Frameworks.Studio.StudioObjects
 	[Serializable]
 	public class BaseStudioObject : MonoBehaviour, IStudioObject
 	{
-		protected const bool __metadata = true;
+		public GameObjectMetadata Metadata { get; set; }
 		
 		[field: SerializeField]
 		public EStudioObjectType StudioObjectType { get; set; }

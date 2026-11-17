@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Animancer;
+using Code.Frameworks.Animation.Enums;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
 using Code.Frameworks.Character.Structs;
@@ -35,10 +36,21 @@ namespace Code.Frameworks.Character.Interfaces
 		/// Valid accessory parents for this base mesh
 		/// </summary>
 		public List<Tools.Tuple.SerializableTuple<Transform, string>> AccessoryParents { get; set; }
+		
+		/// <summary>
+		/// Additional humanbodybones used for animation IK
+		/// </summary>
+		public List<Tools.Tuple.SerializableTuple<EAdditionalHumanBodyBones, Transform>> AdditionalHumanBodyBones { get; set; }
+		
 		/// <summary>
 		/// Map of textures to their specific renderers and submesh indexes
 		/// </summary>
 		public List<Tools.Tuple.SerializableTuple<ETextureType, Renderer, int>> TextureMaterialMap { get; set; }
+		
+		/// <summary>
+		/// Map of targets for the cock controls
+		/// </summary>
+		public List<Tools.Tuple.SerializableTuple<ECockTarget, Transform>> CockTargets { get; set; }
 		
 		/// <summary>
 		/// Blendshapes that are shown and are editable in the character maker
@@ -96,6 +108,8 @@ namespace Code.Frameworks.Character.Interfaces
         public bool PoseControl { get; set; }
 			
         public bool IsGhost { get; set; }
+        
+        public float FloatingDialogOffset { get; set; }
 
         /// <summary>
         /// Internal IDs of the base mesh rays to be grabbed from the mod file

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Animancer;
 using Code.Frameworks.Animation.Enums;
+using Code.Frameworks.Animation.Structs;
 using Code.Frameworks.H.Enums;
 using UnityEngine;
 
@@ -27,15 +28,15 @@ namespace Code.Frameworks.H.Structs
 		public bool[] RaycastDown;
 		public bool[] LookAtPartner;
 
-		public ITransition[] Idles;                                         //index = participant index
-		public ITransition[] Activities;                                    //index = participant index
+		public STransitionDefinition[] IdleDefinitions;
+		public STransitionDefinition[] ActivityDefinitions;
 
-		public Dictionary<EClimaxType, ITransition[]> ClimaxIdles;          //index (value) = participant index
-		public Dictionary<EClimaxType, ITransition[]> Climaxes;             //index (value) = participant index
-		public Dictionary<EClimaxType, ITransition[]> ClimaxTransitions;    //index (value) = participant index
+		public Dictionary<EClimaxType, STransitionDefinition[]> ClimaxIdleDefinitions;          //index (value) = participant index
+		public Dictionary<EClimaxType, STransitionDefinition[]> ClimaxDefinitions;          //index (value) = participant index
+		public Dictionary<EClimaxType, STransitionDefinition[]> ClimaxTransitionDefinitions;          //index (value) = participant index
 
-		public ITransition[] NonClimaxIdles;                                //index (value) = participant index
-		public ITransition[] NonClimaxes;                                   //index (value) = participant index
-		public ITransition[] NonClimaxTransitions;                          //index (value) = participant index
+		public STransitionDefinition[] NonClimaxIdleDefinitions;
+		public STransitionDefinition[] NonClimaxDefinitions;
+		public STransitionDefinition[] NonClimaxTransitionDefinitions;
 	}
 }
