@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Code.Frameworks.Animation.Enums;
 using Code.EditorScripts.ModCreator;
+using Code.Frameworks.Animation;
+using Code.Frameworks.Animation.Interfaces;
 using Code.Frameworks.Animation.Structs;
 using Code.Frameworks.Character.Enums;
 using Code.Frameworks.Character.Flags;
@@ -536,8 +538,48 @@ namespace Code.Editor.ModEngine
 						var climaxType = climaxTypes[i];
 						
 						tuple.Item1 = climaxType;
-						tuple.Item2 = verticalList(tuple.Item2, $"{GetLocalizedString($"MODCREATOR_BASIC_CLIPS_HCLIMAX_{((EClimaxType)i).ToString().ToUpper()}")}*");
+						tuple.Item2 = verticalList(tuple.Item2, $"{GetLocalizedString($"MODCREATOR_BASIC_CLIPS_HCLIMAX_{climaxType.ToString().ToUpper()}")}*");
 						template.HAnimationClimaxClips[i] = tuple;
+					}
+				}
+				
+				if (!IsStandalone && GUILayout.Button("Read from selected"))
+				{
+					var selected = Selection.activeGameObject;
+					if (selected != null && selected.TryGetComponent<IAnimation>(out var animation))
+					{
+						template.TemplateType = ETemplateType.Animation;
+						template.Name = animation.Name;
+						template.Tags = animation.Tags;
+						template.Icon = animation.Icon;
+						template.Description = animation.Description;
+						template.IsNSFW = animation.IsNSFW;
+						template.AnimationUsageFlags = animation.UsageFlags;
+						template.AnimationFadeDuration = animation.FadeDuration;
+						template.AnimationClipContainers = animation.ClipContainers;
+							
+						if (animation is HAnimation hAnimation)
+						{
+							template.HAnimationType = hAnimation.Type;
+							template.HAnimationExclusiveTags = hAnimation.ExclusiveTags;
+							template.HAnimationObjectAnimationTag = hAnimation.ObjectAnimationTag;
+							template.HAnimationSupportedClimaxTypes = hAnimation.SupportedClimaxTypes;
+							template.HAnimationArouseActive = hAnimation.ArouseActive;
+							template.HAnimationArousePassive = hAnimation.ArousePassive;
+							template.HAnimationArousalMultiplier = hAnimation.ArousalMultiplier;
+							template.HAnimationCameraPositionOffset = hAnimation.CameraPositionOffset;
+							template.HAnimationCameraAnglesOffset = hAnimation.CameraAnglesOffset;
+							template.HAnimationCameraDistance = hAnimation.CameraDistance;
+							template.HAnimationIdleDefinitions = hAnimation.IdleDefinitions;
+							template.HAnimationNonClimaxClips = hAnimation.NonClimaxClips;
+							template.HAnimationClimaxClips = hAnimation.ClimaxClips;
+							template.HAnimationRaycastDown = hAnimation.RaycastDown;
+							template.HAnimationLookAtPartner = hAnimation.LookAtPartner;
+						}
+					}
+					else
+					{
+						Debug.LogWarning("No IAnimation selected");
 					}
 				}
 				
